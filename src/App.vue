@@ -1,41 +1,54 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import HelloWorld from './components/HelloWorld.vue'
+// import HelloWorld from './components/HelloWorld.vue'
+import ComicDisplay from "./components/ComicDisplay.vue"
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import type { AppRouter } from './server/router';
+import { store } from './store';
 
 const trpcTest = ref("")
+// const imgSrc = ref("")
+
+const resizeFunc = () => {
+  store.screenW = window.innerWidth
+  store.screenH = window.innerHeight
+  console.log(store.screenW,store.screenH)
+}
 
 onMounted(async () => {
   const client = createTRPCProxyClient<AppRouter>({
     links: [
       httpBatchLink({
         url: 'http://localhost:3006/trpc',
-      },),
-    ]
+      })
+    ],
+    transformer: undefined
   })
-  const withoutInputQuery = await client.hello.greeting.query();
+  const withoutInputQuery = await client.main.greeting.query();
   trpcTest.value += withoutInputQuery + "\n"
   console.log(withoutInputQuery);
 
-  const withInputQuery = await client.hello.greeting.query({ name: 'Alex' });
+  const withInputQuery = await client.main.greeting.query({ name: 'Alex' });
   trpcTest.value += withInputQuery + "\n"
   console.log(withInputQuery);
+
+  let url = '//192.168.123.3/藏经阁/exhentai/[衣一] 秘密 14-18.zip'
+  const zipTest = await client.main.testZip.mutate({ url: url })
+  console.log(zipTest)
+
+  const imgData = await client.main.getZipImg.mutate({ url: url, orderNO: 0 })
+  store.canvasB64 = 'data:image/png;base64,' + btoa(new Uint8Array((<any>imgData).data).reduce((res, byte) => res + String.fromCharCode(byte), ''))
+
+  resizeFunc()
+  window.addEventListener("resize", () => {
+    resizeFunc()
+  })
 })
 
 </script>
 
 <template>
-  <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
-  </div>
-  <HelloWorld msg="Vite + Vue" />
-  <div class="trpc">{{ trpcTest }}</div>
+  <ComicDisplay></ComicDisplay>
 </template>
 
 <style scoped>

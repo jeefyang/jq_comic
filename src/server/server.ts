@@ -2,11 +2,12 @@ import express from "express"
 import { createExpressMiddleware } from '@trpc/server/adapters/express';
 import { appRouter } from './router';
 import cors from "cors"
-import * as streamZip from "node-stream-zip"
 
-console.log(streamZip)
+console.log("start!")
 const app = express()
 app.use(cors())
+
+// readZip("./server_data/1.zip")
 
 app.use('/trpc', createExpressMiddleware({
     router: appRouter,
