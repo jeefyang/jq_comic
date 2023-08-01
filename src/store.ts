@@ -17,9 +17,26 @@ export const store = reactive({
     curImgW: <number>0,
     /** 当前图片高度 */
     curImgH: <number>0,
+    /** 图片显示的宽度 */
+    displayImgW: <number>0,
+    /** 图片显示的高度 */
+    displayImgH: <number>0,
     /** 当前画布位置X */
     curCanvasX: <number>0,
     /** 当前画布位置Y */
-    curCanvasY: <number>-100,
-
+    curCanvasY: <number>0,
+    /** div浮动宽度比例 */
+    divFloatWRatio: <number>0.01,
+    /** div浮动高度比例 */
+    divFloatHRatio: <number>0.01,
+    /** div浮动位置上 */
+    divFloatTop: <number>0,
+    /** div浮动位置左 */
+    divFloatLeft: <number>0,
+    /** div浮动宽度 */
+    divFloatW: <number>0,
+    /** div浮动高度 */
+    divFloatH: <number>0,
+    /** 尺寸适应 */
+    adaptSize: <"width" | "none" | "height" | "fit">"fit"
 })
