@@ -96,9 +96,20 @@ export class JZipChild {
     /** 通过排列顺序获取文件内容 */
     async getFileByNo(num: number) {
         let child = this.entryList[num]
+        if (!child) {
+            return null
+        }
         let file = await this.obj.entryData(child.data.name)
         return file
     }
+
+    /** 通过名字获取文件内容 */
+    async getFileByName(name: string) {
+        let file = await this.obj.entryData(name)
+        return file
+    }
+
+
 
 
 }

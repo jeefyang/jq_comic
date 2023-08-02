@@ -3,8 +3,10 @@ import { onMounted } from 'vue';
 // import HelloWorld from './components/HelloWorld.vue'
 import ComicDisplay from "./components/ComicDisplay.vue"
 import ComicControl from "./components/ComicControl.vue"
+import FileManager from "./components/FileManager.vue"
 
 import { store } from './store';
+import { jserver } from './tool/serverLink'
 
 // const imgSrc = ref("")
 
@@ -19,8 +21,11 @@ const resizeFunc = () => {
 }
 
 onMounted(async () => {
-
-
+  await jserver.init()
+  await jserver.test()
+  await jserver.testFolder()
+  store.isServerCompleted = true
+  store.displayFileManager=true
   resizeFunc()
   window.addEventListener("resize", () => {
     resizeFunc()
@@ -30,8 +35,11 @@ onMounted(async () => {
 </script>
 
 <template>
-  <ComicDisplay></ComicDisplay>
-  <ComicControl></ComicControl>
+  <div v-if="store.isServerCompleted">
+    <ComicDisplay></ComicDisplay>
+    <ComicControl></ComicControl>
+    <FileManager v-if="store.displayFileManager"></FileManager>
+  </div>
 </template>
 
 <style scoped>

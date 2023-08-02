@@ -38,5 +38,9 @@ export const store = reactive({
     /** div浮动高度 */
     divFloatH: <number>0,
     /** 尺寸适应 */
-    adaptSize: <"width" | "none" | "height" | "fit">"fit"
+    adaptSize: <"width" | "none" | "height" | "fit">"fit",
+    /** 是否打开文件管理 */
+    displayFileManager: <boolean>false,
+    /** 服务器是否连接成功 */
+    isServerCompleted: <boolean>false
 })

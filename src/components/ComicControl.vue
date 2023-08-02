@@ -2,15 +2,11 @@
 // import { onMounted, watch, ref } from "vue";
 import { onMounted } from "vue";
 import { store } from "../store"
-import { JserverLink } from "../tool/serverLink"
+import { jserver } from "../tool/serverLink"
 import { jImgScroll } from "../tool/imgScroll"
 
-const client = new JserverLink()
+
 onMounted(async () => {
-
-    client.init()
-    await client.test()
-
 
     document.body.addEventListener("mousemove", (e) => {
         jImgScroll.setMouseMove(e.clientX, e.clientY)
@@ -23,7 +19,7 @@ onMounted(async () => {
 
 let setNext = () => {
     console.log("next")
-    client.setNextImg()
+    jserver.setNextImg()
 }
 
 let setMouseDown = (e: MouseEvent) => {
