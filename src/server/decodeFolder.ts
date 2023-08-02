@@ -15,12 +15,14 @@ export function decodeFolder(baseUrl: string, url: string) {
     catch (e) {
         return
     }
+    console.log(baseUrl,url)
     let files = fs.readdirSync(newUrl)
+    
     let obj: JFolderDisplayType = {
         files: [],
         folders: [],
         url: url,
-        name: path.dirname(newUrl)
+        name: newUrl.split(path.sep).reverse()[0]
     }
     for (let i = 0; i < files.length; i++) {
         let file = files[i]

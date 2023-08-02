@@ -42,5 +42,7 @@ export const store = reactive({
     /** 是否打开文件管理 */
     displayFileManager: <boolean>false,
     /** 服务器是否连接成功 */
-    isServerCompleted: <boolean>false
+    isServerCompleted: <boolean>false,
+    /** 当前正在搜索的1文件夹路径 */
+    curDirUrl: <string>""
 })

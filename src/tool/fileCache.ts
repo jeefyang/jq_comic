@@ -1,5 +1,6 @@
 import { JFolderDisplayType } from "../type";
 import { JserverLink } from "../tool/serverLink"
+import { store } from "../store"
 
 class JFileCache {
 
@@ -11,7 +12,16 @@ class JFileCache {
     }
 
     init(server: JserverLink) {
-        this.server=server
+        this.server = server
+    }
+
+    async getFolder(url: string) {
+        store.curDirUrl = url
+        if (this.cache[url]) {
+            return this.cache[url]
+        }
+        let obj = await this.server.getFolder(url)
+        return obj
     }
 }
 

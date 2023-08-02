@@ -2,6 +2,7 @@
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import type { AppRouter } from '../server/router';
 import { store } from '../store'
+import path from "path-browserify"
 
 export class JserverLink {
 
@@ -25,9 +26,10 @@ export class JserverLink {
     async test() {
         let baseUrl = "//192.168.123.3/藏经阁"
         await this.client.main.setBaseUrl.query({ baseUrl: baseUrl })
-
         store.fileUrl = 'exhentai/[衣一] 秘密 14-18.zip'
-
+        let arr = store.fileUrl.split(path.sep)
+        arr = arr.slice(0, arr.length - 1)
+        store.curDirUrl = arr.join(path.sep)
         const zipTest = await this.client.main.testZip.mutate({ url: store.fileUrl })
         console.log(zipTest)
 
@@ -45,8 +47,13 @@ export class JserverLink {
     /** 测试文件夹 */
     async testFolder() {
         let url = "115Trans"
-        let obj = await this.client.main.getFolder.mutate({ url })
+        let obj = this.getFolder(url)
         console.log(obj)
+    }
+
+    async getFolder(url: string) {
+        let obj = await this.client.main.getFolder.mutate({ url })
+        return obj
     }
 }
 

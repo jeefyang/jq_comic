@@ -7,6 +7,7 @@ import FileManager from "./components/FileManager.vue"
 
 import { store } from './store';
 import { jserver } from './tool/serverLink'
+import { jFileCache } from './tool/fileCache';
 
 // const imgSrc = ref("")
 
@@ -23,9 +24,10 @@ const resizeFunc = () => {
 onMounted(async () => {
   await jserver.init()
   await jserver.test()
-  await jserver.testFolder()
+  jFileCache.init(jserver)
+  // await jserver.testFolder()
   store.isServerCompleted = true
-  store.displayFileManager=true
+  store.displayFileManager = true
   resizeFunc()
   window.addEventListener("resize", () => {
     resizeFunc()
@@ -40,6 +42,11 @@ onMounted(async () => {
     <ComicControl></ComicControl>
     <FileManager v-if="store.displayFileManager"></FileManager>
   </div>
+  <!-- 测试 -->
+  <!-- <div>hello</div>
+  <icon class="iconfont icon-zip" type="success|success_no_circle|info|warn|waiting|cancel|download|search|clear"
+    size="23" color="">
+  </icon> -->
 </template>
 
 <style scoped>

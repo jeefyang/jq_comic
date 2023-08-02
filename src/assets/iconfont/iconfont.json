@@ -1,0 +1,86 @@
+{
+  "id": "4194875",
+  "name": "test",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "1118",
+      "name": "文件",
+      "font_class": "wenjian",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "1126",
+      "name": "文件夹",
+      "font_class": "wenjianjia",
+      "unicode": "e601",
+      "unicode_decimal": 58881
+    },
+    {
+      "icon_id": "622432",
+      "name": "zip",
+      "font_class": "zip",
+      "unicode": "e741",
+      "unicode_decimal": 59201
+    },
+    {
+      "icon_id": "4893193",
+      "name": "BMP",
+      "font_class": "BMP",
+      "unicode": "ec17",
+      "unicode_decimal": 60439
+    },
+    {
+      "icon_id": "4893194",
+      "name": "GIF",
+      "font_class": "GIF",
+      "unicode": "ec18",
+      "unicode_decimal": 60440
+    },
+    {
+      "icon_id": "4893195",
+      "name": "JPG",
+      "font_class": "JPG",
+      "unicode": "ec19",
+      "unicode_decimal": 60441
+    },
+    {
+      "icon_id": "4893196",
+      "name": "PNG",
+      "font_class": "PNG",
+      "unicode": "ec1a",
+      "unicode_decimal": 60442
+    },
+    {
+      "icon_id": "6233075",
+      "name": "AVI图标",
+      "font_class": "AVItubiao",
+      "unicode": "e63c",
+      "unicode_decimal": 58940
+    },
+    {
+      "icon_id": "6233084",
+      "name": "MP4图标",
+      "font_class": "MPtubiao",
+      "unicode": "e63f",
+      "unicode_decimal": 58943
+    },
+    {
+      "icon_id": "10135316",
+      "name": "webm",
+      "font_class": "webm",
+      "unicode": "e8c2",
+      "unicode_decimal": 59586
+    },
+    {
+      "icon_id": "12600960",
+      "name": "webp",
+      "font_class": "webp",
+      "unicode": "e671",
+      "unicode_decimal": 58993
+    }
+  ]
+}
