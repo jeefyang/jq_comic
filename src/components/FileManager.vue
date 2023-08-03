@@ -15,8 +15,13 @@ const themeVars: ConfigProviderThemeVars = {
 
 const urlList = ref(<string[]>["."])
 // urlList.value = [...urlList.value, ...store.curDirUrl.split('/')]
-const fileList = ref(<{ className: string, name: string, title: string, type: "folder" | "file", index: number, originName: string }[]>[])
+const fileList = ref(<{ className: string, name: string, title: string, type: "folder" | "file", index: number, originName: string, time: number, size?: number }[]>[])
 let folderObj: JFolderDisplayType = null
+let folderObjList: typeof fileList.value = []
+let fileObjList: typeof fileList.value = []
+
+let isReveser = false
+let sortType = ref(<"名称" | "日期" | "大小">"名称")
 
 onMounted(async () => {
     let url = "115Trans"
@@ -24,13 +29,60 @@ onMounted(async () => {
     return
 })
 
+/** 设置排序大法 */
+let setSortFunc = () => {
+    [folderObjList, fileObjList].forEach(child => {
+        switch (sortType.value) {
+            case "名称":
+                child.sort((a, b) => a.name > b.name ? 1 : -1)
+                break
+            case "大小":
+                child.sort((a, b) => {
+                    if (!a.size || !b.size) {
+                        return a.name > b.name ? 1 : -1
+                    }
+                    return a.size > b.size ? 1 : -1
+                })
+                break
+            case "日期":
+                child.sort((a, b) => a.time > b.time ? 1 : -1)
+                break
+        }
+        if (isReveser) {
+            child.reverse()
+        }
+    })
+    fileList.value = [...folderObjList, ...fileObjList]
+    console.log(fileObjList)
+}
+
+/** 设置排序类型大法 */
+let setSortTypeFunc = () => {
+    let map: (typeof sortType.value)[] = ["名称", "大小", "日期"]
+    let index = map.indexOf(sortType.value)
+    index++
+    if (index >= map.length) {
+        index = 0
+    }
+    sortType.value = map[index]
+    setSortFunc()
+}
+
+
 let updateFolderFunc = async (url: string) => {
     folderObj = await jFileCache.getFolder(url)
-    console.log(folderObj)
     urlList.value = ['.', ...store.curDirUrl.split(path.sep)]
-    let folderObjList: typeof fileList.value = []
+    folderObjList = []
     for (let i = 0; i < folderObj.folders.length; i++) {
-        folderObjList.push({ name: folderObj.folders[i].name.slice(0, store.displayFileTextCount), className: "iconfont icon-wenjianjia", title: folderObj.folders[i].name, type: "folder", index: i, originName: folderObj.folders[i].name })
+        folderObjList.push({
+            name: folderObj.folders[i].name.slice(0, store.displayFileTextCount),
+            className: "iconfont icon-wenjianjia",
+            title: folderObj.folders[i].name,
+            type: "folder",
+            index: i,
+            originName: folderObj.folders[i].name,
+            time: folderObj.folders[i].mtime
+        })
     }
     let map: { [propName: string]: string } = {
         "zip": "icon-zip",
@@ -43,19 +95,29 @@ let updateFolderFunc = async (url: string) => {
         "webp": "icon-webm",
         "apng": "icon-PNG",
     }
-    let fileObjList: typeof fileList.value = []
+    fileObjList = []
     for (let i = 0; i < folderObj.files.length; i++) {
         let file = folderObj.files[i]
         let className = map[file.exName]
         if (!className) {
             className = "icon-wenjian"
         }
-        fileObjList.push({ name: file.name.slice(0, store.displayFileTextCount), className: `iconfont ${className}`, title: file.name, type: "file", index: i, originName: file.name })
+        fileObjList.push({
+            name: file.name.slice(0, store.displayFileTextCount),
+            className: `iconfont ${className}`,
+            title: file.name,
+            type: "file",
+            index: i,
+            originName: file.name,
+            size: file.size,
+            time: file.mtime
+        })
     }
-    fileList.value = [...folderObjList, ...fileObjList]
+    setSortFunc()
     return
 }
 
+/** 选中文件大法(包括) */
 let selectFileFunc = async (item: (typeof fileList.value)[number]) => {
     console.log(item.type, item.index)
     if (item.type == "folder") {
@@ -65,7 +127,17 @@ let selectFileFunc = async (item: (typeof fileList.value)[number]) => {
     return
 }
 
-let selectFolderFunc = async (index: number) => {
+/** 通过序号回退文件夹大法 */
+let rebackFolderFuncByIndex = async (index: number) => {
+
+    if (index == -1) {
+        index = urlList.value.length - 2
+    }
+    if (index <= 0) {
+        console.log('不能再退了')
+        return
+    }
+
     let arr = urlList.value.slice(1, index + 1) || [""]
     console.log(arr)
     let newUrl = path.join(...arr)
@@ -73,17 +145,47 @@ let selectFolderFunc = async (index: number) => {
     return
 }
 
-let fallbackSelectFolderFunc = async () => {
-    if (urlList.value.length <= 1) {
-        console.log('不能再退了')
-        return
-    }
-    await selectFolderFunc(urlList.value.length - 2)
-    return
-}
 
+
+/** 强制停止冒泡 */
 let stopBubbleFunc = (e: MouseEvent) => {
     e.stopPropagation()
+}
+
+/** 获取文件大小大法 */
+let getSizeStrFunc = (size: number) => {
+    return (size / 1024 / 1024).toFixed(2) + 'MB'
+}
+
+/** 获取时间大法 */
+let getDateStrFunc = (ms: number) => {
+    let date = new Date(ms)
+    let y = date.getFullYear()
+    y = y >= 2000 ? (y - 2000) : y
+    let m = date.getMonth() + 1
+    let mstr = m >= 10 ? m : `0${m}`
+    let d = date.getDate()
+    let dstr = d >= 10 ? d : `0${d}`
+    let h = date.getHours()
+    let apm = h >= 12 ? "pm" : "am"
+    if (h > 12) {
+        h -= 12
+    }
+    let hstr = h >= 10 ? h : `0${h}`
+    let min = date.getMinutes()
+    let minstr = min >= 10 ? min : `0${min}`
+    return `${y}-${mstr}-${dstr} ${apm}:${hstr}:${minstr}`
+}
+
+let setIconTypeFunc = () => {
+    let map: (typeof store.displayFileStyleType)[] = ["icon", "detail"]
+    let index = map.indexOf(store.displayFileStyleType)
+    index++
+    if (index >= map.length) {
+        index = 0
+    }
+    let key = map[index]
+    store.displayFileStyleType = key
 }
 
 </script>
@@ -100,14 +202,15 @@ let stopBubbleFunc = (e: MouseEvent) => {
                 <!-- 路径展示 -->
                 <div class="file_path_div">
                     <van-Button v-for="(item, index) in urlList" type="default" :title="item"
-                        @click="selectFolderFunc(index)">{{
+                        @click="rebackFolderFuncByIndex(index)">{{
                             item }} </van-Button>
                 </div>
                 <!-- 功能键 -->
                 <div class="file_op_div">
-                    <van-Button @click="fallbackSelectFolderFunc">后退</van-Button>
-                    <van-Button>图标</van-Button>
-                    <van-Button>排序</van-Button>
+                    <van-Button @click="rebackFolderFuncByIndex(-1)">后退</van-Button>
+                    <van-Button @click="setIconTypeFunc">图标</van-Button>
+                    <van-Button @click="setSortTypeFunc()">排序:{{ sortType }}</van-Button>
+                    <van-Button @click="isReveser = !isReveser; setSortFunc()">反序</van-Button>
                     <van-Button @click="store.displayFileManager = false">关闭</van-Button>
                 </div>
             </div>
@@ -134,8 +237,15 @@ let stopBubbleFunc = (e: MouseEvent) => {
                                             rows="1" @click="selectFileFunc(item)" @click-action="stopBubbleFunc" />
                                     </div>
                                     <div class="file_display_icon_detail_op_div">
-                                        <div>xx</div>
+                                        <div v-if="item.type == 'file'" class="file_display_icon_detail_op_size_div">
+                                            {{ getSizeStrFunc(item.size) }}</div>
+                                        <!-- 为了让ui对齐 -->
+                                        <div v-if="item.type == 'folder'" class="file_display_icon_detail_op_size_div">
+                                        </div>
+                                        <div class="file_display_icon_detail_op_date_div">{{ getDateStrFunc(item.time) }}
+                                        </div>
                                     </div>
+
                                 </div>
 
                             </div>
@@ -228,5 +338,22 @@ let stopBubbleFunc = (e: MouseEvent) => {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
+}
+
+.file_display_icon_detail_op_size_div {
+    text-align: start;
+    transform: scale(0.8);
+    color: #555555;
+}
+
+.file_display_icon_detail_op_date_div {
+    text-align: end;
+    transform: scale(0.8);
+    color: #555555;
+}
+
+.file_display_icon_detail_op_div {
+    display: flex;
+    justify-content: space-between;
 }
 </style>
