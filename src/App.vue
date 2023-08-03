@@ -12,13 +12,16 @@ import { jFileCache } from './tool/fileCache';
 // const imgSrc = ref("")
 
 const resizeFunc = () => {
-  store.screenW = window.innerWidth
-  store.screenH = window.innerHeight
+  store.screenW = document.body.clientWidth
+  store.screenH = document.body.clientHeight
+  console.log(store.screenW, store.screenH)
   store.divFloatLeft = store.screenW * store.divFloatWRatio
   store.divFloatW = store.screenW - (store.divFloatLeft * 2)
   store.divFloatTop = store.screenH * store.divFloatHRatio
   store.divFloatH = store.screenH - (store.divFloatTop * 2)
-
+  store.displayFileCol = Math.floor(store.screenW / 150) + 2
+  store.displayFileIconSize = Math.floor(store.screenW / 25) + 20
+  store.displayFileTextCount = Math.floor(store.screenW / 100) + 5
 }
 
 onMounted(async () => {
@@ -42,11 +45,11 @@ onMounted(async () => {
     <ComicControl></ComicControl>
     <FileManager v-if="store.displayFileManager"></FileManager>
   </div>
+
   <!-- 测试 -->
-  <!-- <div>hello</div>
-  <icon class="iconfont icon-zip" type="success|success_no_circle|info|warn|waiting|cancel|download|search|clear"
-    size="23" color="">
-  </icon> -->
+  <!-- <van-grid :gutter="10" style="{overflow:auto;}">
+    <van-grid-item v-for="value in 300" :key="value" icon="photo-o" text="文字" />
+  </van-grid> -->
 </template>
 
 <style scoped>

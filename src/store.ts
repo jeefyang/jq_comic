@@ -44,5 +44,13 @@ export const store = reactive({
     /** 服务器是否连接成功 */
     isServerCompleted: <boolean>false,
     /** 当前正在搜索的1文件夹路径 */
-    curDirUrl: <string>""
+    curDirUrl: <string>"",
+    /** 显示文件列数 */
+    displayFileCol: <number>1,
+    /** 显示文件名的字数 */
+    displayFileTextCount: <number>10,
+    /** 显示文件图标尺寸 */
+    displayFileIconSize: <number>20,
+    /** 显示文件的样式(图标,详细) */
+    displayFileStyleType: <"icon" | "detail">"detail"
 })

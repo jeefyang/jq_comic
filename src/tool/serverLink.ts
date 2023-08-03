@@ -16,7 +16,7 @@ export class JserverLink {
         this.client = createTRPCProxyClient<AppRouter>({
             links: [
                 httpBatchLink({
-                    url: 'http://localhost:3006/trpc',
+                    url: 'http://192.168.123.120:3006/trpc',
                 })
             ],
             transformer: undefined

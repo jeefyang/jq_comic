@@ -46,8 +46,8 @@ let setWheel = (e: WheelEvent) => {
 
 <style scoped>
 .control_scroll_div {
-    /* width: 100%;
-    height: 100%; */
+    width: 100%;
+    height: 100%;
     position: absolute;
     overflow: hidden;
     /* background-color: #35a9a982; */

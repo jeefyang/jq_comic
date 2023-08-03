@@ -7,7 +7,8 @@ export default defineConfig({
     // 原始
     plugins: [vue()],
     server: {
+        host: "192.168.123.120",
         port: 3005
     },
-  
+
 })

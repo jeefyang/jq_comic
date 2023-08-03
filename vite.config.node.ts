@@ -7,6 +7,7 @@ import { VitePluginNode } from "vite-plugin-node"
 // https://vitejs.dev/config/
 export default defineConfig({
     server: {
+        host:"192.168.123.120",
         port: 3006,
         cors: true
     },
