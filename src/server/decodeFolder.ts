@@ -1,9 +1,22 @@
 import path from "path"
-import { JFileDisplayType, JFolderDisplayType } from "../type"
+import { JFileDisplayType, JFileFormatType, JFolderDisplayType } from "../type"
 import fs from "fs"
 
 export function decodeFolder(baseUrl: string, url: string) {
-    let exNameList = ["jpg", "jpeg", "bmp", "png", "webp", "apng", "gif", "mp4", "avi", "webm", "zip", "mkv"]
+    let exNameList: JFileFormatType[] = [
+        "zip",
+        "gif",
+        "bmp",
+        "jpg",
+        "jpeg",
+        "png",
+        "apng",
+        "webp",
+        "avi",
+        "mp4",
+        "mkv",
+        "webm",
+    ]
     let newUrl = path.join(baseUrl, url)
     let stat: fs.Stats
     try {
@@ -38,7 +51,7 @@ export function decodeFolder(baseUrl: string, url: string) {
         let exName = path.extname(file)
         exName = exName.replace(".", "")
         exName = exName.toLocaleLowerCase()
-        if (!exNameList.includes(exName)) {
+        if (exNameList.findIndex(c => c == exName) == -1) {
             continue
         }
         stat.blksize

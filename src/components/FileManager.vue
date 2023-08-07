@@ -3,7 +3,7 @@ import { store } from "../store"
 import { jFileCache } from "../tool/fileCache";
 import { onMounted, ref } from "vue";
 import type { ConfigProviderThemeVars } from 'vant';
-import { JFolderDisplayType } from "../type";
+import { JFileFormatType, JFolderDisplayType } from "../type";
 import path from "path-browserify"
 
 
@@ -15,19 +15,21 @@ const themeVars: ConfigProviderThemeVars = {
 
 const urlList = ref(<string[]>["."])
 // urlList.value = [...urlList.value, ...store.curDirUrl.split('/')]
-const fileList = ref(<{ className: string, name: string, title: string, type: "folder" | "file", index: number, originName: string, time: number, size?: number }[]>[])
+const fileList = ref(<{ className: string, name: string, title: string, type: "folder" | "file", index: number, originName: string, time: number, size?: number, exname?: string }[]>[])
 let folderObj: JFolderDisplayType = null
 let folderObjList: typeof fileList.value = []
 let fileObjList: typeof fileList.value = []
 
 let isReveser = false
 let sortType = ref(<"名称" | "日期" | "大小">"名称")
+let searchKey = ref(<string>"")
 
 onMounted(async () => {
     let url = "115Trans"
     await updateFolderFunc(url)
     return
 })
+
 
 /** 设置排序大法 */
 let setSortFunc = () => {
@@ -52,8 +54,16 @@ let setSortFunc = () => {
             child.reverse()
         }
     })
-    fileList.value = [...folderObjList, ...fileObjList]
-    console.log(fileObjList)
+    let list = [...folderObjList, ...fileObjList]
+    if (searchKey) {
+        let reg = new RegExp(searchKey.value, "i")
+        list = list.filter(c => {
+            let index = c.originName.search(reg)
+            return index != -1
+        })
+    }
+    fileList.value = list
+    console.log(list)
 }
 
 /** 设置排序类型大法 */
@@ -84,16 +94,20 @@ let updateFolderFunc = async (url: string) => {
             time: folderObj.folders[i].mtime
         })
     }
-    let map: { [propName: string]: string } = {
+    let map: { [propName in JFileFormatType]: string }
+        = {
         "zip": "icon-zip",
         "gif": "icon-GIF",
         "bmp": "icon-BMP",
         "jpg": "icon-JPG",
         "jpeg": "icon-JPG",
         "png": "icon-PNG",
-        "avi": "icon-AVItubiao",
-        "webp": "icon-webm",
         "apng": "icon-PNG",
+        "webp": "icon-webm",
+        "avi": "icon-AVItubiao",
+        "mp4": 'icon-mp',
+        "mkv": "icon-mkv",
+        "webm": "icon-webm"
     }
     fileObjList = []
     for (let i = 0; i < folderObj.files.length; i++) {
@@ -110,7 +124,8 @@ let updateFolderFunc = async (url: string) => {
             index: i,
             originName: file.name,
             size: file.size,
-            time: file.mtime
+            time: file.mtime,
+            exname: file.exName
         })
     }
     setSortFunc()
@@ -120,20 +135,27 @@ let updateFolderFunc = async (url: string) => {
 /** 选中文件大法(包括) */
 let selectFileFunc = async (item: (typeof fileList.value)[number]) => {
     console.log(item.type, item.index)
+    searchKey.value = ""
     if (item.type == "folder") {
         let newUrl: string = path.join(store.curDirUrl, item.originName)
         await updateFolderFunc(newUrl)
+    }
+    if (item.type == "file" && item.exname == "zip") {
+        let newUrl: string = path.join(store.curDirUrl, item.originName)
+        store.fileUrl = newUrl
+        jFileCache.openZip(newUrl)
+        store.displayFileManager = false
     }
     return
 }
 
 /** 通过序号回退文件夹大法 */
 let rebackFolderFuncByIndex = async (index: number) => {
-
+    console.log(index)
     if (index == -1) {
         index = urlList.value.length - 2
     }
-    if (index <= 0) {
+    if (index < 0) {
         console.log('不能再退了')
         return
     }
@@ -198,22 +220,23 @@ let setIconTypeFunc = () => {
         <!-- 浮动层 -->
 
         <div class="file_box_div">
-            <div class="file_topbar_box_div">
-                <!-- 路径展示 -->
+            <!-- 路径展示 -->
+            <div>
                 <div class="file_path_div">
-                    <van-Button v-for="(item, index) in urlList" type="default" :title="item"
-                        @click="rebackFolderFuncByIndex(index)">{{
-                            item }} </van-Button>
-                </div>
-                <!-- 功能键 -->
-                <div class="file_op_div">
-                    <van-Button @click="rebackFolderFuncByIndex(-1)">后退</van-Button>
-                    <van-Button @click="setIconTypeFunc">图标</van-Button>
-                    <van-Button @click="setSortTypeFunc()">排序:{{ sortType }}</van-Button>
-                    <van-Button @click="isReveser = !isReveser; setSortFunc()">反序</van-Button>
-                    <van-Button @click="store.displayFileManager = false">关闭</van-Button>
+                    <input placeholder="搜索" class="file_search_input" @change="setSortFunc" v-model="searchKey" />
+                    <button v-for="(item, index) in urlList" :title="item" @click="rebackFolderFuncByIndex(index)">{{
+                        item }} </button>
                 </div>
             </div>
+            <!-- 功能键 -->
+            <div class="file_op_div">
+                <van-Button @click="rebackFolderFuncByIndex(-1)">后退</van-Button>
+                <van-Button @click="setIconTypeFunc">图标</van-Button>
+                <van-Button @click="setSortTypeFunc()">排序:{{ sortType }}</van-Button>
+                <van-Button @click="isReveser = !isReveser; setSortFunc()">反序</van-Button>
+                <van-Button @click="store.displayFileManager = false">关闭</van-Button>
+            </div>
+
             <!-- 文件显示大框 -->
             <div class="file_display_box_div">
                 <van-config-provider :theme-vars="themeVars">
@@ -296,6 +319,8 @@ let setIconTypeFunc = () => {
     width: 90%;
     height: 90%;
     background-color: #6e1e1e6e;
+    display: flex;
+    flex-direction: column;
 }
 
 .pathList {
@@ -303,14 +328,13 @@ let setIconTypeFunc = () => {
     /* width: 100%; */
 }
 
-.file_topbar_box_div {
-    height: 15%;
-}
+
 
 .file_path_div {
     display: flex;
-    overflow-x: scroll;
+    overflow-x: auto;
     overflow-y: hidden;
+    white-space: nowrap;
 }
 
 .file_op_div {
@@ -322,14 +346,17 @@ let setIconTypeFunc = () => {
 }
 
 .file_display_box_div {
-
     overflow: auto;
     width: 100%;
-    height: 85%;
+    flex-grow: 1;
 }
 
 .file_display_icon_detail_div {
     display: flex;
+}
+
+.file_search_input {
+    width: 100px;
 }
 
 .file_display_icon_detail_name_div {}
@@ -343,13 +370,13 @@ let setIconTypeFunc = () => {
 .file_display_icon_detail_op_size_div {
     text-align: start;
     transform: scale(0.8);
-    color: #555555;
+    color: #bbbbbb;
 }
 
 .file_display_icon_detail_op_date_div {
     text-align: end;
     transform: scale(0.8);
-    color: #555555;
+    color: #bbbbbb;
 }
 
 .file_display_icon_detail_op_div {

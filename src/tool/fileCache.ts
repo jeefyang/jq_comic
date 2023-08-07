@@ -31,6 +31,26 @@ class JFileCache {
     //     await this.getFolder(newUrl)
     //     return
     // }
+
+    /** 打开压缩包 */
+    async openZip(url: string, index: number = 0) {
+        store.fileUrl = url
+        let arr = store.fileUrl.split(path.sep)
+        arr = arr.slice(0, arr.length - 1)
+        store.curDirUrl = arr.join(path.sep)
+        store.curNo = index
+        let zipData = await this.server.client.main.getZipMsg.mutate({ url: store.fileUrl })
+        store.imgCount = zipData.list.length
+        console.log(store.imgCount)
+        const imgData = await this.server.client.main.getZipFile.mutate({ url: store.fileUrl, orderNO: store.curNo })
+        if (!imgData) {
+            store.canvasB64 = ""
+        }
+        else {
+            store.canvasB64 = 'data:image/png;base64,' + btoa(new Uint8Array((<any>imgData).data).reduce((res, byte) => res + String.fromCharCode(byte), ''))
+        }
+
+    }
 }
 
 export let jFileCache = new JFileCache()

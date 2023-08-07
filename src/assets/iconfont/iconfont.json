@@ -6,6 +6,27 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "10135287",
+      "name": "navi",
+      "font_class": "navi",
+      "unicode": "e8bc",
+      "unicode_decimal": 59580
+    },
+    {
+      "icon_id": "10135251",
+      "name": "mkv",
+      "font_class": "mkv",
+      "unicode": "e8b5",
+      "unicode_decimal": 59573
+    },
+    {
+      "icon_id": "10135255",
+      "name": "mp4",
+      "font_class": "mp",
+      "unicode": "e8b7",
+      "unicode_decimal": 59575
+    },
+    {
       "icon_id": "1118",
       "name": "文件",
       "font_class": "wenjian",

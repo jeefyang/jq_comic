@@ -1,12 +1,58 @@
 <script setup lang="ts">
-// import { onMounted, watch, ref } from "vue";
-import { onMounted } from "vue";
+import { onMounted, ref } from "vue";
 import { store } from "../store"
 import { jserver } from "../tool/serverLink"
 import { jImgScroll } from "../tool/imgScroll"
+import { newHammer } from "../tool/util"
 
-
+const bigDivRef = ref(<HTMLDivElement>null)
+const leftDivRef = ref(<HTMLDivElement>null)
+const rightDivRef = ref(<HTMLDivElement>null)
+const topBarDivRef = ref(<HTMLDivElement>null)
+const bottomBarDivRef = ref(<HTMLDivElement>null)
+const centerOPDivRef = ref(<HTMLDivElement>null)
 onMounted(async () => {
+
+    let bigDiv = bigDivRef.value
+    let leftDiv = leftDivRef.value
+    let rightDiv = rightDivRef.value
+    let topBarDiv = topBarDivRef.value
+    let bottomBarDiv = bottomBarDivRef.value
+    let centerOPDiv = centerOPDivRef.value
+
+
+    newHammer(bigDiv).on(["press"], (e) => {
+        console.log(e)
+        setNext()
+    })
+
+    newHammer(leftDiv).on("tap", (e) => {
+        console.log(e)
+        console.log(store.curNo)
+        setLeftClickFunc()
+    })
+
+    newHammer(rightDiv).on("press", (e) => {
+        console.log(e)
+        setRightClickFunc()
+    })
+
+    newHammer(topBarDiv).on("tap", (_e) => {
+        store.displayFileManager = true
+    })
+
+    newHammer(bottomBarDiv).on("tap", (_e) => {
+        console.log("触发底部工具栏")
+        setTimeout(() => {
+            store.displayBottomBar = true
+        }, 500);
+
+    })
+
+    newHammer(centerOPDiv).on("tap", (_e) => {
+        console.log("触发中间配置")
+    })
+
 
     document.body.addEventListener("mousemove", (e) => {
         jImgScroll.setMouseMove(e.clientX, e.clientY)
@@ -16,6 +62,8 @@ onMounted(async () => {
         jImgScroll.setMouseUp()
     })
 })
+
+
 
 let setNext = () => {
     console.log("next")
@@ -30,6 +78,14 @@ let setWheel = (e: WheelEvent) => {
     jImgScroll.setMouseWheel(e.deltaY, e.altKey)
 }
 
+let setLeftClickFunc = () => {
+    console.log("left")
+}
+
+let setRightClickFunc = () => {
+    console.log('right')
+}
+
 
 
 
@@ -40,7 +96,29 @@ let setWheel = (e: WheelEvent) => {
     <div class="control_scroll_div"
         :style="{ 'top': store.divFloatTop + 'px', 'left': store.divFloatLeft + 'px', 'width': store.divFloatW + 'px', 'height': store.divFloatH + 'px' }"
         @mousedown="setMouseDown" draggable="false" @wheel="setWheel" ondragstart="return false;">
-        <div class='control_click_div' @click="setNext"></div>
+        <!-- 主操控 -->
+        <div class='control_big_div' ref="bigDivRef">
+            <!-- 左操控 -->
+            <div class="control_left_div" ref="leftDivRef">
+                <div v-if="store.isControlDebug"></div>
+            </div>
+            <!-- 右操控 -->
+            <div class="control_right_div" ref="rightDivRef">
+                <div v-if="store.isControlDebug"></div>
+            </div>
+            <!-- 顶部工具栏操控 -->
+            <div class="control_top_bar_div" ref="topBarDivRef">
+                <div v-if="store.isControlDebug"></div>
+            </div>
+            <!-- 底部工具栏操控 -->
+            <div class="control_bottom_bar_div" ref="bottomBarDivRef">
+                <div v-if="store.isControlDebug"></div>
+            </div>
+            <!-- 中间配置操控 -->
+            <div class="control_center_op_div" ref="centerOPDivRef">
+                <div v-if="store.isControlDebug"></div>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -53,7 +131,78 @@ let setWheel = (e: WheelEvent) => {
     /* background-color: #35a9a982; */
 }
 
-.control_click_div {
+.control_left_div {
+    position: absolute;
+    top: 0px;
+    left: 0%;
+    width: 50%;
+    height: 100%;
+}
+
+.control_left_div div {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 0, 0, 0.16);
+}
+
+.control_right_div {
+    position: absolute;
+    top: 0px;
+    left: 50%;
+    width: 50%;
+    height: 100%;
+
+}
+
+.control_right_div div {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 255, 0.16);
+}
+
+.control_center_op_div {
+    position: absolute;
+    top: 42%;
+    left: 42%;
+    width: 16%;
+    height: 16%;
+}
+
+.control_center_op_div div {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(4, 251, 127, 0.16);
+}
+
+.control_top_bar_div {
+    position: absolute;
+    top: 0px;
+    left: 15%;
+    width: 70%;
+    height: 15%
+}
+
+.control_top_bar_div div {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(243, 12, 139, 0.16);
+}
+
+.control_bottom_bar_div {
+    position: absolute;
+    bottom: 0px;
+    left: 15%;
+    width: 70%;
+    height: 15%
+}
+
+.control_bottom_bar_div div {
+    width: 100%;
+    height: 100%;
+    background-color: rgba(243, 12, 139, 0.16);
+}
+
+.control_big_div {
     width: 100%;
     height: 100%;
     position: absolute;

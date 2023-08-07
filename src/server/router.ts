@@ -26,6 +26,12 @@ const mainRouter = router({
     let data = (await zipFactory.getChild(url)).entryList
     return data
   }),
+  /** 获取压缩文件信息 */
+  getZipMsg: publicProcedure.input(z.object({ url: z.string() })).mutation(async ({ input }) => {
+    let url = path.join(baseUrl, input.url)
+    let zip = (await zipFactory.getChild(url))
+    return { list: zip.entryList }
+  }),
   /** 获取压缩包文件 */
   getZipFile: publicProcedure.input(z.object({ url: z.string(), orderNO: z.number() })).mutation(async ({ input }) => {
     let url = path.join(baseUrl, input.url)

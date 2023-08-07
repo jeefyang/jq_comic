@@ -30,11 +30,13 @@ export class JserverLink {
         let arr = store.fileUrl.split(path.sep)
         arr = arr.slice(0, arr.length - 1)
         store.curDirUrl = arr.join(path.sep)
-        const zipTest = await this.client.main.testZip.mutate({ url: store.fileUrl })
-        console.log(zipTest)
-
-        const imgData = await this.client.main.getZipFile.mutate({ url: store.fileUrl, orderNO: 0 })
+        store.curNo = 0
+        let zipData = await this.client.main.getZipMsg.mutate({ url: store.fileUrl })
+        store.imgCount = zipData.list.length
+        console.log(store.imgCount)
+        const imgData = await this.client.main.getZipFile.mutate({ url: store.fileUrl, orderNO: store.curNo })
         store.canvasB64 = 'data:image/png;base64,' + btoa(new Uint8Array((<any>imgData).data).reduce((res, byte) => res + String.fromCharCode(byte), ''))
+        console.log(store.curNo)
     }
 
     /** 触发下张图片 */

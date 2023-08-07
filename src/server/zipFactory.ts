@@ -1,4 +1,4 @@
-import * as streamZip from "node-stream-zip"
+// import * as streamZip from "node-stream-zip"
 import { JZipChild } from "./zipChild"
 
 export class JZipFactory {

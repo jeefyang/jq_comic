@@ -18,3 +18,5 @@ export type JFolderDisplayType = {
     folders?: JFolderDisplayType[]
     url: string
 } & JFileFolderType
+
+export type JFileFormatType = "zip" | "gif" | "bmp" | "jpg" | "jpeg" | "png" | "avi" | "webp" | "apng" | "mp4" | "mkv" | "webm"

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
-// import HelloWorld from './components/HelloWorld.vue'
+
 import ComicDisplay from "./components/ComicDisplay.vue"
 import ComicControl from "./components/ComicControl.vue"
 import FileManager from "./components/FileManager.vue"
+import ComicBottomBar from "./components/ComicBottomBar.vue"
 
 import { store } from './store';
 import { jserver } from './tool/serverLink'
@@ -30,7 +31,7 @@ onMounted(async () => {
   jFileCache.init(jserver)
   // await jserver.testFolder()
   store.isServerCompleted = true
-  store.displayFileManager = true
+  // store.displayFileManager = true
   resizeFunc()
   window.addEventListener("resize", () => {
     resizeFunc()
@@ -44,6 +45,7 @@ onMounted(async () => {
     <ComicDisplay></ComicDisplay>
     <ComicControl></ComicControl>
     <FileManager v-if="store.displayFileManager"></FileManager>
+    <ComicBottomBar v-if="store.displayBottomBar"></ComicBottomBar>
   </div>
 
   <!-- 测试 -->

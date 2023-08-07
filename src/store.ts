@@ -41,6 +41,8 @@ export const store = reactive({
     adaptSize: <"width" | "none" | "height" | "fit">"fit",
     /** 是否打开文件管理 */
     displayFileManager: <boolean>false,
+    /** 是否打开底部工具栏 */
+    displayBottomBar: <boolean>false,
     /** 服务器是否连接成功 */
     isServerCompleted: <boolean>false,
     /** 当前正在搜索的1文件夹路径 */
@@ -52,5 +54,7 @@ export const store = reactive({
     /** 显示文件图标尺寸 */
     displayFileIconSize: <number>20,
     /** 显示文件的样式(图标,详细) */
-    displayFileStyleType: <"icon" | "detail">"detail"
+    displayFileStyleType: <"icon" | "detail">"detail",
+    /** 是否调试操作 */
+    isControlDebug: true
 })
