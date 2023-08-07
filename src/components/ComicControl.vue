@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { store } from "../store"
-import { jserver } from "../tool/serverLink"
 import { jImgScroll } from "../tool/imgScroll"
 import { newHammer } from "../tool/util"
+import { jFileCache } from "../tool/fileCache";
+import { showToast } from "vant"
 
 const bigDivRef = ref(<HTMLDivElement>null)
 const leftDivRef = ref(<HTMLDivElement>null)
@@ -23,29 +24,27 @@ onMounted(async () => {
 
     newHammer(bigDiv).on(["press"], (e) => {
         console.log(e)
-        setNext()
+
     })
 
-    newHammer(leftDiv).on("tap", (e) => {
-        console.log(e)
-        console.log(store.curNo)
+    newHammer(leftDiv).on("tap", () => {
         setLeftClickFunc()
     })
 
-    newHammer(rightDiv).on("press", (e) => {
-        console.log(e)
+    newHammer(rightDiv).on("tap", () => {
         setRightClickFunc()
     })
 
     newHammer(topBarDiv).on("tap", (_e) => {
-        store.displayFileManager = true
+        setTimeout(() => {
+            store.displayFileManager = true
+        }, 200);
     })
 
     newHammer(bottomBarDiv).on("tap", (_e) => {
-        console.log("触发底部工具栏")
         setTimeout(() => {
             store.displayBottomBar = true
-        }, 500);
+        }, 200);
 
     })
 
@@ -65,10 +64,35 @@ onMounted(async () => {
 
 
 
-let setNext = () => {
-    console.log("next")
-    jserver.setNextImg()
+let setNext = async () => {
+    if (store.curNo + 1 >= store.imgCount) {
+        showToast({
+            message: "已经是尾页了",
+            forbidClick: true,
+            duration: 1500
+        })
+        return
+    }
+    store.isDisplayLoading = true
+    await jFileCache.setImgByNum(store.curNo + 1)
+    store.isDisplayLoading = false
 }
+
+let setPrev = async () => {
+    if (store.curNo <= 0) {
+        showToast({
+            message: "已经是首页了",
+            forbidClick: true,
+            duration: 1500
+        })
+        return
+    }
+    store.isDisplayLoading = true
+    await jFileCache.setImgByNum(store.curNo - 1)
+    store.isDisplayLoading = false
+}
+
+
 
 let setMouseDown = (e: MouseEvent) => {
     jImgScroll.setMouseDown(e.clientX, e.clientY)
@@ -80,10 +104,12 @@ let setWheel = (e: WheelEvent) => {
 
 let setLeftClickFunc = () => {
     console.log("left")
+    setNext()
 }
 
 let setRightClickFunc = () => {
     console.log('right')
+    setPrev()
 }
 
 
@@ -179,7 +205,7 @@ let setRightClickFunc = () => {
     top: 0px;
     left: 15%;
     width: 70%;
-    height: 15%
+    height: 10%
 }
 
 .control_top_bar_div div {
@@ -193,7 +219,7 @@ let setRightClickFunc = () => {
     bottom: 0px;
     left: 15%;
     width: 70%;
-    height: 15%
+    height: 10%
 }
 
 .control_bottom_bar_div div {

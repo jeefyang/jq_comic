@@ -1,7 +1,6 @@
 import { JFolderDisplayType } from "../type";
 import { JserverLink } from "../tool/serverLink"
 import { store } from "../store"
-import path from "path-browserify"
 
 class JFileCache {
 
@@ -26,6 +25,8 @@ class JFileCache {
         return obj
     }
 
+
+
     // async addFolderUrl(url: string) {
     //     let newUrl = path.join(store.curDirUrl, url)
     //     await this.getFolder(newUrl)
@@ -33,23 +34,35 @@ class JFileCache {
     // }
 
     /** 打开压缩包 */
-    async openZip(url: string, index: number = 0) {
-        store.fileUrl = url
-        let arr = store.fileUrl.split(path.sep)
-        arr = arr.slice(0, arr.length - 1)
-        store.curDirUrl = arr.join(path.sep)
+    async openZip(dirUrl?: string, fileName?: string, index: number = 0) {
+        store.dirUrl = dirUrl || store.dirUrl
+        store.fileName = fileName || store.fileName
+        store.curDirUrl = store.dirUrl
         store.curNo = index
-        let zipData = await this.server.client.main.getZipMsg.mutate({ url: store.fileUrl })
+        let url = `${store.dirUrl}/${store.fileName}`
+        let zipData = await this.server.client.main.getZipMsg.mutate({ url: url })
         store.imgCount = zipData.list.length
-        console.log(store.imgCount)
-        const imgData = await this.server.client.main.getZipFile.mutate({ url: store.fileUrl, orderNO: store.curNo })
+        const imgData = await this.server.client.main.getZipInFile.mutate({ url: url, orderNO: store.curNo })
         if (!imgData) {
             store.canvasB64 = ""
         }
         else {
             store.canvasB64 = 'data:image/png;base64,' + btoa(new Uint8Array((<any>imgData).data).reduce((res, byte) => res + String.fromCharCode(byte), ''))
         }
+    }
 
+    /** 通过序号设置图片 */
+    async setImgByNum(index: number) {
+        if (index < 0) {
+            return
+        }
+        if (store.imgCount <= index-1) {
+            return
+        }
+        let url = `${store.dirUrl}/${store.fileName}`
+        const imgData = await this.server.client.main.getZipInFile.mutate({ url: url, orderNO: index })
+        store.canvasB64 = 'data:image/png;base64,' + btoa(new Uint8Array((<any>imgData).data).reduce((res, byte) => res + String.fromCharCode(byte), ''))
+        store.curNo = index
     }
 }
 

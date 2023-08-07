@@ -19,6 +19,7 @@ export const createApp = () => {
     app.use(TextEllipsis)
     app.use(Field)
     app.use(Slider)
+    // app.use(Toast)
     return { app }
 }
 

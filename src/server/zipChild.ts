@@ -1,4 +1,5 @@
 import * as streamZip from "node-stream-zip"
+import path from 'path'
 
 export class JZipChild {
     obj: streamZip.StreamZipAsync = undefined
@@ -21,6 +22,8 @@ export class JZipChild {
     /** 轮询销毁事件 */
     rollDestoryEvent: NodeJS.Timeout
     rollTime: number = 1000 * 60
+    /** 可读后缀名 */
+    readonly canReadExList: string[] = ['bmp', "png", "apng", "jpg", "jpeg", "webp", "webm", "mkv", "mp4", "avi"]
 
     constructor() {
         this.setFreeTime()
@@ -48,6 +51,11 @@ export class JZipChild {
         this.obj = await new streamZip.async({ file: this.url })
         let data = await this.obj.entries()
         for (let key in data) {
+            let ex = path.extname(key)
+            ex = ex.replace('.', "").toLocaleLowerCase()
+            if (!this.canReadExList.includes(ex)) {
+                continue
+            }
             this.entryList.push({ key, data: data[key] })
         }
         this.isWork = false

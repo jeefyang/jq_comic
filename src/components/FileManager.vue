@@ -25,8 +25,7 @@ let sortType = ref(<"名称" | "日期" | "大小">"名称")
 let searchKey = ref(<string>"")
 
 onMounted(async () => {
-    let url = "115Trans"
-    await updateFolderFunc(url)
+    await updateFolderFunc(store.curDirUrl)
     return
 })
 
@@ -138,13 +137,17 @@ let selectFileFunc = async (item: (typeof fileList.value)[number]) => {
     searchKey.value = ""
     if (item.type == "folder") {
         let newUrl: string = path.join(store.curDirUrl, item.originName)
+        store.isDisplayLoading = true
         await updateFolderFunc(newUrl)
+        store.isDisplayLoading = false
     }
     if (item.type == "file" && item.exname == "zip") {
-        let newUrl: string = path.join(store.curDirUrl, item.originName)
-        store.fileUrl = newUrl
-        jFileCache.openZip(newUrl)
+        store.dirUrl = store.curDirUrl
+        store.fileName = item.originName
+        store.isDisplayLoading = true
+        await jFileCache.openZip()
         store.displayFileManager = false
+        store.isDisplayLoading = false
     }
     return
 }

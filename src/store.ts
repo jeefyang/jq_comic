@@ -1,8 +1,12 @@
 import { reactive } from "vue"
 
 export const store = reactive({
-    /** 文件路径 */
-    fileUrl: <string>"",
+    /** 当前文件路径,不能带文件夹 */
+    fileName: <string>"",
+    /** 当前文件夹路径 */
+    dirUrl: <string>"",
+    /** 基础文件夹路径,一般不显示 */
+    baseDirUrl: <string>"",
     /** 图片数量 */
     imgCount: <number>0,
     /** 当前显示第几张图片 */
@@ -45,7 +49,7 @@ export const store = reactive({
     displayBottomBar: <boolean>false,
     /** 服务器是否连接成功 */
     isServerCompleted: <boolean>false,
-    /** 当前正在搜索的1文件夹路径 */
+    /** 当前正在搜索的文件夹路径 */
     curDirUrl: <string>"",
     /** 显示文件列数 */
     displayFileCol: <number>1,
@@ -56,5 +60,9 @@ export const store = reactive({
     /** 显示文件的样式(图标,详细) */
     displayFileStyleType: <"icon" | "detail">"detail",
     /** 是否调试操作 */
-    isControlDebug: true
+    isControlDebug: true,
+    /** 是否显示加载 */
+    isDisplayLoading: false,
+    /** 图片是否正在加载 */
+    isImgLoading: false
 })

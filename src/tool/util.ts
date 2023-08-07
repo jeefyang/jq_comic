@@ -29,11 +29,19 @@ export type hammerEventType =
     "swiperight" |
     "swipeup" |
     "swipedown" |
-    "tap"
+    "tap" |
+    "doubletap"
 
 
-export function newHammer(e: HTMLElement) {
-    let h = new hammer(e)
+
+export function newHammer(e: HTMLElement, isManger?: boolean) {
+    let h = isManger ? new hammer.Manager(e) : new hammer(e)
+    // 专门用于自定义操作
+    if (isManger) {
+
+
+    }
+
     let onFunc = (e: hammerEventType | hammerEventType[], f: HammerListener) => {
         if (Array.isArray(e)) {
             h.on(e.join(" "), f)

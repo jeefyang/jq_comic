@@ -4,7 +4,7 @@ import { JZipFactory } from './zipFactory';
 // import { async } from 'node-stream-zip';
 import path from "path"
 import { decodeFolder } from './decodeFolder';
-// import fs from 'fs'
+import fs from 'fs'
 
 
 const t = initTRPC.create();
@@ -32,8 +32,8 @@ const mainRouter = router({
     let zip = (await zipFactory.getChild(url))
     return { list: zip.entryList }
   }),
-  /** 获取压缩包文件 */
-  getZipFile: publicProcedure.input(z.object({ url: z.string(), orderNO: z.number() })).mutation(async ({ input }) => {
+  /** 获取压缩包里文件 */
+  getZipInFile: publicProcedure.input(z.object({ url: z.string(), orderNO: z.number() })).mutation(async ({ input }) => {
     let url = path.join(baseUrl, input.url)
     let data = await (await zipFactory.getChild(url)).getFileByNo(input.orderNO)
     return data
