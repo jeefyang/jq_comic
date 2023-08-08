@@ -29,8 +29,7 @@ let setCloseFunc = () => {
 }
 
 let setCurNoFunc = () => {
-
-    jFileCache.openZip(undefined, undefined, curNo.value - 1)
+    jFileCache.openFile(undefined, undefined, curNo.value - 1)
     store.curNo = curNo.value - 1
 }
 

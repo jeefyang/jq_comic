@@ -62,7 +62,6 @@ let setSortFunc = () => {
         })
     }
     fileList.value = list
-    console.log(list)
 }
 
 /** 设置排序类型大法 */
@@ -81,6 +80,7 @@ let setSortTypeFunc = () => {
 let updateFolderFunc = async (url: string) => {
     folderObj = await jFileCache.getFolder(url)
     urlList.value = ['.', ...store.curDirUrl.split(path.sep)]
+    store.curDirUrl = url
     folderObjList = []
     for (let i = 0; i < folderObj.folders.length; i++) {
         folderObjList.push({
@@ -133,7 +133,6 @@ let updateFolderFunc = async (url: string) => {
 
 /** 选中文件大法(包括) */
 let selectFileFunc = async (item: (typeof fileList.value)[number]) => {
-    console.log(item.type, item.index)
     searchKey.value = ""
     if (item.type == "folder") {
         let newUrl: string = path.join(store.curDirUrl, item.originName)
@@ -141,11 +140,10 @@ let selectFileFunc = async (item: (typeof fileList.value)[number]) => {
         await updateFolderFunc(newUrl)
         store.isDisplayLoading = false
     }
-    if (item.type == "file" && item.exname == "zip") {
-        store.dirUrl = store.curDirUrl
-        store.fileName = item.originName
+    else if (item.type == "file") {
         store.isDisplayLoading = true
-        await jFileCache.openZip()
+        console.log(store.curDirUrl, 123, item.originName)
+        await jFileCache.openFile(store.curDirUrl, item.originName)
         store.displayFileManager = false
         store.isDisplayLoading = false
     }
@@ -154,7 +152,7 @@ let selectFileFunc = async (item: (typeof fileList.value)[number]) => {
 
 /** 通过序号回退文件夹大法 */
 let rebackFolderFuncByIndex = async (index: number) => {
-    console.log(index)
+
     if (index == -1) {
         index = urlList.value.length - 2
     }
@@ -164,9 +162,13 @@ let rebackFolderFuncByIndex = async (index: number) => {
     }
 
     let arr = urlList.value.slice(1, index + 1) || [""]
-    console.log(arr)
     let newUrl = path.join(...arr)
     await updateFolderFunc(newUrl)
+    return
+}
+
+let rebackCur = async () => {
+    await updateFolderFunc(store.dirUrl)
     return
 }
 
@@ -237,6 +239,7 @@ let setIconTypeFunc = () => {
                 <van-Button @click="setIconTypeFunc">图标</van-Button>
                 <van-Button @click="setSortTypeFunc()">排序:{{ sortType }}</van-Button>
                 <van-Button @click="isReveser = !isReveser; setSortFunc()">反序</van-Button>
+                <van-Button @click="rebackCur">当前</van-Button>
                 <van-Button @click="store.displayFileManager = false">关闭</van-Button>
             </div>
 

@@ -76,10 +76,14 @@ let setNext = async () => {
         })
         return
     }
-    store.isDisplayLoading = true
-    setImgLoading()
-    await jFileCache.setImgByNum(store.curNo + 1)
-    store.isDisplayLoading = false
+    setTimeout(async () => {
+        store.isDisplayLoading = true
+        setImgLoading()
+        await jFileCache.setImgByNum(store.curNo + 1)
+        store.isDisplayLoading = false
+        await jFileCache.preloadImg(store.curNo + 1, 1)
+    }, 100);
+
 }
 
 let setPrev = async () => {
@@ -95,6 +99,7 @@ let setPrev = async () => {
     setImgLoading()
     await jFileCache.setImgByNum(store.curNo - 1)
     store.isDisplayLoading = false
+    await jFileCache.preloadImg(store.curNo - 1, -1)
 }
 
 
@@ -108,12 +113,12 @@ let setWheel = (e: WheelEvent) => {
 }
 
 let setLeftClickFunc = () => {
-    console.log("left")
+    // console.log("left")
     setNext()
 }
 
 let setRightClickFunc = () => {
-    console.log('right')
+    // console.log('right')
     setPrev()
 }
 

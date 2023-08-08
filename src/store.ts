@@ -70,5 +70,9 @@ export const store = reactive({
     /** 图片是否准备加载 */
     isImgPrepareLoading: false,
     /** 是否左右手对换 */
-    isLRReverse: <boolean>false
+    isLRReverse: <boolean>false,
+    /** 是否为压缩包文件 */
+    isZipFile: <boolean>false,
+    /** 是否为视频文件 */
+    isVideo: <boolean>false
 })

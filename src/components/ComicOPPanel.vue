@@ -9,9 +9,6 @@ let map: { key: typeof store.readMode, name: string }[] = [
     { key: "height", name: "适应高度" }
 ]
 onMounted(() => {
-    console.log("panel")
-    console.log(store.readMode)
-
 })
 </script>
 <template>

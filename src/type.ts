@@ -16,6 +16,7 @@ export type JFileDisplayType = {
 export type JFolderDisplayType = {
     files?: JFileDisplayType[]
     folders?: JFolderDisplayType[]
+    noZipFiles?: JFileDisplayType[]
     url: string
 } & JFileFolderType
 
