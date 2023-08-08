@@ -1,4 +1,6 @@
 import hammer from "hammerjs"
+import { store } from "../store"
+import { staticData } from "../const"
 
 export type hammerEventType =
     "press" |
@@ -57,4 +59,14 @@ export function newHammer(e: HTMLElement, isManger?: boolean) {
     return {
         h, on: onFunc
     }
+}
+
+/** 设置图片加载效果 */
+export function setImgLoading() {
+    store.isImgPrepareLoading = true
+    setTimeout(() => {
+        if (store.isImgPrepareLoading) {
+            store.isImgLoading = true
+        }
+    }, staticData.imgLoadPrepareTime);
 }

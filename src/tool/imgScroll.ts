@@ -24,7 +24,7 @@ class JImgScroll {
         store.curImgH = this.imgDom.naturalHeight
         let curRatio = store.curImgW / store.curImgH
         let screenRatio = store.divFloatW / store.divFloatH
-        switch (store.adaptSize) {
+        switch (store.readMode) {
             case "none":
                 store.displayImgW = store.curImgW
                 store.displayImgH = store.curImgH

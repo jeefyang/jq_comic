@@ -41,14 +41,14 @@ export const store = reactive({
     divFloatW: <number>0,
     /** div浮动高度 */
     divFloatH: <number>0,
-    /** 尺寸适应 */
-    adaptSize: <"width" | "none" | "height" | "fit">"fit",
+    /** 阅读模式 */
+    readMode: <"width" | "none" | "height" | "fit">"fit",
     /** 是否打开文件管理 */
     displayFileManager: <boolean>false,
     /** 是否打开底部工具栏 */
     displayBottomBar: <boolean>false,
-    /** 服务器是否连接成功 */
-    isServerCompleted: <boolean>false,
+    /** 是否打开配置面板 */
+    displayOPPanel: <boolean>false,
     /** 当前正在搜索的文件夹路径 */
     curDirUrl: <string>"",
     /** 显示文件列数 */
@@ -59,10 +59,16 @@ export const store = reactive({
     displayFileIconSize: <number>20,
     /** 显示文件的样式(图标,详细) */
     displayFileStyleType: <"icon" | "detail">"detail",
+    /** 服务器是否连接成功 */
+    isServerCompleted: <boolean>false,
     /** 是否调试操作 */
     isControlDebug: true,
     /** 是否显示加载 */
     isDisplayLoading: false,
     /** 图片是否正在加载 */
-    isImgLoading: false
+    isImgLoading: false,
+    /** 图片是否准备加载 */
+    isImgPrepareLoading: false,
+    /** 是否左右手对换 */
+    isLRReverse: <boolean>false
 })

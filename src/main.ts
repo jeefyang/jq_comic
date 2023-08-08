@@ -1,7 +1,7 @@
 import { createSSRApp } from 'vue'
 import './style.css'
 import App from './App.vue'
-import { Col, Row, Button, Grid, GridItem, ConfigProvider, Icon, TextEllipsis, Field, Slider } from 'vant';
+import { Col, Row, Button, Grid, GridItem, ConfigProvider, Icon, TextEllipsis, Field, Slider, Loading, RadioGroup, Radio, ActionSheet, Switch } from 'vant';
 import './assets/iconfont/iconfont.css'
 import "vant/lib/index.css"
 
@@ -19,6 +19,11 @@ export const createApp = () => {
     app.use(TextEllipsis)
     app.use(Field)
     app.use(Slider)
+    app.use(Loading)
+    app.use(RadioGroup)
+    app.use(Radio)
+    app.use(ActionSheet)
+    app.use(Switch)
     // app.use(Toast)
     return { app }
 }

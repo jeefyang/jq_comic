@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import { store } from "../store"
 import { jImgScroll } from "../tool/imgScroll"
-import { newHammer } from "../tool/util"
+import { newHammer, setImgLoading } from "../tool/util"
 import { jFileCache } from "../tool/fileCache";
 import { showToast } from "vant"
 
@@ -50,6 +50,9 @@ onMounted(async () => {
 
     newHammer(centerOPDiv).on("tap", (_e) => {
         console.log("触发中间配置")
+        setTimeout(() => {
+            store.displayOPPanel = true
+        }, 200);
     })
 
 
@@ -74,6 +77,7 @@ let setNext = async () => {
         return
     }
     store.isDisplayLoading = true
+    setImgLoading()
     await jFileCache.setImgByNum(store.curNo + 1)
     store.isDisplayLoading = false
 }
@@ -88,6 +92,7 @@ let setPrev = async () => {
         return
     }
     store.isDisplayLoading = true
+    setImgLoading()
     await jFileCache.setImgByNum(store.curNo - 1)
     store.isDisplayLoading = false
 }

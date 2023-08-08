@@ -11,11 +11,14 @@ onMounted(() => {
     imgDom = imgRef.value
     jImgScroll.imgDom = imgDom
     // divDom = divRef.value
-    watch([() => store.divFloatW, () => store.divFloatH], (_a, _b) => {
+    watch([() => store.divFloatW, () => store.divFloatH, () => store.readMode], (_a, _b) => {
+        console.log("readmode")
         jImgScroll.resizeImg()
     })
     imgDom.onselectstart = () => { return false }
     imgDom.onload = () => {
+        store.isImgPrepareLoading = false
+        store.isImgLoading = false
         setTimeout(() => {
             jImgScroll.resizeImg()
         }, 100);

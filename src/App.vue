@@ -5,17 +5,19 @@ import ComicDisplay from "./components/ComicDisplay.vue"
 import ComicControl from "./components/ComicControl.vue"
 import FileManager from "./components/FileManager.vue"
 import ComicBottomBar from "./components/ComicBottomBar.vue"
+import ComicImgLoading from "./components/ComicImgLoading.vue"
+import ComicOPPanel from "./components/ComicOPPanel.vue"
 
 import { store } from './store';
 import { jserver } from './tool/serverLink'
 import { jFileCache } from './tool/fileCache';
+
 
 // const imgSrc = ref("")
 
 const resizeFunc = () => {
   store.screenW = document.body.clientWidth
   store.screenH = document.body.clientHeight
-  console.log(store.screenW, store.screenH)
   store.divFloatLeft = store.screenW * store.divFloatWRatio
   store.divFloatW = store.screenW - (store.divFloatLeft * 2)
   store.divFloatTop = store.screenH * store.divFloatHRatio
@@ -23,6 +25,7 @@ const resizeFunc = () => {
   store.displayFileCol = Math.floor(store.screenW / 150) + 2
   store.displayFileIconSize = Math.floor(store.screenW / 25) + 20
   store.displayFileTextCount = Math.floor(store.screenW / 100) + 5
+
 }
 
 onMounted(async () => {
@@ -36,6 +39,10 @@ onMounted(async () => {
   window.addEventListener("resize", () => {
     resizeFunc()
   })
+
+  // watch(()=>[store.readMode],()=>{
+
+  // })
 })
 
 </script>
@@ -43,9 +50,12 @@ onMounted(async () => {
 <template>
   <div v-if="store.isServerCompleted">
     <ComicDisplay></ComicDisplay>
+    <ComicImgLoading v-if="store.isImgLoading && store.isImgPrepareLoading"></ComicImgLoading>
     <ComicControl></ComicControl>
     <FileManager v-if="store.displayFileManager"></FileManager>
+    <ComicOPPanel v-if="store.displayOPPanel"></ComicOPPanel>
     <ComicBottomBar v-if="store.displayBottomBar"></ComicBottomBar>
+
   </div>
 
   <!-- 测试 -->
