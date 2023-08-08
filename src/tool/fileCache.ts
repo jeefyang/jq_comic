@@ -11,6 +11,8 @@ class JFileCache {
     /** 压缩包信息,为了减少服务器读取 */
     zipMsgCache: { dirUrl: string, fileName: string, count: number }[] = []
     server: JserverLink
+    preloadCount: number = 0
+    preloadIndex: number = -1
 
     constructor() {
 
@@ -53,7 +55,7 @@ class JFileCache {
         index = this.zipMsgCache.push({
             dirUrl, fileName, count: zipData.list.length
         })
-        return this.zipMsgCache[index]
+        return this.zipMsgCache[index - 1]
     }
 
     /** 获取图片缓存 */
@@ -74,11 +76,12 @@ class JFileCache {
 
     /** 设置图片缓存 */
     private _setImgCache(base64: string, dirUrl?: string, fileName?: string, zipIndex: number = 0) {
-        if (this._getImgCache()) {
-            return
-        }
+
         dirUrl = dirUrl || store.dirUrl
         fileName = fileName || store.fileName
+        if (this._getImgCache(dirUrl, fileName, zipIndex)) {
+            return
+        }
         let arr = fileName.split('.')
         let ex = arr[arr.length - 1].toLowerCase()
         this.imgCache.push({ isZip: ex == "zip", dirUrl, fileName, zipIndex, base64, time: new Date().getMilliseconds() })
@@ -124,14 +127,13 @@ class JFileCache {
             store.canvasB64 = await this.getFileB64(store.dirUrl, store.fileName, store.curNo)
         }
         else {
-
             store.isZipFile = false
             let dir = await this.getFolder(dirUrl)
-            let index = dir.noZipFiles.findIndex(c => c.name == fileName)
-            if (index == -1) {
+            let findIndex = dir.noZipFiles.findIndex(c => c.name == fileName)
+            if (findIndex == -1) {
                 return
             }
-            store.curNo = index
+            store.curNo = findIndex
             store.imgCount = dir.noZipFiles.length
             store.canvasB64 = await this.getFileB64(store.dirUrl, store.fileName)
         }
@@ -156,6 +158,12 @@ class JFileCache {
         store.curNo = index
     }
 
+    /** 停止预加载 */
+    async stopPreloadImg() {
+        this.preloadCount = 0
+        this.preloadIndex = -1
+    }
+
     /** 预加载图片 */
     async preloadImg(index: number, add: number, count: number = staticData.advanceImgCount) {
         if (count == 0) {
@@ -167,18 +175,19 @@ class JFileCache {
         if (store.imgCount <= index - 1) {
             return
         }
+        this.preloadIndex = index + add
+        this.preloadCount = count - 1
         if (store.isZipFile) {
             await this.getFileB64(store.dirUrl, store.fileName, index)
-            await this.preloadImg(index + add, add, count - 1)
-            return
+            await this.preloadImg(this.preloadIndex, add, this.preloadCount)
         }
         else {
             let dirMsg = await this.getFolder(store.dirUrl)
             let fileName = dirMsg.noZipFiles[index].name
             await this.getFileB64(store.dirUrl, fileName)
-            await this.preloadImg(index + add, add, count - 1)
-            return
+            await this.preloadImg(this.preloadIndex, add, this.preloadCount)
         }
+        return
     }
 }
 

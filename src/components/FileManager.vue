@@ -2,7 +2,7 @@
 import { store } from "../store"
 import { jFileCache } from "../tool/fileCache";
 import { onMounted, ref } from "vue";
-import type { ConfigProviderThemeVars } from 'vant';
+import { showLoadingToast, type ConfigProviderThemeVars } from 'vant';
 import { JFileFormatType, JFolderDisplayType } from "../type";
 import path from "path-browserify"
 
@@ -78,6 +78,7 @@ let setSortTypeFunc = () => {
 
 
 let updateFolderFunc = async (url: string) => {
+    store.curDirUrl = url
     folderObj = await jFileCache.getFolder(url)
     urlList.value = ['.', ...store.curDirUrl.split(path.sep)]
     store.curDirUrl = url
@@ -133,6 +134,7 @@ let updateFolderFunc = async (url: string) => {
 
 /** 选中文件大法(包括) */
 let selectFileFunc = async (item: (typeof fileList.value)[number]) => {
+    let loadding = showLoadingToast({ message: "加载中", overlay: true, forbidClick: true })
     searchKey.value = ""
     if (item.type == "folder") {
         let newUrl: string = path.join(store.curDirUrl, item.originName)
@@ -147,12 +149,13 @@ let selectFileFunc = async (item: (typeof fileList.value)[number]) => {
         store.displayFileManager = false
         store.isDisplayLoading = false
     }
+    loadding.close()
     return
 }
 
 /** 通过序号回退文件夹大法 */
 let rebackFolderFuncByIndex = async (index: number) => {
-
+    let loadding = showLoadingToast({ message: "加载中", overlay: true, forbidClick: true })
     if (index == -1) {
         index = urlList.value.length - 2
     }
@@ -164,6 +167,7 @@ let rebackFolderFuncByIndex = async (index: number) => {
     let arr = urlList.value.slice(1, index + 1) || [""]
     let newUrl = path.join(...arr)
     await updateFolderFunc(newUrl)
+    loadding.close()
     return
 }
 

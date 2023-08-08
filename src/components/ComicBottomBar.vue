@@ -12,7 +12,6 @@ onMounted(() => {
         numInput.select()
     })
 
-    console.log(store.curNo, store.imgCount)
     watch(curNo, (e) => {
         if (e < 1) {
             curNo.value = 1
@@ -24,12 +23,11 @@ onMounted(() => {
 })
 
 let setCloseFunc = () => {
-    console.log("close")
     store.displayBottomBar = false
 }
 
 let setCurNoFunc = () => {
-    jFileCache.openFile(undefined, undefined, curNo.value - 1)
+    jFileCache.setImgByNum(curNo.value - 1)
     store.curNo = curNo.value - 1
 }
 
