@@ -32,7 +32,7 @@ onMounted(() => {
     <div class="comic_div" ref="divRef"
         :style="{ 'top': store.divFloatTop + 'px', 'left': store.divFloatLeft + 'px', 'width': store.divFloatW + 'px', 'height': store.divFloatH + 'px' }">
         <img class="comic_img" ref="imgRef" :src="store.canvasB64"
-            :style="{ 'left': store.curCanvasX + 'px', 'top': store.curCanvasY + 'px', 'width': store.displayImgW + 'px', 'height': store.displayImgH + 'px' }"
+            :style="{ 'left': '0px', 'top': '0px', 'width': store.displayImgW + 'px', 'height': store.displayImgH + 'px', 'transform': 'translate3d(' + store.curCanvasX + 'px,' + store.curCanvasY + 'px,0)' }"
             draggable="false" ondragstart="return false;">
     </div>
 </template>
@@ -51,6 +51,7 @@ onMounted(() => {
     position: absolute;
     user-select: none;
     pointer-events: all;
+    transition: transform 300ms ease-out;
     /* overflow: scroll; */
 }
 </style>

@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import { store } from "../store"
 import { jImgScroll } from "../tool/imgScroll"
-import { newHammer, setImgLoading } from "../tool/util"
+import { newHammer as JHammer, setImgLoading } from "../tool/util"
 import { jFileCache } from "../tool/fileCache";
 import { showToast } from "vant"
 
@@ -22,33 +22,46 @@ onMounted(async () => {
     let centerOPDiv = centerOPDivRef.value
 
 
-    newHammer(bigDiv).on(["press"], (e) => {
-        console.log(e)
-
+    new JHammer(bigDiv).setDirection('pan').setDirection("swipe").on("panstart", (_e) => {
+        jImgScroll.setTouchStart(_e.deltaX, _e.deltaY)
+    }).on("panmove", (e) => {
+        jImgScroll.setTouchMove(e.deltaX, e.deltaY)
+    }).on("swipeleft", (e) => {
+        jImgScroll.setTouchStart(0, 0)
+        jImgScroll.setSwipeMove(e.deltaX, 0)
+    }).on("swiperight", (e) => {
+        jImgScroll.setTouchStart(0, 0)
+        jImgScroll.setSwipeMove(e.deltaX, 0)
+    }).on("swipeup", (e) => {
+        jImgScroll.setTouchStart(0, 0)
+        jImgScroll.setSwipeMove(0, e.deltaY)
+    }).on("swipedown", (e) => {
+        jImgScroll.setTouchStart(0, 0)
+        jImgScroll.setSwipeMove(0, e.deltaY)
     })
 
-    newHammer(leftDiv).on("tap", () => {
-        setLeftClickFunc()
+    new JHammer(leftDiv).on("tap", () => {
+        // setLeftClickFunc()
     })
 
-    newHammer(rightDiv).on("tap", () => {
-        setRightClickFunc()
+    new JHammer(rightDiv).on("tap", () => {
+        // setRightClickFunc()
     })
 
-    newHammer(topBarDiv).on("tap", (_e) => {
+    new JHammer(topBarDiv).on("tap", (_e) => {
         setTimeout(() => {
             store.displayFileManager = true
         }, 200);
     })
 
-    newHammer(bottomBarDiv).on("tap", (_e) => {
+    new JHammer(bottomBarDiv).on("tap", (_e) => {
         setTimeout(() => {
             store.displayBottomBar = true
         }, 200);
 
     })
 
-    newHammer(centerOPDiv).on("tap", (_e) => {
+    new JHammer(centerOPDiv).on("tap", (_e) => {
         console.log("触发中间配置")
         setTimeout(() => {
             store.displayOPPanel = true
@@ -56,13 +69,13 @@ onMounted(async () => {
     })
 
 
-    document.body.addEventListener("mousemove", (e) => {
-        jImgScroll.setMouseMove(e.clientX, e.clientY)
-    })
+    // document.body.addEventListener("mousemove", (e) => {
+    //     jImgScroll.setMouseMove(e.clientX, e.clientY)
+    // })
 
-    document.body.addEventListener("mouseup", (_e) => {
-        jImgScroll.setMouseUp()
-    })
+    // document.body.addEventListener("mouseup", (_e) => {
+    //     jImgScroll.setMouseUp()
+    // })
 })
 
 

@@ -1,4 +1,7 @@
 import { store } from "../store"
+import { showToast } from "vant"
+import { jFileCache } from "./fileCache"
+import { setImgLoading } from "./util"
 
 class JImgScroll {
 
@@ -75,14 +78,75 @@ class JImgScroll {
 
     scroll(x: number, y: number) {
         if (this.isScrollX) {
-            store.curCanvasX = x
-            store.curCanvasX = Math.min(0, Math.max(store.screenW - store.displayImgW, store.curCanvasX))
+            store.curCanvasX = Math.min(0, Math.max(store.screenW - store.displayImgW, x))
         }
         if (this.isScrollY) {
-            store.curCanvasY = y
-            store.curCanvasY = Math.min(0, Math.max(store.screenH - store.displayImgH, store.curCanvasY))
+            store.curCanvasY = Math.min(0, Math.max(store.screenH - store.displayImgH, y))
         }
     }
+
+    setTouchStart(x: number, y: number) {
+        this.prevMouseX = x
+        this.prevMouseY = y
+    }
+
+    setTouchMove(x: number, y: number) {
+        let newX = x - this.prevMouseX
+        let newY = y - this.prevMouseY
+        this.scroll(store.curCanvasX + newX, store.curCanvasY + newY)
+        this.prevMouseX = x
+        this.prevMouseY = y
+    }
+
+    /** 设置滑动逻辑 */
+    async setSwipeMove(x: number, y: number) {
+
+        if (x != 0) {
+            if (store.curCanvasX > -1 && x > 0) {
+                await this.setPrev()
+                return
+            }
+            if (store.curCanvasX - 1 < store.screenW - store.displayImgW && x < 0) {
+                await this.setNext()
+                return
+            }
+        }
+        this.setTouchMove(x, y)
+        return
+    }
+
+    async setNext() {
+        if (store.curNo + 1 >= store.imgCount) {
+            showToast({
+                message: "已经是尾页了",
+                forbidClick: true,
+                duration: 1000
+            })
+            return
+        }
+        store.isDisplayLoading = true
+        setImgLoading()
+        await jFileCache.setImgByNum(store.curNo + 1)
+        store.isDisplayLoading = false
+        await jFileCache.preloadImg(store.curNo + 1, -1)
+    }
+
+    async setPrev() {
+        if (store.curNo <= 0) {
+            showToast({
+                message: "已经是首页了",
+                forbidClick: true,
+                duration: 1000
+            })
+            return
+        }
+        store.isDisplayLoading = true
+        setImgLoading()
+        await jFileCache.setImgByNum(store.curNo - 1)
+        store.isDisplayLoading = false
+        await jFileCache.preloadImg(store.curNo - 1, -1)
+    }
+
 
     setMouseDown(x: number, y: number) {
         this.prevMouseX = x

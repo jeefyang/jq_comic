@@ -42,7 +42,7 @@ export const store = reactive({
     /** div浮动高度 */
     divFloatH: <number>0,
     /** 阅读模式 */
-    readMode: <"width" | "none" | "height" | "fit">"fit",
+    readMode: <"width" | "none" | "height" | "fit">"none",
     /** 是否打开文件管理 */
     displayFileManager: <boolean>false,
     /** 是否打开底部工具栏 */
