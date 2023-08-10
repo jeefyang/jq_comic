@@ -1,7 +1,6 @@
 
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import type { AppRouter } from '../server/router';
-import { store } from '../store'
 
 export class JserverLink {
 
@@ -62,6 +61,13 @@ export class JserverLink {
     async getFile(url: string) {
         let newUrl = `${this.baseUrl}/${url}`
         let data = await this._client.main.getFile.mutate({ url: newUrl })
+        return data
+    }
+
+    async isFile(url: string) {
+        let newUrl = `${this.baseUrl}/${url}`
+        console.log(newUrl)
+        let data = await this._client.main.isFile.mutate({ url: newUrl })
         return data
     }
 }

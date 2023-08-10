@@ -1,6 +1,8 @@
 import { reactive } from "vue"
 
 export const store = reactive({
+    /** 选中关键字 */
+    switchKey: <string>"",
     /** 当前文件路径,不能带文件夹 */
     fileName: <string>"",
     /** 当前文件夹路径 */
@@ -80,17 +82,17 @@ export const store = reactive({
     /** 服务器是否连接成功 */
     isServerCompleted: <boolean>false,
     /** 是否调试操作 */
-    isControlDebug: true,
+    isControlDebug: <boolean>true,
     /** 是否显示加载 */
-    isDisplayLoading: false,
+    isDisplayLoading: <boolean>false,
     /** 是否显示图片数目 */
-    isDisplayImgNum: true,
+    isDisplayImgNum: <boolean>true,
     /** 是否显示文件名 */
-    isDisplayFileName: false,
+    isDisplayFileName: <boolean>false,
     /** 图片是否正在加载 */
-    isImgLoading: false,
+    isImgLoading: <boolean>false,
     /** 图片是否准备加载 */
-    isImgPrepareLoading: false,
+    isImgPrepareLoading: <boolean>false,
     /** 是否反转操作 */
     isCtrlReverse: <boolean>false,
     /** 是否为压缩包文件 */
@@ -98,5 +100,7 @@ export const store = reactive({
     /** 是否为视频文件 */
     isVideo: <boolean>false,
     /** 动画时间 */
-    transitionMS: <number>300
+    transitionMS: <number>300,
+    /** 自动保存 */
+    isAutoSave: <boolean>false
 })

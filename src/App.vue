@@ -11,6 +11,8 @@ import ComicOPPanel from "./components/ComicOPPanel.vue"
 import { store } from './store';
 import { jserver } from './tool/serverLink'
 import { jFileCache } from './tool/fileCache';
+import { configType } from "./type"
+import { jImgScroll } from './tool/imgScroll';
 
 
 // const imgSrc = ref("")
@@ -29,9 +31,12 @@ const resizeFunc = () => {
 }
 
 onMounted(async () => {
+
+  let txt = await fetch("/config.jsonc").then(res => res.text())
+  let config: configType = eval(`(${txt})`)
   await jserver.init()
-  jFileCache.init(jserver)
-  await jFileCache.test()
+  let v = await jFileCache.init(jserver, config)
+  // await jFileCache.test()
 
   // await jserver.testFolder()
   store.isServerCompleted = true
@@ -40,6 +45,9 @@ onMounted(async () => {
   window.addEventListener("resize", () => {
     resizeFunc()
   })
+  if (v) {
+    jImgScroll.resizeImg()
+  }
 
   // watch(()=>[store.readMode],()=>{
 

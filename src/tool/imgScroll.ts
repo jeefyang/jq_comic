@@ -139,6 +139,7 @@ class JImgScroll {
         this.scroll(store.curCanvasX + newX, store.curCanvasY + newY)
         this.prevMouseX = x
         this.prevMouseY = y
+        jFileCache.autoSave()
 
     }
 
@@ -157,6 +158,7 @@ class JImgScroll {
             }
         }
         this.setPanMove(x, y)
+        jFileCache.autoSave()
         return
     }
 

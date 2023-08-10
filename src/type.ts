@@ -1,3 +1,4 @@
+import { store } from "./store"
 
 type JFileFolderType = {
     mtime?: number
@@ -21,3 +22,11 @@ export type JFolderDisplayType = {
 } & JFileFolderType
 
 export type JFileFormatType = "zip" | "gif" | "bmp" | "jpg" | "jpeg" | "png" | "apng" | "webp" | "avi" | "wmv" | "mp4" | "mkv" | "webm"
+
+export type localSaveDataType = {
+    storeList: { key: string, data: typeof store }[]
+}
+
+export type configType = {
+    switchUrlList: { key: string, url: string }[]
+}

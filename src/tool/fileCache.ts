@@ -2,6 +2,7 @@ import { JFolderDisplayType, JFileFormatType } from "../type";
 import { JserverLink } from "../tool/serverLink"
 import { store } from "../store"
 import { staticData } from "../const"
+import { configType, localSaveDataType } from "../type"
 
 class JFileCache {
     /** 文件夹缓存 */
@@ -15,14 +16,113 @@ class JFileCache {
     preloadIndex: number = -1
     imgEXList: JFileFormatType[] = ["gif", "bmp", "jpg", "jpeg", "png", "apng", "webp"]
     videoEXList: JFileFormatType[] = ["avi", "mp4", "mkv", "webm", "wmv"]
+    config: configType
+    localStorageKey: string = "localSaveDataType"
 
     constructor() {
 
     }
 
-    init(server: JserverLink) {
-        this.server = server
+    private _initSwitchKey() {
+        let url = new URL(document.location.href)
+        let switchKey = url.searchParams.get("switch")
+        let index = this.config.switchUrlList.findIndex(o => o.key == switchKey)
+        if (index == -1) {
+            switchKey = this.config.switchUrlList[0].key
+        }
+        index = this.config.switchUrlList.findIndex(o => o.key == switchKey)
+        store.switchKey = this.config.switchUrlList[index].key
+        this.server.baseUrl = store.baseDirUrl = this.config.switchUrlList[index].url
     }
+
+    private _initStore() {
+        let newStore = this.getLocalStorage()
+        if (!newStore) {
+            return
+        }
+        else {
+            for (let key in newStore) {
+                if (store[key] != null) {
+                    store[key] = newStore[key]
+                }
+            }
+        }
+    }
+
+    async init(server: JserverLink, config: configType) {
+        this.server = server
+        this.config = config
+        this._initSwitchKey()
+        this._initStore()
+        let url = `${store.dirUrl}/${store.fileName}`
+        let v = await this.server.isFile(url)
+        if (v) {
+            await this.openFile(store.dirUrl, store.fileName, store.curNo)
+            return true
+        }
+        return false
+
+    }
+
+    getLocalStorage() {
+        let txt = localStorage.getItem(this.localStorageKey)
+        if (!txt) {
+            return
+        }
+        let json: localSaveDataType = JSON.parse(txt)
+        let index = json?.storeList ? json.storeList.findIndex(c => c.key == store.switchKey) : -1
+        if (index == -1) {
+            return
+        }
+        return json.storeList[index].data
+    }
+
+    setLocalStorage() {
+        let json: localSaveDataType
+        let txt = localStorage.getItem(this.localStorageKey)
+        if (!txt) {
+            json = { storeList: [] }
+        }
+        else {
+            json = JSON.parse(txt)
+        }
+        let index = json?.storeList ? json.storeList.findIndex(c => c.key == store.switchKey) : -1
+        if (index == -1) {
+            json.storeList.push({ key: store.switchKey, data: store })
+        }
+        else {
+            json.storeList[index] = { key: store.switchKey, data: store }
+        }
+        let newTxt = JSON.stringify(json)
+        localStorage.setItem(this.localStorageKey, newTxt)
+    }
+
+    /** 自动保存 */
+    autoSave() {
+        if (!store.isAutoSave) {
+            return
+        }
+        this.setLocalStorage()
+    }
+
+    /** 清空保存 */
+    clearSave() {
+        let txt = localStorage.getItem(this.localStorageKey)
+        if (!txt) {
+            return
+        }
+        let json: localSaveDataType = JSON.parse(txt)
+        let index = json?.storeList ? json.storeList.findIndex(c => c.key == store.switchKey) : -1
+        if (index == -1) {
+            return
+        }
+        console.log(index)
+        json.storeList.splice(index, 1)
+        let newTxt = JSON.stringify(json)
+        localStorage.setItem(this.localStorageKey, newTxt)
+        return
+    }
+
 
     async test() {
         store.baseDirUrl = "//192.168.123.3/藏经阁/docker/komga/data"
@@ -31,7 +131,6 @@ class JFileCache {
         store.fileName = '(www.chinav.tv)[comic]《战栗杀机》(Banana.Fish)[吉田秋生].vol.11-14.zip'
         store.curDirUrl = store.dirUrl
         store.curNo = 0
-        store.isZipFile = true
         await this.openFile(store.dirUrl, store.fileName)
     }
 
@@ -181,6 +280,7 @@ class JFileCache {
             store.canvasB64 = obj.base64
             store.originImgW = obj.w
             store.originImgH = obj.h
+            store.isZipFile = true
         }
         else {
             store.isZipFile = false
@@ -196,6 +296,7 @@ class JFileCache {
             store.canvasB64 = obj.base64
             store.originImgW = obj.w
             store.originImgH = obj.h
+            store.isZipFile = false
 
         }
     }

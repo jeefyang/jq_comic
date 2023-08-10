@@ -54,6 +54,11 @@ const mainRouter = router({
   getFolder: publicProcedure.input(z.object({ baseUrl: z.string(), url: z.string() })).mutation(async ({ input }) => {
     let obj = decodeFolder(input.baseUrl, input.url)
     return obj
+  }),
+  /** 是否为文件 */
+  isFile: publicProcedure.input(z.object({ url: z.string() })).mutation(async ({ input }) => {
+    let msg = fs.statSync(input.url)
+    return msg.isFile()
   })
 
 });

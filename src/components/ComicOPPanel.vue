@@ -3,6 +3,7 @@ import { onMounted } from 'vue';
 
 import { store } from "../store"
 import { jImgScroll } from '../tool/imgScroll';
+import { jFileCache } from '../tool/fileCache';
 const readModeMap: { key: typeof store.readMode, name: string }[] = [
     { key: "fit", name: "适应屏幕" },
     { key: "none", name: "原始" },
@@ -20,7 +21,18 @@ const directXMap: { text: string, value: -1 | 1 }[] = [
     { text: "从右到左", value: 1 }
 ]
 onMounted(() => {
+
 })
+
+const setAutoSave = (v: boolean) => {
+    console.log(v)
+    if (v) {
+        jFileCache.autoSave()
+    }
+    else {
+        jFileCache.clearSave()
+    }
+}
 </script>
 <template>
     <van-action-sheet v-model:show="store.displayOPPanel" title="设置" :closeable="false">
@@ -94,8 +106,20 @@ onMounted(() => {
                 </template>
             </van-switch>
         </div>
+        <!-- 空行 -->
+        <div class="br"></div>
 
-
+        <!-- 自动保存 -->
+        <div class="sort">
+            <div class="sort_title">自动保存:</div>
+            <van-switch v-model="store.isAutoSave" @change="setAutoSave">
+                <template #node>
+                    <div class="icon-wrapper">
+                        <van-icon :name="store.isAutoSave ? 'success' : 'cross'" />
+                    </div>
+                </template>
+            </van-switch>
+        </div>
         <!-- 空行 -->
         <div class="br"></div>
 
