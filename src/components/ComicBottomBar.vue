@@ -2,13 +2,13 @@
 import { onMounted, ref, watch } from "vue";
 import { store } from "../store"
 import { jFileCache } from "../tool/fileCache";
-import { newHammer } from "../tool/util"
+import { JHammer } from "../tool/util"
 
 let curNo = ref(<number>store.curNo + 1)
 let numInputRef = ref(<HTMLInputElement>null)
 onMounted(() => {
     let numInput = numInputRef.value
-    newHammer(numInput).on("doubletap", () => {
+    new JHammer(numInput).on("doubletap", () => {
         numInput.select()
     })
 

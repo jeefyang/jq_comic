@@ -30,8 +30,9 @@ const resizeFunc = () => {
 
 onMounted(async () => {
   await jserver.init()
-  await jserver.test()
   jFileCache.init(jserver)
+  await jFileCache.test()
+
   // await jserver.testFolder()
   store.isServerCompleted = true
   // store.displayFileManager = true

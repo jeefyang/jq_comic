@@ -23,20 +23,6 @@ export class JserverLink {
         })
     }
 
-    async test() {
-        store.baseDirUrl = "//192.168.123.3/藏经阁/docker/komga/data"
-        this.baseUrl = store.baseDirUrl
-        store.dirUrl = "comic/【战栗杀机】(Banana Fish)[19集全][漫画]日本小学馆授权中文版"
-        store.fileName = '(www.chinav.tv)[comic]《战栗杀机》(Banana.Fish)[吉田秋生].vol.11-14.zip'
-        store.curDirUrl = store.dirUrl
-        store.curNo = 0
-        store.isZipFile=true
-        let url = `${store.baseDirUrl}/${store.dirUrl}/${store.fileName}`
-        let zipData = await this._client.main.getZipMsg.mutate({ url: url })
-        store.imgCount = zipData.list.length
-        const imgData = await this._client.main.getZipInFile.mutate({ url: url, orderNO: store.curNo })
-        store.canvasB64 = 'data:image/png;base64,' + btoa(new Uint8Array((<any>imgData).data).reduce((res, byte) => res + String.fromCharCode(byte), ''))
-    }
 
     // /** 测试文件夹 */
     // async testFolder() {
@@ -45,23 +31,34 @@ export class JserverLink {
     //     console.log(obj)
     // }
 
+    /** 获取文件夹里文件列表 */
     async getFolder(url: string) {
         let obj = await this._client.main.getFolder.mutate({ baseUrl: this.baseUrl, url })
         return obj
     }
 
+    /** 获取压缩包其他信息 */
     async getZipMsg(url: string) {
         let newUrl = `${this.baseUrl}/${url}`
         let data = await this._client.main.getZipMsg.mutate({ url: newUrl })
         return data
     }
 
+    /** 通过序号获取压缩包里文件 */
     async getZipInFileByNum(url: string, index: number = 0) {
         let newUrl = `${this.baseUrl}/${url}`
         let data = await this._client.main.getZipInFile.mutate({ url: newUrl, orderNO: index })
         return data
     }
 
+    /** 通过序号获取压缩包里文件的其他信息 */
+    async getZipInFileMsgByNum(url: string, index: number = 0) {
+        let newUrl = `${this.baseUrl}/${url}`
+        let data = await this._client.main.getZipInFileMsg.mutate({ url: newUrl, orderNO: index })
+        return data
+    }
+
+    /** 获取文件内容 */
     async getFile(url: string) {
         let newUrl = `${this.baseUrl}/${url}`
         let data = await this._client.main.getFile.mutate({ url: newUrl })

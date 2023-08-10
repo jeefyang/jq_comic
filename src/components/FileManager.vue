@@ -94,7 +94,7 @@ let updateFolderFunc = async (url: string) => {
             time: folderObj.folders[i].mtime
         })
     }
-    let map: { [propName in JFileFormatType]: string }
+    let mediaMap: { [propName in JFileFormatType]: string }
         = {
         "zip": "icon-zip",
         "gif": "icon-GIF",
@@ -107,12 +107,13 @@ let updateFolderFunc = async (url: string) => {
         "avi": "icon-AVItubiao",
         "mp4": 'icon-mp',
         "mkv": "icon-mkv",
-        "webm": "icon-webm"
+        "webm": "icon-webm",
+        "wmv": ""
     }
     fileObjList = []
     for (let i = 0; i < folderObj.files.length; i++) {
         let file = folderObj.files[i]
-        let className = map[file.exName]
+        let className = mediaMap[file.exName]
         if (!className) {
             className = "icon-wenjian"
         }

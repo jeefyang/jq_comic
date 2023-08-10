@@ -96,5 +96,10 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 
+}
 
+.vintage2 {
+  color: transparent;
+  -webkit-text-stroke: 1px red;
+  letter-spacing: 0.04em;
 }

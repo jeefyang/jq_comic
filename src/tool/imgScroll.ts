@@ -10,23 +10,35 @@ class JImgScroll {
     wheelRatio: number = 0.2
     isScrollX = true
     isScrollY = true
-    imgDom: HTMLImageElement = null
+    minX: number = 0
+    minY: number = 0
+    maxX: number = 0
+    maxY: number = 0
+    isSplit: boolean = true
+
+    /** 能否滑动到下张 */
+    canSwiperNext: boolean = true
     constructor() {
 
     }
 
     resizeImg() {
-        if (!this.imgDom || !this.imgDom.naturalWidth || !this.imgDom.naturalHeight) {
-            return
+        this.isSplit = store.splitImg == "split" || (store.splitImg == "auto" && store.originImgW > store.originImgH)
+        if (!this.isSplit) {
+            store.curImgW = store.originImgW
+            store.curImgH = store.originImgH
         }
+        else {
+            store.curImgW = store.originImgW / 2
+            store.curImgH = store.originImgH
+        }
+        store.imgDomY = 0
         this.isScrollX = true
         this.isScrollY = true
-        store.curCanvasX = 0
-        store.curCanvasY = 0
-        store.curImgW = this.imgDom.naturalWidth
-        store.curImgH = this.imgDom.naturalHeight
         let curRatio = store.curImgW / store.curImgH
         let screenRatio = store.divFloatW / store.divFloatH
+        store.curCanvasY = 0
+        store.curCanvasX = 0
         switch (store.readMode) {
             case "none":
                 store.displayImgW = store.curImgW
@@ -74,48 +86,104 @@ class JImgScroll {
                 this.isScrollX = false
                 break
         }
+        this.maxX = 0
+        this.minX = Math.min(this.maxX, store.screenW - store.displayImgW)
+        this.maxY = 0
+        this.minY = Math.min(this.maxY, store.screenH - store.displayImgH)
+        if (this.minX != this.maxX) {
+            store.curCanvasX = (store.directX + 1) / 2 * this.minX
+
+        }
+        store.imgDomH = store.displayImgH
+        store.imgDomX = 0
+        if (!this.isSplit) {
+            store.imgDomW = store.displayImgW
+        }
+        else {
+            store.imgDomW = store.displayImgW * 2
+            let splitNum = 0
+            if ((store.directX == -1 && store.splitNum == 1) || (store.directX == 1 && store.splitNum == 0)) {
+                splitNum = 1
+            }
+            else { splitNum = 0 }
+            store.imgDomX -= store.displayImgW * splitNum
+        }
+
     }
 
     scroll(x: number, y: number) {
         if (this.isScrollX) {
-            store.curCanvasX = Math.min(0, Math.max(store.screenW - store.displayImgW, x))
+            store.curCanvasX = Math.min(this.maxX, Math.max(this.minX, x))
         }
         if (this.isScrollY) {
-            store.curCanvasY = Math.min(0, Math.max(store.screenH - store.displayImgH, y))
+            store.curCanvasY = Math.min(this.maxY, Math.max(this.minY, y))
         }
     }
 
-    setTouchStart(x: number, y: number) {
+    setPanStart(x: number, y: number, v: boolean = true) {
         this.prevMouseX = x
         this.prevMouseY = y
+        if (v) {
+            this.canSwiperNext = true
+        }
     }
 
-    setTouchMove(x: number, y: number) {
+    setPanMove(x: number, y: number) {
         let newX = x - this.prevMouseX
         let newY = y - this.prevMouseY
+        if ((store.curCanvasX > -1 && newX > 0) || (store.curCanvasX - 1 < this.minX && newX < 0)) {
+        }
+        else {
+            this.canSwiperNext = false
+        }
         this.scroll(store.curCanvasX + newX, store.curCanvasY + newY)
         this.prevMouseX = x
         this.prevMouseY = y
+
     }
 
     /** 设置滑动逻辑 */
     async setSwipeMove(x: number, y: number) {
 
-        if (x != 0) {
+
+        if (x != 0 && this.canSwiperNext) {
             if (store.curCanvasX > -1 && x > 0) {
-                await this.setPrev()
+                await this.turnLeft()
                 return
             }
             if (store.curCanvasX - 1 < store.screenW - store.displayImgW && x < 0) {
-                await this.setNext()
+                await this.turnRight()
                 return
             }
         }
-        this.setTouchMove(x, y)
+        this.setPanMove(x, y)
         return
     }
 
+    async turnLeft() {
+        if (store.directX != -1) {
+            this.setNext()
+        }
+        else {
+            this.setPrev()
+        }
+    }
+
+    async turnRight() {
+        if (store.directX == -1) {
+            this.setNext()
+        }
+        else {
+            this.setPrev()
+        }
+    }
+
     async setNext() {
+        if (this.isSplit && !store.splitNum) {
+            store.splitNum = 1
+            this.resizeImg()
+            return
+        }
         if (store.curNo + 1 >= store.imgCount) {
             showToast({
                 message: "已经是尾页了",
@@ -124,6 +192,7 @@ class JImgScroll {
             })
             return
         }
+        store.splitNum = 0
         store.isDisplayLoading = true
         setImgLoading()
         await jFileCache.setImgByNum(store.curNo + 1)
@@ -132,6 +201,11 @@ class JImgScroll {
     }
 
     async setPrev() {
+        if (this.isSplit && store.splitNum) {
+            store.splitNum = 0
+            this.resizeImg()
+            return
+        }
         if (store.curNo <= 0) {
             showToast({
                 message: "已经是首页了",
@@ -140,13 +214,13 @@ class JImgScroll {
             })
             return
         }
+        store.splitNum = 1
         store.isDisplayLoading = true
         setImgLoading()
         await jFileCache.setImgByNum(store.curNo - 1)
         store.isDisplayLoading = false
         await jFileCache.preloadImg(store.curNo - 1, -1)
     }
-
 
     setMouseDown(x: number, y: number) {
         this.prevMouseX = x
@@ -157,7 +231,6 @@ class JImgScroll {
         if (this.prevMouseX == null) {
             return
         }
-
         this.scroll(store.curCanvasX + x - this.prevMouseX, store.curCanvasY + y - this.prevMouseY)
         this.prevMouseX = x
         this.prevMouseY = y
@@ -178,7 +251,6 @@ class JImgScroll {
 
         deltaX = (deltaX ? (Math.abs(deltaX) / deltaX) : 0) * store.screenW * this.wheelRatio
         deltaY = (deltaY ? (Math.abs(deltaY) / deltaY) : 0) * store.screenH * this.wheelRatio
-        // console.log(deltaX, deltaY, store.screenH)
         this.scroll(store.curCanvasX + deltaX, store.curCanvasY + deltaY)
     }
 

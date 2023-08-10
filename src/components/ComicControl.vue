@@ -2,9 +2,7 @@
 import { onMounted, ref } from "vue";
 import { store } from "../store"
 import { jImgScroll } from "../tool/imgScroll"
-import { newHammer as JHammer, setImgLoading } from "../tool/util"
-import { jFileCache } from "../tool/fileCache";
-import { showToast } from "vant"
+import { JHammer as JHammer } from "../tool/util"
 
 const bigDivRef = ref(<HTMLDivElement>null)
 const leftDivRef = ref(<HTMLDivElement>null)
@@ -23,20 +21,20 @@ onMounted(async () => {
 
 
     new JHammer(bigDiv).setDirection('pan').setDirection("swipe").on("panstart", (_e) => {
-        jImgScroll.setTouchStart(_e.deltaX, _e.deltaY)
+        jImgScroll.setPanStart(_e.deltaX, _e.deltaY)
     }).on("panmove", (e) => {
-        jImgScroll.setTouchMove(e.deltaX, e.deltaY)
+        jImgScroll.setPanMove(e.deltaX, e.deltaY)
     }).on("swipeleft", (e) => {
-        jImgScroll.setTouchStart(0, 0)
+        jImgScroll.setPanStart(0, 0, false)
         jImgScroll.setSwipeMove(e.deltaX, 0)
     }).on("swiperight", (e) => {
-        jImgScroll.setTouchStart(0, 0)
+        jImgScroll.setPanStart(0, 0, false)
         jImgScroll.setSwipeMove(e.deltaX, 0)
     }).on("swipeup", (e) => {
-        jImgScroll.setTouchStart(0, 0)
+        jImgScroll.setPanStart(0, 0, false)
         jImgScroll.setSwipeMove(0, e.deltaY)
     }).on("swipedown", (e) => {
-        jImgScroll.setTouchStart(0, 0)
+        jImgScroll.setPanStart(0, 0, false)
         jImgScroll.setSwipeMove(0, e.deltaY)
     })
 
@@ -79,44 +77,6 @@ onMounted(async () => {
 })
 
 
-
-let setNext = async () => {
-    if (store.curNo + 1 >= store.imgCount) {
-        showToast({
-            message: "已经是尾页了",
-            forbidClick: true,
-            duration: 1500
-        })
-        return
-    }
-    setTimeout(async () => {
-        store.isDisplayLoading = true
-        setImgLoading()
-        await jFileCache.setImgByNum(store.curNo + 1)
-        store.isDisplayLoading = false
-        await jFileCache.preloadImg(store.curNo + 1, 1)
-    }, 100);
-
-}
-
-let setPrev = async () => {
-    if (store.curNo <= 0) {
-        showToast({
-            message: "已经是首页了",
-            forbidClick: true,
-            duration: 1500
-        })
-        return
-    }
-    store.isDisplayLoading = true
-    setImgLoading()
-    await jFileCache.setImgByNum(store.curNo - 1)
-    store.isDisplayLoading = false
-    await jFileCache.preloadImg(store.curNo - 1, -1)
-}
-
-
-
 let setMouseDown = (e: MouseEvent) => {
     jImgScroll.setMouseDown(e.clientX, e.clientY)
 }
@@ -124,20 +84,6 @@ let setMouseDown = (e: MouseEvent) => {
 let setWheel = (e: WheelEvent) => {
     jImgScroll.setMouseWheel(e.deltaY, e.altKey)
 }
-
-let setLeftClickFunc = () => {
-    // console.log("left")
-    setNext()
-}
-
-let setRightClickFunc = () => {
-    // console.log('right')
-    setPrev()
-}
-
-
-
-
 
 </script>
 

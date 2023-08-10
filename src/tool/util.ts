@@ -36,7 +36,7 @@ export type hammerEventType =
 
 
 
-export class newHammer {
+export class JHammer {
     h: HammerManager
     constructor(e: HTMLElement, isManger?: boolean) {
         this.h = isManger ? new hammer.Manager(e) : new hammer(e)
@@ -79,4 +79,14 @@ export function setImgLoading() {
             store.isImgLoading = true
         }
     }, staticData.imgLoadPrepareTime);
+}
+
+let transitionMS: number
+export function stopTransition() {
+    transitionMS = store.transitionMS
+    store.transitionMS = 0
+}
+
+export function recoverTransition() {
+    store.transitionMS = transitionMS
 }

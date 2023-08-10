@@ -20,4 +20,4 @@ export type JFolderDisplayType = {
     url: string
 } & JFileFolderType
 
-export type JFileFormatType = "zip" | "gif" | "bmp" | "jpg" | "jpeg" | "png" | "avi" | "webp" | "apng" | "mp4" | "mkv" | "webm"
+export type JFileFormatType = "zip" | "gif" | "bmp" | "jpg" | "jpeg" | "png" | "apng" | "webp" | "avi" | "wmv" | "mp4" | "mkv" | "webm"
