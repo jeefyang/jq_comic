@@ -90,9 +90,8 @@ class JImgScroll {
         this.minX = Math.min(this.maxX, store.screenW - store.displayImgW)
         this.maxY = 0
         this.minY = Math.min(this.maxY, store.screenH - store.displayImgH)
-        if (this.minX != this.maxX) {
+        if (this.isScrollX) {
             store.curCanvasX = (store.directX + 1) / 2 * this.minX
-
         }
         store.imgDomH = store.displayImgH
         store.imgDomX = 0
@@ -146,13 +145,12 @@ class JImgScroll {
     /** 设置滑动逻辑 */
     async setSwipeMove(x: number, y: number) {
 
-
-        if (x != 0 && this.canSwiperNext) {
-            if (store.curCanvasX > -1 && x > 0) {
+        if (x != 0 && (this.canSwiperNext || !this.isScrollX)) {
+            if ((!this.isScrollX || store.curCanvasX > -1) && x > 0) {
                 await this.turnLeft()
                 return
             }
-            if (store.curCanvasX - 1 < store.screenW - store.displayImgW && x < 0) {
+            if ((!this.isScrollX || store.curCanvasX - 1 < store.screenW - store.displayImgW) && x < 0) {
                 await this.turnRight()
                 return
             }

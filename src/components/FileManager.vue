@@ -12,26 +12,35 @@ const themeVars: ConfigProviderThemeVars = {
     gridItemTextColor: "#8cdcf0"
     // background2: "rgba(0,0,0,0)"
 };
-
+const fileBoxDivRef = ref(<HTMLDivElement>null)
 const urlList = ref(<string[]>["."])
 // urlList.value = [...urlList.value, ...store.curDirUrl.split('/')]
 const fileList = ref(<{ className: string, name: string, title: string, type: "folder" | "file", index: number, originName: string, time: number, size?: number, exname?: string }[]>[])
 let folderObj: JFolderDisplayType = null
 let folderObjList: typeof fileList.value = []
 let fileObjList: typeof fileList.value = []
+let fileCacheList: typeof fileList.value = []
+let fileBoxDiv: HTMLDivElement = null
 
 let isReveser = false
 let sortType = ref(<"名称" | "日期" | "大小">"名称")
 let searchKey = ref(<string>"")
+let scrollCount = 0
+let scrollMax = 0
+
+
 
 onMounted(async () => {
+    let loadding = showLoadingToast({ message: "加载中", overlay: true, forbidClick: true })
+    fileBoxDiv = fileBoxDivRef.value
     await updateFolderFunc(store.curDirUrl)
+    loadding.close()
     return
 })
 
 
 /** 设置排序大法 */
-let setSortFunc = () => {
+let setSortFunc = async () => {
     [folderObjList, fileObjList].forEach(child => {
         switch (sortType.value) {
             case "名称":
@@ -53,19 +62,31 @@ let setSortFunc = () => {
             child.reverse()
         }
     })
-    let list = [...folderObjList, ...fileObjList]
+    fileCacheList = [...folderObjList, ...fileObjList]
     if (searchKey) {
         let reg = new RegExp(searchKey.value, "i")
-        list = list.filter(c => {
+        fileCacheList = fileCacheList.filter(c => {
             let index = c.originName.search(reg)
             return index != -1
         })
     }
-    fileList.value = list
+    scrollMax = fileCacheList.length
+    scrollCount = 0
+    fileList.value = []
+    // 为了让ui有时间操作
+    await new Promise((res) => {
+
+        setTimeout(() => {
+
+            res(undefined)
+        }, 100);
+    })
+    await scrollLazyLoad(50)
+    return
 }
 
 /** 设置排序类型大法 */
-let setSortTypeFunc = () => {
+let setSortTypeFunc = async () => {
     let map: (typeof sortType.value)[] = ["名称", "大小", "日期"]
     let index = map.indexOf(sortType.value)
     index++
@@ -73,7 +94,8 @@ let setSortTypeFunc = () => {
         index = 0
     }
     sortType.value = map[index]
-    setSortFunc()
+    await setSortFunc()
+    return
 }
 
 
@@ -129,12 +151,12 @@ let updateFolderFunc = async (url: string) => {
             exname: file.exName
         })
     }
-    setSortFunc()
+    await setSortFunc()
     return
 }
 
 /** 选中文件大法(包括) */
-let selectFileFunc = async (item: (typeof fileList.value)[number]) => {
+const selectFileFunc = async (item: (typeof fileList.value)[number]) => {
     let loadding = showLoadingToast({ message: "加载中", overlay: true, forbidClick: true })
     searchKey.value = ""
     if (item.type == "folder") {
@@ -155,7 +177,7 @@ let selectFileFunc = async (item: (typeof fileList.value)[number]) => {
 }
 
 /** 通过序号回退文件夹大法 */
-let rebackFolderFuncByIndex = async (index: number) => {
+const rebackFolderFuncByIndex = async (index: number) => {
     let loadding = showLoadingToast({ message: "加载中", overlay: true, forbidClick: true })
     if (index == -1) {
         index = urlList.value.length - 2
@@ -172,7 +194,7 @@ let rebackFolderFuncByIndex = async (index: number) => {
     return
 }
 
-let rebackCur = async () => {
+const rebackCur = async () => {
     await updateFolderFunc(store.dirUrl)
     return
 }
@@ -180,17 +202,17 @@ let rebackCur = async () => {
 
 
 /** 强制停止冒泡 */
-let stopBubbleFunc = (e: MouseEvent) => {
+const stopBubbleFunc = (e: MouseEvent) => {
     e.stopPropagation()
 }
 
 /** 获取文件大小大法 */
-let getSizeStrFunc = (size: number) => {
+const getSizeStrFunc = (size: number) => {
     return (size / 1024 / 1024).toFixed(2) + 'MB'
 }
 
 /** 获取时间大法 */
-let getDateStrFunc = (ms: number) => {
+const getDateStrFunc = (ms: number) => {
     let date = new Date(ms)
     let y = date.getFullYear()
     y = y >= 2000 ? (y - 2000) : y
@@ -209,7 +231,7 @@ let getDateStrFunc = (ms: number) => {
     return `${y}-${mstr}-${dstr} ${apm}:${hstr}:${minstr}`
 }
 
-let setIconTypeFunc = () => {
+const setIconTypeFunc = () => {
     let map: (typeof store.displayFileStyleType)[] = ["icon", "detail"]
     let index = map.indexOf(store.displayFileStyleType)
     index++
@@ -218,6 +240,27 @@ let setIconTypeFunc = () => {
     }
     let key = map[index]
     store.displayFileStyleType = key
+}
+
+/** 滚动懒加载 */
+const scrollLazyLoad = async (num: number) => {
+    let delta = 200
+    if (scrollCount >= scrollMax) {
+        return
+    }
+    let v = fileBoxDiv.clientHeight + fileBoxDiv.scrollTop - fileBoxDiv.scrollHeight
+    if (v + delta < 0) {
+        return
+    }
+    fileList.value.push(...fileCacheList.slice(scrollCount, scrollCount + num))
+    scrollCount += num
+    await new Promise((res, _rej) => {
+        setTimeout(() => {
+            scrollLazyLoad(num)
+            res(undefined)
+        }, 100);
+    })
+    return
 }
 
 </script>
@@ -249,7 +292,7 @@ let setIconTypeFunc = () => {
             </div>
 
             <!-- 文件显示大框 -->
-            <div class="file_display_box_div">
+            <div class="file_display_box_div" ref="fileBoxDivRef" @scroll="scrollLazyLoad(50)">
                 <van-config-provider :theme-vars="themeVars">
                     <!-- 文件显示 -->
                     <!-- 图标显示 -->

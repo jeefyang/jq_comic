@@ -26,9 +26,11 @@ onMounted(async () => {
     }).on("panmove", (e) => {
         jImgScroll.setPanMove(e.deltaX, e.deltaY)
     }).on("swipeleft", (e) => {
+        console.log("left")
         jImgScroll.setPanStart(0, 0, false)
         jImgScroll.setSwipeMove(e.deltaX, 0)
     }).on("swiperight", (e) => {
+        console.log("right")
         jImgScroll.setPanStart(0, 0, false)
         jImgScroll.setSwipeMove(e.deltaX, 0)
     }).on("swipeup", (e) => {

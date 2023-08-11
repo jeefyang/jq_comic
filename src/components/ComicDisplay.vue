@@ -30,9 +30,13 @@ onMounted(() => {
 <template>
     <div class="comic_div" ref="divRef"
         :style="{ 'top': store.divFloatTop + 'px', 'left': store.divFloatLeft + 'px', 'width': store.divFloatW + 'px', 'height': store.divFloatH + 'px' }">
-        <img class="comic_img" ref="imgRef" :src="store.canvasB64"
-            :style="{ 'left': '0px', 'top': '0px', 'width': store.imgDomW + 'px', 'height': store.imgDomH + 'px', 'transform': 'translate3d(' + (store.curCanvasX + store.imgDomX) + 'px,' + (store.curCanvasY + store.imgDomY) + 'px,0)', 'transition': 'transform ' + store.transitionMS + 'ms ease-out' }"
-            draggable="false" ondragstart="return false;">
+        <div class="display_box_div"
+            :style="{ 'width': store.displayImgW + 'px', 'height': store.displayImgH + 'px', 'transform': 'translate3d(' + (store.curCanvasX) + 'px,' + (store.curCanvasY) + 'px,0)', 'transition': 'transform ' + store.transitionMS + 'ms ease-out' }">
+            <img class="comic_img" ref="imgRef" :src="store.canvasB64"
+                :style="{ 'left': store.imgDomX + 'px', 'top': store.imgDomY + 'px', 'width': store.imgDomW + 'px', 'height': store.imgDomH + 'px' }"
+                draggable="false" ondragstart="return false;">
+        </div>
+
         <div class="bottom_div">
             <div class="vintage2" v-if="store.isDisplayImgNum">{{ store.curNo }}/{{ store.imgCount }}</div>
             <div class="vintage2" v-if="store.isDisplayFileName">{{ store.fileName }}</div>
@@ -48,6 +52,13 @@ onMounted(() => {
     overflow: hidden;
     pointer-events: all;
 
+}
+
+.display_box_div {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    overflow: hidden;
 }
 
 .comic_img {
