@@ -92,6 +92,10 @@ export const store = reactive({
     isDisplayImgNum: <boolean>true,
     /** 是否显示文件名 */
     isDisplayFileName: <boolean>false,
+    /** 是否显示测试用的数据 */
+    isDisplayDebugMsg: <boolean>false,
+    /** 测试数据 */
+    debugMsg: <string | number>"",
     /** 图片是否正在加载 */
     isImgLoading: <boolean>false,
     /** 图片是否准备加载 */

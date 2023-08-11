@@ -5,6 +5,7 @@ import { store } from "../store"
 import { jImgScroll } from '../tool/imgScroll';
 import { jFileCache } from '../tool/fileCache';
 import { NameSortType } from '../type';
+import { showToast } from 'vant';
 const readModeMap: { key: typeof store.readMode, name: string }[] = [
     { key: "fit", name: "适应屏幕" },
     { key: "none", name: "原始" },
@@ -28,16 +29,22 @@ const sortMap: { text: NameSortType, value: NameSortType }[] = [
 ]
 
 onMounted(() => {
-
 })
 
 const setAutoSave = (v: boolean) => {
-    console.log(v)
     if (v) {
         jFileCache.autoSave()
+        showToast({ message: "保存成功", forbidClick: false, duration: 500 })
     }
     else {
         jFileCache.clearSave()
+    }
+}
+
+const setRefresh = () => {
+    let check = window.confirm("是否刷新")
+    if (check) {
+        window.location.reload()
     }
 }
 
@@ -116,6 +123,20 @@ const freshImg = async () => {
         <!-- 空行 -->
         <div class="br"></div>
 
+        <!-- 显示测试数据 -->
+        <div class="sort" v-if="store.isControlDebug">
+            <div class="sort_title">显示测试:</div>
+            <van-switch v-model="store.isDisplayDebugMsg">
+                <template #node>
+                    <div class="icon-wrapper">
+                        <van-icon :name="store.isDisplayDebugMsg ? 'success' : 'cross'" />
+                    </div>
+                </template>
+            </van-switch>
+        </div>
+        <!-- 空行 -->
+        <div class="br" v-if="store.isControlDebug"></div>
+
         <!-- 反转操作 -->
         <div class="sort">
             <div class="sort_title">反转操作:</div>
@@ -140,6 +161,28 @@ const freshImg = async () => {
                     </div>
                 </template>
             </van-switch>
+        </div>
+        <!-- 空行 -->
+        <div class="br"></div>
+
+        <!-- 自动保存 -->
+        <div class="sort" v-if="store.isControlDebug">
+            <div class="sort_title">调试:</div>
+            <van-switch v-model="store.isControlDebug">
+                <template #node>
+                    <div class="icon-wrapper">
+                        <van-icon :name="store.isControlDebug ? 'success' : 'cross'" />
+                    </div>
+                </template>
+            </van-switch>
+        </div>
+        <!-- 空行 -->
+        <div class="br" v-if="store.isControlDebug"></div>
+
+        <!-- 常规按钮功能 -->
+        <div class="sort">
+            <van-button type="default" @click="setRefresh">刷新</van-button>
+            <van-button type="default" :disabled="!store.isAutoSave" @click="setAutoSave(true)">保存</van-button>
         </div>
         <!-- 空行 -->
         <div class="br"></div>

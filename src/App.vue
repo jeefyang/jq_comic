@@ -57,15 +57,18 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div v-if="store.isServerCompleted">
-    <ComicDisplay></ComicDisplay>
-    <ComicImgLoading v-if="store.isImgLoading && store.isImgPrepareLoading"></ComicImgLoading>
-    <ComicControl></ComicControl>
-    <FileManager v-if="store.displayFileManager"></FileManager>
-    <ComicOPPanel v-if="store.displayOPPanel"></ComicOPPanel>
-    <ComicBottomBar v-if="store.displayBottomBar"></ComicBottomBar>
+  <van-config-provider theme="dark">
+    <div v-if="store.isServerCompleted">
+      <ComicDisplay></ComicDisplay>
+      <ComicImgLoading v-if="store.isImgLoading && store.isImgPrepareLoading"></ComicImgLoading>
+      <ComicControl></ComicControl>
+      <FileManager v-if="store.displayFileManager"></FileManager>
+      <ComicOPPanel v-if="store.displayOPPanel"></ComicOPPanel>
+      <ComicBottomBar v-if="store.displayBottomBar"></ComicBottomBar>
 
-  </div>
+    </div>
+  </van-config-provider>
+
 
   <!-- 测试 -->
   <!-- <van-grid :gutter="10" style="{overflow:auto;}">

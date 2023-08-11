@@ -67,6 +67,11 @@ export class JHammer {
         return this
     }
 
+    openPinch() {
+        this.h.get("pinch").set({ enable: true })
+        return this
+    }
+
 
 
 }

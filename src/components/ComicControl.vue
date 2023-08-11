@@ -20,7 +20,7 @@ onMounted(async () => {
     let centerOPDiv = centerOPDivRef.value
 
 
-    new JHammer(bigDiv).setDirection('pan').setDirection("swipe").on("panstart", (_e) => {
+    new JHammer(bigDiv).setDirection('pan').setDirection("swipe").openPinch().on("panstart", (_e) => {
         jImgScroll.setPanStart(_e.deltaX, _e.deltaY)
     }).on("panmove", (e) => {
         jImgScroll.setPanMove(e.deltaX, e.deltaY)
@@ -38,6 +38,9 @@ onMounted(async () => {
     }).on("swipedown", (e) => {
         jImgScroll.setPanStart(0, 0, false)
         jImgScroll.setSwipeMove(0, e.deltaY)
+    }).on("pinch", (ev) => {
+        // console.log(ev.scale)
+        store.debugMsg = ev.scale
     })
 
     new JHammer(leftDiv).on("tap", () => {

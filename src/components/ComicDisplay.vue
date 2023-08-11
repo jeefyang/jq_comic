@@ -40,6 +40,8 @@ onMounted(() => {
         <div class="bottom_div">
             <div class="vintage2" v-if="store.isDisplayImgNum">{{ store.curNo + 1 }}/{{ store.imgCount }}</div>
             <div class="vintage2" v-if="store.isDisplayFileName">{{ store.fileName }}</div>
+            <!-- 测试用的 -->
+            <div class="vintage2" v-if="store.isDisplayDebugMsg && store.isControlDebug">{{ store.debugMsg }}</div>
         </div>
     </div>
 </template>

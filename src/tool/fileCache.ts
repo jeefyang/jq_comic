@@ -35,6 +35,7 @@ class JFileCache {
     videoEXList: JFileFormatType[] = ["avi", "mp4", "mkv", "webm", "wmv"]
     config: ConfigType
     localStorageKey: string = "localSaveDataType"
+    private _isControlDebug = false
 
     constructor() {
 
@@ -47,9 +48,11 @@ class JFileCache {
         if (index == -1) {
             switchKey = this.config.switchUrlList[0].key
         }
+        this._isControlDebug = !!url.searchParams.get("isControlDebug")
         index = this.config.switchUrlList.findIndex(o => o.key == switchKey)
         store.switchKey = this.config.switchUrlList[index].key
         this.server.baseUrl = store.baseDirUrl = this.config.switchUrlList[index].url
+
     }
 
     private _initStore() {
@@ -64,6 +67,8 @@ class JFileCache {
                 }
             }
         }
+        store.isControlDebug = store.isControlDebug || this._isControlDebug
+        this._isControlDebug = store.isControlDebug
     }
 
     async init(server: JserverLink, config: ConfigType) {
