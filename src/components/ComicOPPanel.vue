@@ -4,6 +4,7 @@ import { onMounted } from 'vue';
 import { store } from "../store"
 import { jImgScroll } from '../tool/imgScroll';
 import { jFileCache } from '../tool/fileCache';
+import { NameSortType } from '../type';
 const readModeMap: { key: typeof store.readMode, name: string }[] = [
     { key: "fit", name: "适应屏幕" },
     { key: "none", name: "原始" },
@@ -20,6 +21,12 @@ const directXMap: { text: string, value: -1 | 1 }[] = [
     { text: "从左到右", value: -1 },
     { text: "从右到左", value: 1 }
 ]
+
+const sortMap: { text: NameSortType, value: NameSortType }[] = [
+    { text: "名称", value: "名称" },
+    { text: "数字", value: "数字" }
+]
+
 onMounted(() => {
 
 })
@@ -32,6 +39,11 @@ const setAutoSave = (v: boolean) => {
     else {
         jFileCache.clearSave()
     }
+}
+
+const freshImg = async () => {
+    await jFileCache.openFile(store.dirUrl, store.fileName, store.curNo)
+    return
 }
 </script>
 <template>
@@ -58,11 +70,20 @@ const setAutoSave = (v: boolean) => {
 
         <!-- 方向 -->
         <div class="sort">
+            <div class="sort_title">排列:</div>
+            <van-dropdown-menu>
+                <van-dropdown-item v-model="store.imgSortType" :options="sortMap" @change="freshImg()" />
+            </van-dropdown-menu>
+        </div>
+        <!-- 空行 -->
+        <div class="br"></div>
+
+        <!-- 方向 -->
+        <div class="sort">
             <div class="sort_title">方向:</div>
             <van-dropdown-menu>
                 <van-dropdown-item v-model="store.directX" :options="directXMap" @change="jImgScroll.resizeImg()" />
             </van-dropdown-menu>
-
         </div>
         <!-- 空行 -->
         <div class="br"></div>

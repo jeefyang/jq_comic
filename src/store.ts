@@ -1,4 +1,5 @@
 import { reactive } from "vue"
+import { NameSortType } from "./type"
 
 export const store = reactive({
     /** 选中关键字 */
@@ -35,6 +36,8 @@ export const store = reactive({
     imgDomX: <number>0,
     /** 图片元素坐标y */
     imgDomY: <number>0,
+    /** 图片观看排列顺序 */
+    imgSortType: <NameSortType>"名称",
     /** 图片显示的宽度 */
     displayImgW: <number>0,
     /** 图片显示的高度 */

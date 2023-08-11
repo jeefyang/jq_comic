@@ -31,16 +31,10 @@ const mainRouter = router({
     let zip = (await zipFactory.getChild(url))
     return { list: zip.entryList }
   }),
-  /** 获取压缩包里文件 */
-  getZipInFile: publicProcedure.input(z.object({ url: z.string(), orderNO: z.number() })).mutation(async ({ input }) => {
+  /** 通过名称获取压缩包里文件 */
+  getZipInFileByName: publicProcedure.input(z.object({ url: z.string(), fileName: z.string() })).mutation(async ({ input }) => {
     let url = path.join(input.url)
-    let data = await (await zipFactory.getChild(url)).getFileByNo(input.orderNO)
-    return data
-  }),
-  /** 获取压缩包里文件的信息 */
-  getZipInFileMsg: publicProcedure.input(z.object({ url: z.string(), orderNO: z.number() })).mutation(async ({ input }) => {
-    let url = path.join(input.url)
-    let data = await (await zipFactory.getChild(url)).entryList[input.orderNO]
+    let data = await (await zipFactory.getChild(url)).getFileByName(input.fileName)
     return data
   }),
   /** 获取文件数据 */

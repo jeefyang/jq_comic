@@ -38,7 +38,7 @@ onMounted(() => {
         </div>
 
         <div class="bottom_div">
-            <div class="vintage2" v-if="store.isDisplayImgNum">{{ store.curNo }}/{{ store.imgCount }}</div>
+            <div class="vintage2" v-if="store.isDisplayImgNum">{{ store.curNo + 1 }}/{{ store.imgCount }}</div>
             <div class="vintage2" v-if="store.isDisplayFileName">{{ store.fileName }}</div>
         </div>
     </div>
@@ -59,6 +59,8 @@ onMounted(() => {
     top: 0px;
     left: 0px;
     overflow: hidden;
+    user-select: none;
+    pointer-events: all;
 }
 
 .comic_img {

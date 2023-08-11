@@ -3,7 +3,6 @@ import { onMounted, ref } from "vue";
 import { store } from "../store"
 import { jImgScroll } from "../tool/imgScroll"
 import { JHammer as JHammer } from "../tool/util"
-import { jFileCache } from "../tool/fileCache";
 
 const bigDivRef = ref(<HTMLDivElement>null)
 const leftDivRef = ref(<HTMLDivElement>null)

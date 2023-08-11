@@ -2,7 +2,8 @@ import { JFolderDisplayType, JFileFormatType } from "../type";
 import { JserverLink } from "../tool/serverLink"
 import { store } from "../store"
 import { staticData } from "../const"
-import { configType, localSaveDataType } from "../type"
+import { ConfigType, LocalSaveDataType } from "../type"
+import StreamZip from "node-stream-zip";
 
 class JFileCache {
     /** 文件夹缓存 */
@@ -10,13 +11,29 @@ class JFileCache {
     /** 图片缓存,会限制个数 */
     imgCache: { dirUrl: string, fileName: string, isZip?: boolean, zipIndex?: number, time: number, base64: string, w?: number, h?: number, zipInFileName?: string, type: "img" | "video", exName?: string }[] = []
     /** 压缩包信息,为了减少服务器读取 */
-    zipMsgCache: { dirUrl: string, fileName: string, count: number }[] = []
+    zipMsgCache: {
+        dirUrl: string,
+        fileName: string,
+        /** 数量 */
+        count: number,
+        /** 原始文件排列 */
+        list: {
+            key: string;
+            data: StreamZip.ZipEntry;
+        }[],
+        /** 后期排列 */
+        sortList?: {
+            key: string;
+            data: StreamZip.ZipEntry;
+        }[]
+        sortType?: string
+    }[] = []
     server: JserverLink
     preloadCount: number = 0
     preloadIndex: number = -1
     imgEXList: JFileFormatType[] = ["gif", "bmp", "jpg", "jpeg", "png", "apng", "webp"]
     videoEXList: JFileFormatType[] = ["avi", "mp4", "mkv", "webm", "wmv"]
-    config: configType
+    config: ConfigType
     localStorageKey: string = "localSaveDataType"
 
     constructor() {
@@ -49,7 +66,7 @@ class JFileCache {
         }
     }
 
-    async init(server: JserverLink, config: configType) {
+    async init(server: JserverLink, config: ConfigType) {
         this.server = server
         this.config = config
         this._initSwitchKey()
@@ -69,7 +86,7 @@ class JFileCache {
         if (!txt) {
             return
         }
-        let json: localSaveDataType = JSON.parse(txt)
+        let json: LocalSaveDataType = JSON.parse(txt)
         let index = json?.storeList ? json.storeList.findIndex(c => c.key == store.switchKey) : -1
         if (index == -1) {
             return
@@ -78,7 +95,7 @@ class JFileCache {
     }
 
     setLocalStorage() {
-        let json: localSaveDataType
+        let json: LocalSaveDataType
         let txt = localStorage.getItem(this.localStorageKey)
         if (!txt) {
             json = { storeList: [] }
@@ -111,7 +128,7 @@ class JFileCache {
         if (!txt) {
             return
         }
-        let json: localSaveDataType = JSON.parse(txt)
+        let json: LocalSaveDataType = JSON.parse(txt)
         let index = json?.storeList ? json.storeList.findIndex(c => c.key == store.switchKey) : -1
         if (index == -1) {
             return
@@ -134,10 +151,86 @@ class JFileCache {
         await this.openFile(store.dirUrl, store.fileName)
     }
 
+    private _setZipInFileSort(data: (typeof this.zipMsgCache)[number]) {
+        if (data.sortType == store.imgSortType) {
+            return
+        }
+        let cloneList = [...data.list]
+        switch (store.imgSortType) {
+            case "名称":
+                data.sortList = cloneList.sort((a, b) => a.data.name > b.data.name ? 1 : -1)
+                break
+            case "大小":
+                data.sortList = cloneList.sort((a, b) => {
+                    if (!a.data.size || !b.data.size) {
+                        return a.data.name > b.data.name ? 1 : -1
+                    }
+                    return a.data.size > b.data.size ? 1 : -1
+                })
+                break
+            case "日期":
+                data.sortList = cloneList.sort((a, b) => a.data.time > b.data.time ? 1 : -1)
+                break
+            case "数字":
+                data.sortList = cloneList.sort((a, b) => {
+                    let an = a.data.name.match(/\d+/)?.[0]
+                    let bn = b.data.name.match(/\d+/)?.[0]
+                    if (an == null) {
+                        an = "0"
+                    }
+                    if (bn == null) {
+                        bn = "0"
+                    }
+                    return Number(an) - Number(bn)
+                })
+                break
+        }
+        data.sortType = store.imgSortType
+    }
+
+    private _setFloderSort(data: JFolderDisplayType) {
+        if (data.sortType == store.imgSortType) {
+            return
+        }
+
+        let cloneList = [...data.noZipFiles]
+        switch (store.imgSortType) {
+            case "名称":
+                data.sortNoZipFile = cloneList.sort((a, b) => a.name > b.name ? 1 : -1)
+                break
+            case "大小":
+                data.sortNoZipFile = cloneList.sort((a, b) => {
+                    if (!a.size || !b.size) {
+                        return a.name > b.name ? 1 : -1
+                    }
+                    return a.size > b.size ? 1 : -1
+                })
+                break
+            case "日期":
+                data.sortNoZipFile = cloneList.sort((a, b) => a.mtime > b.mtime ? 1 : -1)
+                break
+            case "数字":
+                data.sortNoZipFile = cloneList.sort((a, b) => {
+                    let an = a.name.match(/\d+/)?.[0]
+                    let bn = b.name.match(/\d+/)?.[0]
+                    if (an == null) {
+                        an = "0"
+                    }
+                    if (bn == null) {
+                        bn = "0"
+                    }
+                    return Number(an) - Number(bn)
+                })
+                break
+        }
+        data.sortType = store.imgSortType
+    }
+
     /** 获取文件夹信息 */
     async getFolder(url: string) {
         // store.curDirUrl = url
         if (this.dirCache[url]) {
+            this._setFloderSort(this.dirCache[url])
             return this.dirCache[url]
         }
         let obj = await this.server.getFolder(url)
@@ -149,7 +242,7 @@ class JFileCache {
             obj.noZipFiles.push(obj.files[i])
         }
         this.dirCache[url] = obj
-
+        this._setFloderSort(obj)
         return obj
     }
 
@@ -160,13 +253,15 @@ class JFileCache {
         fileName = fileName || store.fileName
         let index = this.zipMsgCache.findIndex(c => c.dirUrl == dirUrl && c.fileName == fileName)
         if (index != -1) {
+            this._setZipInFileSort(this.zipMsgCache[index])
             return this.zipMsgCache[index]
         }
         let url = `${dirUrl}/${fileName}`
         let zipData = await this.server.getZipMsg(url)
         index = this.zipMsgCache.push({
-            dirUrl, fileName, count: zipData.list.length
+            dirUrl, fileName, count: zipData.list.length, list: zipData.list
         })
+        this._setZipInFileSort(this.zipMsgCache[index - 1])
         return this.zipMsgCache[index - 1]
     }
 
@@ -217,11 +312,12 @@ class JFileCache {
         let fileEx: string = ex
         let buffer: Buffer
         if (ex == "zip") {
-            await this.getZipMsg(dirUrl, fileName)
-            zipInFileName = (await this.server.getZipInFileMsgByNum(url, index)).data.name
+            let msg = await this.getZipMsg(dirUrl, fileName)
+            zipInFileName = msg.sortList[index].data.name
+            console.log(url, zipInFileName)
             let arr = zipInFileName.split('.')
             fileEx = arr[arr.length - 1].toLowerCase()
-            buffer = await this.server.getZipInFileByNum(url, index)
+            buffer = await this.server.getZipInFileByName(url, zipInFileName)
         }
         else {
             buffer = await this.server.getFile(url)
@@ -285,13 +381,13 @@ class JFileCache {
         else {
             store.isZipFile = false
             let dir = await this.getFolder(dirUrl)
-            let findIndex = dir.noZipFiles.findIndex(c => c.name == fileName)
+            let findIndex = dir.sortNoZipFile.findIndex(c => c.name == fileName)
             if (findIndex == -1) {
                 return
             }
 
             store.curNo = findIndex
-            store.imgCount = dir.noZipFiles.length
+            store.imgCount = dir.sortNoZipFile.length
             let obj = await this.getFileData(store.dirUrl, store.fileName)
             store.canvasB64 = obj.base64
             store.originImgW = obj.w
@@ -302,7 +398,7 @@ class JFileCache {
     }
 
     /** 通过序号设置图片 */
-    async setImgByNum(index: number) {
+    async setImgByNum(index: number, reboot: number = 3) {
         if (index < 0) {
             return
         }
@@ -317,13 +413,24 @@ class JFileCache {
         }
         else {
             let dirMsg = await this.getFolder(store.dirUrl)
-            store.fileName = dirMsg.noZipFiles[index].name
+            store.fileName = dirMsg.sortNoZipFile[index].name
             obj = await this.getFileData(store.dirUrl, store.fileName)
         }
-        store.canvasB64 = obj.base64
-        store.originImgW = obj.w
-        store.originImgH = obj.h
-        store.curNo = index
+        try {
+            store.canvasB64 = obj.base64
+            store.originImgW = obj.w
+            store.originImgH = obj.h
+            store.curNo = index
+        }
+        catch {
+            if (reboot == 0) {
+                console.warn("多次获取无果,跳出bug")
+                return
+            }
+            console.warn(`获取失败,再次获取,还有${reboot - 1}次重试`)
+            await this.setImgByNum(index, reboot - 1)
+        }
+
     }
 
     /** 停止预加载 */
@@ -351,7 +458,7 @@ class JFileCache {
         }
         else {
             let dirMsg = await this.getFolder(store.dirUrl)
-            let fileName = dirMsg.noZipFiles[index].name
+            let fileName = dirMsg.sortNoZipFile[index].name
             await this.getFileData(store.dirUrl, fileName)
             await this.preloadImg(this.preloadIndex, add, this.preloadCount)
         }

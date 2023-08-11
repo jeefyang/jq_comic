@@ -42,18 +42,10 @@ export class JserverLink {
         let data = await this._client.main.getZipMsg.mutate({ url: newUrl })
         return data
     }
-
-    /** 通过序号获取压缩包里文件 */
-    async getZipInFileByNum(url: string, index: number = 0) {
+    /** 通过名称获取压缩包里文件 */
+    async getZipInFileByName(url: string, fileName: string) {
         let newUrl = `${this.baseUrl}/${url}`
-        let data = await this._client.main.getZipInFile.mutate({ url: newUrl, orderNO: index })
-        return data
-    }
-
-    /** 通过序号获取压缩包里文件的其他信息 */
-    async getZipInFileMsgByNum(url: string, index: number = 0) {
-        let newUrl = `${this.baseUrl}/${url}`
-        let data = await this._client.main.getZipInFileMsg.mutate({ url: newUrl, orderNO: index })
+        let data = await this._client.main.getZipInFileByName.mutate({ url: newUrl, fileName })
         return data
     }
 

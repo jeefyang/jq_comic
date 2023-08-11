@@ -3,7 +3,7 @@ import { store } from "../store"
 import { jFileCache } from "../tool/fileCache";
 import { onMounted, ref } from "vue";
 import { showLoadingToast, type ConfigProviderThemeVars } from 'vant';
-import { JFileFormatType, JFolderDisplayType } from "../type";
+import { JFileFormatType, JFolderDisplayType, NameSortType } from "../type";
 import path from "path-browserify"
 
 
@@ -23,7 +23,7 @@ let fileCacheList: typeof fileList.value = []
 let fileBoxDiv: HTMLDivElement = null
 
 let isReveser = false
-let sortType = ref(<"名称" | "日期" | "大小">"名称")
+let sortType = ref(<NameSortType>"名称")
 let searchKey = ref(<string>"")
 let scrollCount = 0
 let scrollMax = 0
@@ -57,6 +57,19 @@ let setSortFunc = async () => {
             case "日期":
                 child.sort((a, b) => a.time > b.time ? 1 : -1)
                 break
+            case "数字":
+                child.sort((a, b) => {
+                    let an = a.name.match(/\d+/)?.[0]
+                    let bn = b.name.match(/\d+/)?.[0]
+                    if (an == null) {
+                        an = "0"
+                    }
+                    if (bn == null) {
+                        bn = "0"
+                    }
+                    return Number(an) - Number(bn)
+                })
+                break
         }
         if (isReveser) {
             child.reverse()
@@ -87,7 +100,7 @@ let setSortFunc = async () => {
 
 /** 设置排序类型大法 */
 let setSortTypeFunc = async () => {
-    let map: (typeof sortType.value)[] = ["名称", "大小", "日期"]
+    let map: (NameSortType)[] = ["名称", "大小", "日期", "数字"]
     let index = map.indexOf(sortType.value)
     index++
     if (index >= map.length) {
