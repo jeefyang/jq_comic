@@ -89,9 +89,15 @@ export function setImgLoading() {
 let transitionMS: number
 export function stopTransition() {
     transitionMS = store.transitionMS
-    store.transitionMS = 0
+    if (store.transitionMS != 0) {
+        store.transitionMS = 0
+    }
+
 }
 
 export function recoverTransition() {
-    store.transitionMS = transitionMS
+    if (store.transitionMS != transitionMS) {
+        store.transitionMS = transitionMS
+    }
+
 }

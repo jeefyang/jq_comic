@@ -69,6 +69,9 @@ class JFileCache {
         }
         store.isControlDebug = store.isControlDebug || this._isControlDebug
         this._isControlDebug = store.isControlDebug
+
+        // 不想覆盖的部分
+        store.transitionMS = 300
     }
 
     async init(server: JserverLink, config: ConfigType) {

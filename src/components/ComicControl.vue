@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import { store } from "../store"
 import { jImgScroll } from "../tool/imgScroll"
-import { JHammer as JHammer } from "../tool/util"
+import { JHammer, stopTransition, recoverTransition } from "../tool/util"
 
 const bigDivRef = ref(<HTMLDivElement>null)
 const leftDivRef = ref(<HTMLDivElement>null)
@@ -21,26 +21,36 @@ onMounted(async () => {
 
 
     new JHammer(bigDiv).setDirection('pan').setDirection("swipe").openPinch().on("panstart", (_e) => {
+
         jImgScroll.setPanStart(_e.deltaX, _e.deltaY)
     }).on("panmove", (e) => {
         jImgScroll.setPanMove(e.deltaX, e.deltaY)
     }).on("swipeleft", (e) => {
         console.log("left")
+
         jImgScroll.setPanStart(0, 0, false)
         jImgScroll.setSwipeMove(e.deltaX, 0)
     }).on("swiperight", (e) => {
         console.log("right")
+
         jImgScroll.setPanStart(0, 0, false)
         jImgScroll.setSwipeMove(e.deltaX, 0)
     }).on("swipeup", (e) => {
+
         jImgScroll.setPanStart(0, 0, false)
         jImgScroll.setSwipeMove(0, e.deltaY)
     }).on("swipedown", (e) => {
+
         jImgScroll.setPanStart(0, 0, false)
         jImgScroll.setSwipeMove(0, e.deltaY)
+    }).on("pinchstart", () => {
+        stopTransition()
+        jImgScroll.scaleInit()
+
+    }).on("pinchend", () => {
+        recoverTransition()
     }).on("pinch", (ev) => {
-        // console.log(ev.scale)
-        store.debugMsg = ev.scale
+        jImgScroll.setPointScale(ev.center.x, ev.center.y, ev.scale)
     })
 
     new JHammer(leftDiv).on("tap", () => {
@@ -87,7 +97,7 @@ let setMouseDown = (e: MouseEvent) => {
 }
 
 let setWheel = (e: WheelEvent) => {
-    jImgScroll.setMouseWheel(e.deltaY, e.altKey)
+    jImgScroll.setMouseWheelScale(e)
 }
 
 </script>
@@ -207,6 +217,5 @@ let setWheel = (e: WheelEvent) => {
     height: 100%;
     position: absolute;
     overflow: hidden;
-    background-color: #35a9a982;
 }
 </style>

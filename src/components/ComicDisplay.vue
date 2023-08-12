@@ -31,9 +31,9 @@ onMounted(() => {
     <div class="comic_div" ref="divRef"
         :style="{ 'top': store.divFloatTop + 'px', 'left': store.divFloatLeft + 'px', 'width': store.divFloatW + 'px', 'height': store.divFloatH + 'px' }">
         <div class="display_box_div"
-            :style="{ 'width': store.displayImgW + 'px', 'height': store.displayImgH + 'px', 'transform': 'translate3d(' + (store.curCanvasX) + 'px,' + (store.curCanvasY) + 'px,0)', 'transition': 'transform ' + store.transitionMS + 'ms ease-out' }">
+            :style="{ 'width': store.displayImgW + 'px', 'height': store.displayImgH + 'px', 'transform': 'translate3d(' + (store.domTransX) + 'px,' + (store.domTransY) + 'px,0) scale(' + store.domScale + ')', 'transition': 'transform ' + store.transitionMS + 'ms ease-out' }">
             <img class="comic_img" ref="imgRef" :src="store.canvasB64"
-                :style="{ 'left': store.imgDomX + 'px', 'top': store.imgDomY + 'px', 'width': store.imgDomW + 'px', 'height': store.imgDomH + 'px' }"
+                :style="{ 'transform': 'translate(' + (store.imgTransX) + 'px,' + (store.imgTransY) + 'px)' }"
                 draggable="false" ondragstart="return false;">
         </div>
 
@@ -63,12 +63,15 @@ onMounted(() => {
     overflow: hidden;
     user-select: none;
     pointer-events: all;
+    transform-origin: left top;
 }
 
 .comic_img {
-    position: absolute;
+    position: relative;
     user-select: none;
     pointer-events: all;
+    top: 0px;
+    left: 0px;
     /* transition: transform 300ms ease-out; */
     /* overflow: scroll; */
 }

@@ -20,32 +20,27 @@ export const store = reactive({
     screenH: <number>0,
     /** 画布数据 */
     canvasB64: <string>"",
-    /** 当前图片宽度 */
-    curImgW: <number>0,
-    /** 当前图片高度 */
-    curImgH: <number>0,
     /** 图片原始宽 */
     originImgW: <number>0,
     /** 图片原始高 */
     originImgH: <number>0,
-    /** 图片元素宽 */
-    imgDomW: <number>0,
-    /** 图片元素高 */
-    imgDomH: <number>0,
-    /** 图片元素坐标x */
-    imgDomX: <number>0,
-    /** 图片元素坐标y */
-    imgDomY: <number>0,
+    /** dom元素缩放比例 */
+    domScale: <number>1,
+    /** 当前画布位置X */
+    domTransX: <number>0,
+    /** 当前画布位置Y */
+    domTransY: <number>0,
+    /** 图片偏移坐标x */
+    imgTransX: <number>0,
+    /** 图片偏移坐标y */
+    imgTransY: <number>0,
     /** 图片观看排列顺序 */
     imgSortType: <NameSortType>"名称",
     /** 图片显示的宽度 */
     displayImgW: <number>0,
     /** 图片显示的高度 */
     displayImgH: <number>0,
-    /** 当前画布位置X */
-    curCanvasX: <number>0,
-    /** 当前画布位置Y */
-    curCanvasY: <number>0,
+
     /** div浮动宽度比例 */
     divFloatWRatio: <number>0.01,
     /** div浮动高度比例 */
