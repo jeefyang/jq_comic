@@ -98,7 +98,7 @@ let setCurNoFunc = () => {
     left: 0px;
     width: 100%;
     height: 100%;
-    background-color: rgba(255, 0, 0, 0.338);
+    background-color: rgba(50, 50, 50, 0.5);
 }
 
 .slider_div {

@@ -18,6 +18,15 @@ onMounted(async () => {
     let topBarDiv = topBarDivRef.value
     let bottomBarDiv = bottomBarDivRef.value
     let centerOPDiv = centerOPDivRef.value
+    let isDoubleTap = false
+    let doubleTapTime: NodeJS.Timeout
+    let doubletapFunc = () => {
+        doubleTapTime && clearTimeout(doubleTapTime)
+        isDoubleTap = true
+        doubleTapTime = setTimeout(() => {
+            isDoubleTap = false
+        }, 1000);
+    }
 
 
     new JHammer(bigDiv).setDirection('pan').setDirection("swipe").openPinch().on("panstart", (_e) => {
@@ -51,6 +60,9 @@ onMounted(async () => {
         recoverTransition()
     }).on("pinch", (ev) => {
         jImgScroll.setPointScale(ev.center.x, ev.center.y, ev.scale)
+    }).on("doubletap", (ev) => {
+        jImgScroll.setDoubleTap(ev)
+        doubletapFunc()
     })
 
     new JHammer(leftDiv).on("tap", () => {
@@ -63,21 +75,26 @@ onMounted(async () => {
 
     new JHammer(topBarDiv).on("tap", (_e) => {
         setTimeout(() => {
-            store.displayFileManager = true
+            if (!isDoubleTap) {
+                store.displayFileManager = true
+            }
         }, 200);
     })
 
     new JHammer(bottomBarDiv).on("tap", (_e) => {
         setTimeout(() => {
-            store.displayBottomBar = true
+            if (!isDoubleTap) {
+                store.displayBottomBar = true
+            }
         }, 200);
 
     })
 
     new JHammer(centerOPDiv).on("tap", (_e) => {
-        console.log("触发中间配置")
         setTimeout(() => {
-            store.displayOPPanel = true
+            if (!isDoubleTap) {
+                store.displayOPPanel = true
+            }
         }, 200);
     })
 

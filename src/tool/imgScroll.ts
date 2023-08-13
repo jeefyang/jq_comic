@@ -19,6 +19,7 @@ class JImgScroll {
     curEXScale: number = 1
     minScale: number = 1
     maxScale: number = 3
+    isDoubleTap: boolean = false
 
     /** 能否滑动到下张 */
     canSwiperNext: boolean = true
@@ -109,6 +110,7 @@ class JImgScroll {
         store.imgTransY = 0
         store.domScale = domScale
         this.originScale = this.curEXScale = 1
+        this.isDoubleTap = false
 
         store.debugMsg = `${store.originImgW} ${store.originImgH}`
 
@@ -143,6 +145,7 @@ class JImgScroll {
         newX = store.domTransX - (newX * (newScale - store.domScale))
         newY = store.domTransY - (newY * (newScale - store.domScale))
         if (store.displayImgW * domScale <= store.divFloatW) {
+            this.isMoveX = true
             newX = (store.divFloatW - store.displayImgW * domScale) / 2
         }
         else {
@@ -150,6 +153,7 @@ class JImgScroll {
             newX = Math.min(this.maxX, Math.max(this.minX, newX))
         }
         if (store.displayImgH * domScale <= store.divFloatH) {
+            this.isMoveY = false
             newY = (store.divFloatH - store.displayImgH * domScale) / 2
         }
         else {
@@ -160,6 +164,16 @@ class JImgScroll {
         store.domTransY = newY
 
         store.domScale = domScale
+    }
+
+    setDoubleTap(ev: HammerInput) {
+        if (this.isDoubleTap) {
+            this.setPointScale(ev.center.x, ev.center.y, 1)
+        }
+        else {
+            this.setPointScale(ev.center.x, ev.center.y, 2)
+        }
+        this.isDoubleTap = !this.isDoubleTap
     }
 
     setPanStart(x: number, y: number, v: boolean = true) {
