@@ -23,11 +23,33 @@ class JImgScroll {
 
     /** 能否滑动到下张 */
     canSwiperNext: boolean = true
+
+    videoDom: HTMLVideoElement
     constructor() {
 
     }
 
+    setVideoPlay(v?: boolean) {
+        if (v != null && !v == this.videoDom.paused) {
+            return
+        }
+        if (v == null) {
+            v = this.videoDom.paused
+        }
+        console.log(v)
+
+        if (v) {
+            console.log("play")
+            this.videoDom.play()
+        }
+        else {
+            console.log("pause")
+            this.videoDom.pause()
+        }
+    }
+
     resizeImg() {
+        console.log(store.originImgW, store.originImgH)
         this.isSplit = store.splitImg == "split" || (store.splitImg == "auto" && store.originImgW > store.originImgH)
         if (!this.isSplit) {
             store.displayImgW = store.originImgW
@@ -167,6 +189,10 @@ class JImgScroll {
     }
 
     setDoubleTap(ev: HammerInput) {
+        if (store.isVideo) {
+            this.setVideoPlay()
+            return
+        }
         if (this.isDoubleTap) {
             this.setPointScale(ev.center.x, ev.center.y, 1)
         }

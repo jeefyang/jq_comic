@@ -9,7 +9,7 @@
                     <div class="positon">
 
                     </div>
-                    <van-loading size="24px" vertical color="#1989fa">加载中...</van-loading>
+                    <van-loading size="24px" vertical color="#1989fa">x加载中...</van-loading>
                 </div>
 
             </div>

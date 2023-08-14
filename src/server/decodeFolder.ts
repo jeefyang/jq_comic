@@ -16,6 +16,7 @@ export function decodeFolder(baseUrl: string, url: string) {
         "mp4",
         "mkv",
         "webm",
+        "wmv"
     ]
     let newUrl = path.join(baseUrl, url)
     let stat: fs.Stats

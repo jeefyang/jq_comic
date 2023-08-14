@@ -72,7 +72,7 @@ export const store = reactive({
     /** 显示文件的样式(图标,详细) */
     displayFileStyleType: <"icon" | "detail">"detail",
     /** 是否二分图片 */
-    splitImg: <"auto" | "none" | "split">"auto",
+    splitImg: <"auto" | "none" | "split">"none",
     /** 切割后的第几张 */
     splitNum: <0 | 1>0,
     /** 方向X,-1为从左到右,1为从右到左 */
@@ -101,8 +101,12 @@ export const store = reactive({
     isZipFile: <boolean>false,
     /** 是否为视频文件 */
     isVideo: <boolean>false,
+    /** 是否已经开始播放视频 */
+    isPlayedVideo: <boolean>false,
     /** 动画时间 */
     transitionMS: <number>300,
     /** 自动保存 */
-    isAutoSave: <boolean>false
+    isAutoSave: <boolean>false,
+    /** 视频加载,值无意义,纯粹监听 */
+    videoLoad: <boolean>false
 })

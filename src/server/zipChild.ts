@@ -23,7 +23,7 @@ export class JZipChild {
     rollDestoryEvent: NodeJS.Timeout
     rollTime: number = 1000 * 60
     /** 可读后缀名 */
-    readonly canReadExList: string[] = ['bmp', "png", "apng", "jpg", "jpeg", "webp", "webm", "mkv", "mp4", "avi"]
+    readonly canReadExList: string[] = ['bmp', "png", "apng", "jpg", "jpeg", "webp", "webm", "mkv", "mp4", "avi", "gif", "wmv"]
 
     constructor() {
         this.setFreeTime()

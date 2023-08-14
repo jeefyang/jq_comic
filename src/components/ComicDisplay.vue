@@ -6,10 +6,14 @@ import { jImgScroll } from "../tool/imgScroll"
 
 const divRef = ref(<HTMLDivElement>null)
 const imgRef = ref(<HTMLImageElement>null)
+const videoRef = ref(<HTMLVideoElement>null)
 let imgDom: HTMLImageElement
+let videoDom: HTMLVideoElement
 
 onMounted(() => {
     imgDom = imgRef.value
+    videoDom = videoRef.value
+    jImgScroll.videoDom = videoDom
     // divDom = divRef.value
     watch([() => store.readMode], (_a, _b) => {
         jImgScroll.resizeImg()
@@ -22,8 +26,23 @@ onMounted(() => {
             jImgScroll.resizeImg()
         }, 100);
     }
+    videoDom.oncanplay = () => {
+        store.isImgPrepareLoading = false
+        store.isImgLoading = false
+        if (store.isPlayedVideo) {
+            return
+        }
+        console.log("can", videoDom.paused)
+        jImgScroll.setVideoPlay(true)
+        store.isPlayedVideo = true
+        jImgScroll.resizeImg()
+
+    }
     jImgScroll.resizeImg()
+
 })
+
+
 
 </script>
 
@@ -32,9 +51,14 @@ onMounted(() => {
         :style="{ 'top': store.divFloatTop + 'px', 'left': store.divFloatLeft + 'px', 'width': store.divFloatW + 'px', 'height': store.divFloatH + 'px' }">
         <div class="display_box_div"
             :style="{ 'width': store.displayImgW + 'px', 'height': store.displayImgH + 'px', 'transform': 'translate3d(' + (store.domTransX) + 'px,' + (store.domTransY) + 'px,0) scale(' + store.domScale + ')', 'transition': 'transform ' + store.transitionMS + 'ms ease-out' }">
-            <img class="comic_img" ref="imgRef" :src="store.canvasB64"
+            <img v-show="!store.isVideo" class="comic_img" ref="imgRef" :src="store.canvasB64"
                 :style="{ 'transform': 'translate(' + (store.imgTransX) + 'px,' + (store.imgTransY) + 'px)' }"
                 draggable="false" ondragstart="return false;">
+            <video v-show="store.isVideo" class="comic_img" ref="videoRef" :src="store.canvasB64" autoplay loop prevload
+                :style="{ 'transform': 'translate(' + (store.imgTransX) + 'px,' + (store.imgTransY) + 'px)' }">
+
+            </video>
+
         </div>
 
         <div class="bottom_div">
@@ -42,6 +66,7 @@ onMounted(() => {
             <div class="vintage2" v-if="store.isDisplayFileName">{{ store.fileName }}</div>
             <!-- 测试用的 -->
             <div class="vintage2" v-if="store.isDisplayDebugMsg && store.isControlDebug">{{ store.debugMsg }}</div>
+
         </div>
     </div>
 </template>

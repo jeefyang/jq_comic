@@ -2,7 +2,7 @@
 import { store } from "../store"
 import { jFileCache } from "../tool/fileCache";
 import { onMounted, ref } from "vue";
-import { showLoadingToast, type ConfigProviderThemeVars } from 'vant';
+import { showLoadingToast, showToast, type ConfigProviderThemeVars } from 'vant';
 import { JFileFormatType, JFolderDisplayType, NameSortType } from "../type";
 import path from "path-browserify"
 
@@ -143,7 +143,7 @@ let updateFolderFunc = async (url: string) => {
         "mp4": 'icon-mp',
         "mkv": "icon-mkv",
         "webm": "icon-webm",
-        "wmv": ""
+        "wmv": "icon-wmv"
     }
     fileObjList = []
     for (let i = 0; i < folderObj.files.length; i++) {
@@ -180,8 +180,12 @@ const selectFileFunc = async (item: (typeof fileList.value)[number]) => {
     }
     else if (item.type == "file") {
         store.isDisplayLoading = true
-        console.log(store.curDirUrl, 123, item.originName)
-        await jFileCache.openFile(store.curDirUrl, item.originName)
+        let check = await jFileCache.openFile(store.curDirUrl, item.originName)
+        if (!check) {
+            loadding.close()
+            showToast({ message: "没有可观看的文件", duration: 1000, forbidClick: true })
+            return
+        }
         store.displayFileManager = false
         store.isDisplayLoading = false
     }

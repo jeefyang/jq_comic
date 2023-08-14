@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "10135315",
+      "name": "wmv",
+      "font_class": "wmv",
+      "unicode": "e8c3",
+      "unicode_decimal": 59587
+    },
+    {
       "icon_id": "10135287",
       "name": "navi",
       "font_class": "navi",
