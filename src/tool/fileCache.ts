@@ -2,7 +2,7 @@ import { JFolderDisplayType, JFileFormatType } from "../type";
 import { JserverLink } from "../tool/serverLink"
 import { store } from "../store"
 import { staticData } from "../const"
-import { ConfigType, LocalSaveDataType } from "../type"
+import { JConfigType, LocalSaveDataType } from "../type"
 import StreamZip from "node-stream-zip";
 
 
@@ -34,7 +34,7 @@ class JFileCache {
     preloadIndex: number = -1
     imgEXList: JFileFormatType[] = ["gif", "bmp", "jpg", "jpeg", "png", "apng", "webp"]
     videoEXList: JFileFormatType[] = ["avi", "mp4", "mkv", "webm", "wmv"]
-    config: ConfigType
+    config: JConfigType
     localStorageKey: string = "localSaveDataType"
     private _isControlDebug = false
 
@@ -75,7 +75,7 @@ class JFileCache {
         store.transitionMS = 300
     }
 
-    async init(server: JserverLink, config: ConfigType) {
+    async init(server: JserverLink, config: JConfigType) {
         this.server = server
         this.config = config
         this._initSwitchKey()

@@ -6,16 +6,26 @@ export class JserverLink {
 
     private _client: ReturnType<typeof createTRPCProxyClient<AppRouter>>
     baseUrl: string
+    /** 域名 */
+    domain = "localhost"
+    /** 端口 */
+    port: number
+    /** 包含端口,比domain和port更高优先级 */
+    host: string
 
     constructor() {
 
     }
 
     init() {
+        let url = `http://${this.domain}:${this.port}/trpc`
+        if (this.host) {
+            url = `${this.host}/trpc`
+        }
         this._client = createTRPCProxyClient<AppRouter>({
             links: [
                 httpBatchLink({
-                    url: 'http://192.168.123.120:3006/trpc',
+                    url: url,
                 })
             ],
             transformer: undefined

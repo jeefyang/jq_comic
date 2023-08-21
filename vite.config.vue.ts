@@ -1,6 +1,10 @@
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
-import { VitePluginNode } from "vite-plugin-node"
+import fs from "fs"
+import { JConfigType } from "./src/type"
+
+const jsonStr = fs.readFileSync("./public/config.jsonc", "utf-8")
+const configjson: JConfigType = global.eval(`(${jsonStr})`)
 
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
@@ -10,8 +14,8 @@ export default defineConfig(({ command, mode }) => {
         // 原始
         plugins: [vue()],
         server: {
-            host: "192.168.123.120",
-            port: 3005,
+            host: configjson.vue_dev_domain || undefined,
+            port: configjson.vue_dev_port,
             env: env
         }
     }

@@ -12,7 +12,7 @@ import { store } from './store';
 import { jserver } from './tool/serverLink'
 import { jFileCache } from './tool/fileCache';
 import { jImgScroll } from './tool/imgScroll';
-import { ConfigType } from './type';
+import { JConfigType } from './type';
 
 
 // const imgSrc = ref("")
@@ -32,8 +32,29 @@ const resizeFunc = () => {
 
 onMounted(async () => {
 
-  let txt = await fetch("/config.jsonc").then(res => res.text())
-  let config: ConfigType = eval(`(${txt})`)
+  let txt = await fetch("./config.jsonc").then(res => res.text())
+  let config: JConfigType = eval(`(${txt})`)
+  if (import.meta.env.DEV) {
+    if (config.node_dev_domain) {
+      jserver.domain = config.node_dev_domain
+    }
+    if (config.node_dev_port) {
+      jserver.port = config.node_dev_port
+    }
+  }
+  else if (import.meta.env.PROD) {
+    if (config.node_build_host) {
+      jserver.host = config.node_build_host
+    }
+  }
+  let url = new URL(document.location.href)
+  if (url.searchParams.get('nodedomain')) {
+    let host = `http${url.searchParams.get("nodessl") ? "s" : ''}://` + url.searchParams.get('nodedomain')
+    if (url.searchParams.get('nodeport')) {
+      host += `:${url.searchParams.get('nodeport')}`
+    }
+    jserver.host = host
+  }
   await jserver.init()
   let v = await jFileCache.init(jserver, config)
   // await jFileCache.test()
