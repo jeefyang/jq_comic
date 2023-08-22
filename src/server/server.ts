@@ -26,8 +26,8 @@ if (import.meta.env.PROD) {
     const josnUrl = path.join(path.dirname(fileURLToPath(import.meta.url)), "config.jsonc")
     const jsonStr = fs.readFileSync(josnUrl, "utf-8")
     const configjson: JConfigType = eval(`(${jsonStr})`)
-    app.listen(configjson.vue_build_port)
-    console.log("正在监听:", configjson.vue_build_port)
+    app.listen(configjson.node_build_post)
+    console.log("正在监听:", configjson.node_build_post)
 }
 
 
