@@ -6,6 +6,8 @@ export const store = reactive({
     switchKey: <string>"",
     /** 当前文件路径,不能带文件夹 */
     fileName: <string>"",
+    /** 压缩包里的文件名 */
+    zipInFileName: <string>"",
     /** 当前文件夹路径 */
     dirUrl: <string>"",
     /** 基础文件夹路径,一般不显示 */
@@ -80,11 +82,13 @@ export const store = reactive({
     /** 服务器是否连接成功 */
     isServerCompleted: <boolean>false,
     /** 是否调试操作 */
-    isControlDebug: <boolean>true,
+    isControlDebug: <boolean>false,
     /** 是否显示加载 */
     isDisplayLoading: <boolean>false,
     /** 是否显示图片数目 */
     isDisplayImgNum: <boolean>true,
+    /** 文本信息颜色 */
+    textMsgColor: <string>"#ffffff",
     /** 是否显示文件名 */
     isDisplayFileName: <boolean>false,
     /** 是否显示测试用的数据 */

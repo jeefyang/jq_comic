@@ -95,6 +95,17 @@ const freshImg = async () => {
         <!-- 空行 -->
         <div class="br"></div>
 
+        <!-- 颜色 -->
+        <div class="sort">
+            <div class="sort_title">颜色:</div>
+            <van-button color="#ffffff" plain @click="store.textMsgColor = '#ffffff'">白色</van-button>
+            <van-button color="#000000" @click="store.textMsgColor = '#000000'">黑色</van-button>
+            <van-button color="#ff0000" @click="store.textMsgColor = '#ff0000'">红色</van-button>
+            <input type="color" v-model="store.textMsgColor">
+        </div>
+        <!-- 空行 -->
+        <div class="br"></div>
+
         <!-- 显示数目 -->
         <div class="sort">
             <div class="sort_title">显示数目:</div>

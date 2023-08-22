@@ -62,10 +62,16 @@ onMounted(() => {
         </div>
 
         <div class="bottom_div">
-            <div class="vintage2" v-if="store.isDisplayImgNum">{{ store.curNo + 1 }}/{{ store.imgCount }}</div>
-            <div class="vintage2" v-if="store.isDisplayFileName">{{ store.fileName }}</div>
+            <!-- 第几页 -->
+            <div class="vintage2" v-if="store.isDisplayImgNum" :style="{ 'color': store.textMsgColor }">
+                {{ store.curNo + 1 }}/{{ store.imgCount }}</div>
+            <!-- 文件信息 -->
+            <div class="vintage2" :style="{ 'color': store.textMsgColor }" v-if="store.isDisplayFileName">{{
+                store.fileName + (store.zipInFileName ? (' /' + store.zipInFileName) : '')
+            }}</div>
             <!-- 测试用的 -->
-            <div class="vintage2" v-if="store.isDisplayDebugMsg && store.isControlDebug">{{ store.debugMsg }}</div>
+            <div class="vintage2" :style="{ 'color': store.textMsgColor }"
+                v-if="store.isDisplayDebugMsg && store.isControlDebug">{{ store.debugMsg }}</div>
 
         </div>
     </div>

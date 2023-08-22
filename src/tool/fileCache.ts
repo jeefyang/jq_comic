@@ -400,6 +400,7 @@ class JFileCache {
             store.isVideo = obj.type == "video"
             store.isPlayedVideo = false
             store.videoLoad = !store.videoLoad
+            store.zipInFileName = obj.zipInFileName
         }
         else {
             store.isZipFile = false
@@ -419,6 +420,7 @@ class JFileCache {
             store.isVideo = obj.type == "video"
             store.isPlayedVideo = false
             store.videoLoad = !store.videoLoad
+            store.zipInFileName = ""
         }
         return true
     }
@@ -436,6 +438,7 @@ class JFileCache {
         if (store.isZipFile) {
 
             obj = await this.getFileData(store.dirUrl, store.fileName, index)
+            store.zipInFileName = obj.zipInFileName
         }
         else {
             let dirMsg = await this.getFolder(store.dirUrl)
@@ -447,6 +450,7 @@ class JFileCache {
             store.originImgW = obj.w
             store.originImgH = obj.h
             store.curNo = index
+            store.zipInFileName
         }
         catch {
             if (reboot == 0) {
