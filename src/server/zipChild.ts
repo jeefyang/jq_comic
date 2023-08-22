@@ -117,6 +117,12 @@ export class JZipChild {
         return file
     }
 
+    /** 通过名字获取文件内容b64 */
+    async getFileBase64ByName(name: string) {
+        let file = await this.obj.entryData(name)
+        return file.toString("base64")
+    }
+
 
 
 

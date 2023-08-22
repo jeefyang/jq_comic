@@ -59,10 +59,24 @@ export class JserverLink {
         return data
     }
 
+    /** 通过名称获取压缩包里文件b64 */
+    async getZipInFileB64ByName(url: string, fileName: string) {
+        let newUrl = `${this.baseUrl}/${url}`
+        let data = await this._client.main.getZipInFileBase64ByName.mutate({ url: newUrl, fileName })
+        return data
+    }
+
     /** 获取文件内容 */
     async getFile(url: string) {
         let newUrl = `${this.baseUrl}/${url}`
         let data = await this._client.main.getFile.mutate({ url: newUrl })
+        return data
+    }
+
+    /** 获取文件内容b64 */
+    async getFileB64(url: string) {
+        let newUrl = `${this.baseUrl}/${url}`
+        let data = await this._client.main.getFileBase64.mutate({ url: newUrl })
         return data
     }
 

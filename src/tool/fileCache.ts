@@ -158,17 +158,6 @@ class JFileCache {
         return
     }
 
-
-    async test() {
-        store.baseDirUrl = "//192.168.123.3/藏经阁/docker/komga/data"
-        this.server.baseUrl = store.baseDirUrl
-        store.dirUrl = "comic/【战栗杀机】(Banana Fish)[19集全][漫画]日本小学馆授权中文版"
-        store.fileName = '(www.chinav.tv)[comic]《战栗杀机》(Banana.Fish)[吉田秋生].vol.11-14.zip'
-        store.curDirUrl = store.dirUrl
-        store.curNo = 0
-        await this.openFile(store.dirUrl, store.fileName)
-    }
-
     private _setZipInFileSort(data: (typeof this.zipMsgCache)[number]) {
         if (data.sortType == store.imgSortType) {
             return
@@ -395,7 +384,8 @@ class JFileCache {
         let base64: string
         let zipInFileName: string
         let fileEx: string = ex
-        let buffer: Buffer
+        // let buffer: Buffer
+        let b64Data: string = ""
         if (ex == "zip") {
             let msg = await this.getZipMsg(dirUrl, fileName)
             if (msg.sortList.length == 0) {
@@ -405,10 +395,12 @@ class JFileCache {
             console.log(url, zipInFileName)
             let arr = zipInFileName.split('.')
             fileEx = arr[arr.length - 1].toLowerCase()
-            buffer = await this.server.getZipInFileByName(url, zipInFileName)
+            // buffer = await this.server.getZipInFileByName(url, zipInFileName)
+            b64Data = await this.server.getZipInFileB64ByName(url, zipInFileName)
         }
         else {
-            buffer = await this.server.getFile(url)
+            // buffer = await this.server.getFile(url)
+            b64Data = await this.server.getFileB64(url)
         }
         let w = 0
         let h = 0
@@ -416,7 +408,8 @@ class JFileCache {
 
         if (this.imgEXList.includes(<any>fileEx)) {
             type = "img"
-            base64 = 'data:image/' + fileEx + ';base64,' + btoa(new Uint8Array((<any>buffer).data).reduce((res, byte) => res + String.fromCharCode(byte), ''))
+            // base64 = 'data:image/' + fileEx + ';base64,' + btoa(new Uint8Array((<any>buffer).data).reduce((res, byte) => res + String.fromCharCode(byte), ''))
+            base64 = 'data:image/' + fileEx + ';base64,' + b64Data
             let img = new Image()
             await new Promise((res, _rej) => {
                 img.src = base64
@@ -430,7 +423,8 @@ class JFileCache {
         }
         else if (this.videoEXList.includes(<any>fileEx)) {
             type = "video"
-            base64 = 'data:video/' + fileEx + ';base64,' + btoa(new Uint8Array((<any>buffer).data).reduce((res, byte) => res + String.fromCharCode(byte), ''))
+            // base64 = 'data:video/' + fileEx + ';base64,' + btoa(new Uint8Array((<any>buffer).data).reduce((res, byte) => res + String.fromCharCode(byte), ''))
+            base64 = 'data:video/' + fileEx + ';base64,' + b64Data
             let video = document.createElement("video")
             document.body.append(video)
             await new Promise((res, _rej) => {

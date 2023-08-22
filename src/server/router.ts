@@ -37,13 +37,24 @@ const mainRouter = router({
     let data = await (await zipFactory.getChild(url)).getFileByName(input.fileName)
     return data
   }),
+  /** 通过名称获取压缩包里文件b64 */
+  getZipInFileBase64ByName: publicProcedure.input(z.object({ url: z.string(), fileName: z.string() })).mutation(async ({ input }) => {
+    let url = path.join(input.url)
+    let data = await (await zipFactory.getChild(url)).getFileBase64ByName(input.fileName)
+    return data
+  }),
   /** 获取文件数据 */
   getFile: publicProcedure.input(z.object({ url: z.string() })).mutation(async ({ input }) => {
     let url = path.join(input.url)
     let data = await fs.readFileSync(url)
     return data
   }),
-
+  /** 获取文件数据b64 */
+  getFileBase64: publicProcedure.input(z.object({ url: z.string() })).mutation(async ({ input }) => {
+    let url = path.join(input.url)
+    let data = await fs.readFileSync(url, "base64")
+    return data
+  }),
   /** 获取文件夹数据 */
   getFolder: publicProcedure.input(z.object({ baseUrl: z.string(), url: z.string() })).mutation(async ({ input }) => {
     let obj = decodeFolder(input.baseUrl, input.url)
