@@ -112,12 +112,20 @@ class JFileCache {
         else {
             json = JSON.parse(txt)
         }
+        let cloneStore: typeof store = <any>{}
+        for (let key in store) {
+            if (['canvasB64'].includes(key)) {
+                continue
+            }
+            cloneStore[key] = store[key]
+        }
         let index = json?.storeList ? json.storeList.findIndex(c => c.key == store.switchKey) : -1
         if (index == -1) {
-            json.storeList.push({ key: store.switchKey, data: store })
+
+            json.storeList.push({ key: store.switchKey, data: cloneStore })
         }
         else {
-            json.storeList[index] = { key: store.switchKey, data: store }
+            json.storeList[index] = { key: store.switchKey, data: cloneStore }
         }
         let newTxt = JSON.stringify(json)
         localStorage.setItem(this.localStorageKey, newTxt)
@@ -307,6 +315,25 @@ class JFileCache {
         return obj
     }
 
+    /** 获取文件数据(尝试版) */
+    async getFileDataTry(dirUrl: string, fileName: string, index: number = 0, reboot: number = 3) {
+        try {
+            let data = await this.getFileData(dirUrl, fileName, index)
+            if (!data) {
+                throw new Error(`无法获取数据,需重新获取`)
+            }
+            return data
+        }
+        catch {
+            if (reboot == 0) {
+                console.warn("多次获取无果,跳出bug")
+                return
+            }
+            console.warn(`获取失败,再次获取,还有${reboot - 1}次重试`)
+            return await this.getFileDataTry(dirUrl, fileName, index, reboot - 1)
+        }
+    }
+
     /** 获取文件数据 */
     async getFileData(dirUrl: string, fileName: string, index: number = 0) {
         let cache = this._getImgCache(dirUrl, fileName, index)
@@ -361,7 +388,6 @@ class JFileCache {
                 video.src = base64
 
                 video.oncanplay = () => {
-                    console.log("webp")
                     w = video.clientWidth
                     h = video.clientHeight
                     video.remove()
@@ -392,7 +418,7 @@ class JFileCache {
                 return false
             }
             store.imgCount = zipMsg.count
-            let obj = await this.getFileData(store.dirUrl, store.fileName, store.curNo)
+            let obj = await this.getFileDataTry(store.dirUrl, store.fileName, store.curNo)
             store.canvasB64 = obj.base64
             store.originImgW = obj.w
             store.originImgH = obj.h
@@ -400,7 +426,7 @@ class JFileCache {
             store.isVideo = obj.type == "video"
             store.isPlayedVideo = false
             store.videoLoad = !store.videoLoad
-            store.zipInFileName = obj.zipInFileName
+            store.zipInFileName = obj?.zipInFileName
         }
         else {
             store.isZipFile = false
@@ -412,7 +438,7 @@ class JFileCache {
 
             store.curNo = findIndex
             store.imgCount = dir.sortNoZipFile.length
-            let obj = await this.getFileData(store.dirUrl, store.fileName)
+            let obj = await this.getFileDataTry(store.dirUrl, store.fileName)
             store.canvasB64 = obj.base64
             store.originImgW = obj.w
             store.originImgH = obj.h
@@ -426,7 +452,7 @@ class JFileCache {
     }
 
     /** 通过序号设置图片 */
-    async setImgByNum(index: number, reboot: number = 3) {
+    async setImgByNum(index: number) {
         if (index < 0) {
             return
         }
@@ -437,30 +463,19 @@ class JFileCache {
 
         if (store.isZipFile) {
 
-            obj = await this.getFileData(store.dirUrl, store.fileName, index)
+            obj = await this.getFileDataTry(store.dirUrl, store.fileName, index)
             store.zipInFileName = obj.zipInFileName
         }
         else {
             let dirMsg = await this.getFolder(store.dirUrl)
             store.fileName = dirMsg.sortNoZipFile[index].name
-            obj = await this.getFileData(store.dirUrl, store.fileName)
+            obj = await this.getFileDataTry(store.dirUrl, store.fileName)
         }
-        try {
-            store.canvasB64 = obj.base64
-            store.originImgW = obj.w
-            store.originImgH = obj.h
-            store.curNo = index
-            store.zipInFileName
-        }
-        catch {
-            if (reboot == 0) {
-                console.warn("多次获取无果,跳出bug")
-                return
-            }
-            console.warn(`获取失败,再次获取,还有${reboot - 1}次重试`)
-            await this.setImgByNum(index, reboot - 1)
-        }
-
+        store.canvasB64 = obj.base64
+        store.originImgW = obj.w
+        store.originImgH = obj.h
+        store.curNo = index
+        store.zipInFileName
     }
 
     /** 停止预加载 */
