@@ -7,5 +7,9 @@
     "out_file": "./jq_comic_vue.log",
     "watch_options": {
         "followSymlinks": false
-    }
+    },
+    "watch_delay": "3000",
+    "watch": [
+        "node_vue"
+    ]
 }
