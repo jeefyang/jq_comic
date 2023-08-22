@@ -11,5 +11,6 @@
     "watch_delay": "3000",
     "watch": [
         "build_vue"
-    ]
+    ],
+    "ignore_watch": []
 }

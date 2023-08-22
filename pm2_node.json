@@ -9,5 +9,6 @@
         "followSymlinks": false
     },
     "watch_delay":"3000",
-    "watch":["build_node"]
+    "watch":["build_node"],
+    "ignore_watch":[]
 }
