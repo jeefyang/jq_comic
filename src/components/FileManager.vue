@@ -31,7 +31,7 @@ let scrollMax = 0
 
 
 onMounted(async () => {
-    let loadding = showLoadingToast({ message: "加载中", overlay: true, forbidClick: true })
+    let loadding = showLoadingToast({ message: "加载中", overlay: true, forbidClick: true, duration: 0 })
     fileBoxDiv = fileBoxDivRef.value
     await updateFolderFunc(store.curDirUrl)
     loadding.close()
@@ -170,7 +170,7 @@ let updateFolderFunc = async (url: string) => {
 
 /** 选中文件大法(包括) */
 const selectFileFunc = async (item: (typeof fileList.value)[number]) => {
-    let loadding = showLoadingToast({ message: "加载中", overlay: true, forbidClick: true })
+    let loadding = showLoadingToast({ message: "加载中", overlay: true, forbidClick: true, duration: 0 })
     searchKey.value = ""
     if (item.type == "folder") {
         let newUrl: string = path.join(store.curDirUrl, item.originName)
@@ -195,7 +195,7 @@ const selectFileFunc = async (item: (typeof fileList.value)[number]) => {
 
 /** 通过序号回退文件夹大法 */
 const rebackFolderFuncByIndex = async (index: number) => {
-    let loadding = showLoadingToast({ message: "加载中", overlay: true, forbidClick: true })
+    let loadding = showLoadingToast({ message: "加载中", overlay: true, forbidClick: true, duration: 0 })
     if (index == -1) {
         index = urlList.value.length - 2
     }
