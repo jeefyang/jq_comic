@@ -4,6 +4,7 @@ import { store } from "../store"
 import { staticData } from "../const"
 import { JConfigType, LocalSaveDataType } from "../type"
 import StreamZip from "node-stream-zip";
+import path from "path-browserify"
 
 
 class JFileCache {
@@ -175,12 +176,48 @@ class JFileCache {
         let cloneList = [...data.list]
         switch (store.imgSortType) {
             case "名称":
-                data.sortList = cloneList.sort((a, b) => a.data.name > b.data.name ? 1 : -1)
+                data.sortList = cloneList.sort((a, b) => {
+                    let alist = a.data.name.split(path.sep)
+                    let blist = b.data.name.split(path.sep)
+                    let len = alist.length > blist.length ? alist.length : blist.length
+                    for (let i = 0; i < len; i++) {
+                        if (!alist[i] && blist[i]) {
+                            return 1
+                        }
+                        else if (alist[i] && !blist[i]) {
+                            return -1
+                        }
+                        else if (alist[i] > blist[i]) {
+                            return 1
+                        }
+                        else if (alist[i] < blist[i]) {
+                            return -1
+                        }
+                    }
+                    return 1
+                })
                 break
             case "大小":
                 data.sortList = cloneList.sort((a, b) => {
                     if (!a.data.size || !b.data.size) {
-                        return a.data.name > b.data.name ? 1 : -1
+                        let alist = a.data.name.split(path.sep)
+                        let blist = b.data.name.split(path.sep)
+                        let len = alist.length > blist.length ? alist.length : blist.length
+                        for (let i = 0; i < len; i++) {
+                            if (!alist[i] && blist[i]) {
+                                return 1
+                            }
+                            else if (alist[i] && !blist[i]) {
+                                return -1
+                            }
+                            else if (alist[i] > blist[i]) {
+                                return 1
+                            }
+                            else if (alist[i] < blist[i]) {
+                                return -1
+                            }
+                        }
+                        return 1
                     }
                     return a.data.size > b.data.size ? 1 : -1
                 })
@@ -190,19 +227,31 @@ class JFileCache {
                 break
             case "数字":
                 data.sortList = cloneList.sort((a, b) => {
-                    let an = a.data.name.match(/\d+/)?.[0]
-                    let bn = b.data.name.match(/\d+/)?.[0]
-                    if (an == null) {
-                        an = "0"
+                    let alist = a.data.name.split(path.sep)
+                    let blist = b.data.name.split(path.sep)
+                    let len = alist.length > blist.length ? alist.length : blist.length
+                    for (let i = 0; i < len; i++) {
+                        if (!alist[i] && blist[i]) {
+                            return 1
+                        }
+                        else if (alist[i] && !blist[i]) {
+                            return -1
+                        }
+                        let an = alist[i].match(/\d+/)?.[0]
+                        let bn = blist[i].match(/\d+/)?.[0]
+                        if (Number(an) > Number(bn)) {
+                            return 1
+                        }
+                        else if (Number(an) < Number(bn)) {
+                            return -1
+                        }
                     }
-                    if (bn == null) {
-                        bn = "0"
-                    }
-                    return Number(an) - Number(bn)
+                    return 1
                 })
                 break
         }
         data.sortType = store.imgSortType
+        console.log(JSON.parse(JSON.stringify(data.sortList)))
     }
 
     private _setFloderSort(data: JFolderDisplayType) {
