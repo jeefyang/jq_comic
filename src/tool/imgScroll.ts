@@ -2,6 +2,7 @@ import { store } from "../store"
 import { showToast } from "vant"
 import { jFileCache } from "./fileCache"
 import { setImgLoading } from "./util"
+import { imgStore, imgStoreChildType } from "../imgStore"
 
 class JImgScroll {
 
@@ -15,135 +16,182 @@ class JImgScroll {
     maxX: number = 0
     maxY: number = 0
     isSplit: boolean = true
-    originScale: number = 1
-    curEXScale: number = 1
     minScale: number = 1
     maxScale: number = 3
     isDoubleTap: boolean = false
+    originScale: number = 1
+    curEXScale: number = 1
 
     /** 能否滑动到下张 */
     canSwiperNext: boolean = true
 
-    videoDom: HTMLVideoElement
+
     constructor() {
 
     }
 
-    setVideoPlay(v?: boolean) {
-        if (v != null && !v == this.videoDom.paused) {
-            return
-        }
-        if (v == null) {
-            v = this.videoDom.paused
-        }
-        console.log(v)
+    initImgObj(obj: imgStoreChildType, isInit: boolean) {
 
-        if (v) {
-            console.log("play")
-            this.videoDom.play()
+        if (isInit || store.readMode != "udWaterfall") {
+            imgStore.children = [obj]
         }
         else {
-            console.log("pause")
-            this.videoDom.pause()
+            imgStore.children.push(obj)
         }
+        this.resizeImg()
     }
 
-    resizeImg() {
-        console.log(store.originImgW, store.originImgH)
-        this.isSplit = store.splitImg == "split" || (store.splitImg == "auto" && store.originImgW > store.originImgH)
-        if (!this.isSplit) {
-            store.displayImgW = store.originImgW
-            store.displayImgH = store.originImgH
+    setVideoPlay(v?: boolean) {
+
+    }
+
+    resizeOneImg(obj: imgStoreChildType) {
+        obj.isSplit = store.splitImg == "split" || (store.splitImg == "auto" && obj.originImgW > obj.originImgH)
+        if (!obj.isSplit) {
+            obj.displayImgW = obj.originImgW
+            obj.displayImgH = obj.originImgH
         }
         else {
-            store.displayImgW = store.originImgW / 2
-            store.displayImgH = store.originImgH
+            obj.displayImgW = obj.originImgW / 2
+            obj.displayImgH = obj.originImgH
         }
-        this.isMoveX = true
-        this.isMoveY = true
-        let curRatio = store.displayImgW / store.displayImgH
-        let screenRatio = store.divFloatW / store.divFloatH
-        let domTransX = 0
-        let domTransY = 0
-        let domScale = 1
 
+        let imgScale = 1
         switch (store.readMode) {
             case "none":
-                if (store.displayImgH <= store.divFloatH) {
-                    this.isMoveY = false
-                    domTransY = (store.divFloatH - store.displayImgH * domScale) / 2
-                }
-                if (store.displayImgW <= store.divFloatW) {
-                    this.isMoveX = false
-                    domTransX = (store.divFloatW - store.displayImgW * domScale) / 2
-                }
-                break
-            case "width":
-                domScale = store.divFloatW / store.displayImgW
-                this.isMoveX = false
-                if (store.displayImgH * domScale <= store.divFloatH) {
-                    this.isMoveY = false
-                    domTransY = (store.divFloatH - store.displayImgH * domScale) / 2
-                }
 
                 break
+            case "width": case "udWaterfall":
+                imgScale = imgStore.divFloatW / obj.displayImgW
+                break
             case "height":
-                domScale = store.divFloatH / store.displayImgH
-                this.isMoveY = false
-                if (store.displayImgW * domScale <= store.divFloatW) {
-                    this.isMoveX = false
-                    domTransX = (store.divFloatW - store.displayImgW * domScale) / 2
-                }
+                imgScale = imgStore.divFloatH / obj.displayImgH
                 break
             case "fit":
+                let curRatio = obj.displayImgW / obj.displayImgH
+                let screenRatio = imgStore.divFloatW / imgStore.divFloatH
                 if (curRatio > screenRatio) {
-                    domScale = store.divFloatW / store.displayImgW
+                    imgScale = imgStore.divFloatW / obj.displayImgW
                 }
                 else {
-                    domScale = store.divFloatH / store.displayImgH
+                    imgScale = imgStore.divFloatH / obj.displayImgH
                 }
-                domTransX = (store.divFloatW - store.displayImgW * domScale) / 2
-                domTransY = (store.divFloatH - store.displayImgH * domScale) / 2
-                this.isMoveY = false
-                this.isMoveX = false
                 break
         }
-        this.maxX = 0
-        this.minX = Math.min(this.maxX, (store.screenW - store.displayImgW * domScale))
-        this.maxY = 0
-        this.minY = Math.min(this.maxY, (store.screenH - store.displayImgH * domScale))
-        if (this.isMoveX) {
-            domTransX = (store.directX + 1) / 2 * this.minX
-        }
+        obj.imgScale = imgScale
         let imgTranslateX = 0
         if (!this.isSplit) {
         }
         else {
             let splitNum = 0
-            if ((store.directX == -1 && store.splitNum == 1) || (store.directX == 1 && store.splitNum == 0)) {
+            if ((store.directX == -1 && obj.splitNum == 1) || (store.directX == 1 && obj.splitNum == 0)) {
                 splitNum = 1
             }
             else { splitNum = 0 }
-            imgTranslateX -= store.originImgW / 2 * splitNum
+            imgTranslateX -= obj.originImgW / 2 * splitNum
         }
-        store.domTransX = domTransX
-        store.domTransY = domTransY
-        store.imgTransX = imgTranslateX
-        store.imgTransY = 0
-        store.domScale = domScale
-        this.originScale = this.curEXScale = 1
-        this.isDoubleTap = false
-
-        store.debugMsg = `${store.originImgW} ${store.originImgH}`
-
+        obj.imgTransX = imgTranslateX
+        obj.imgTransY = 0
+        obj.parentTransX = 0
+        obj.parentTransY = 0
     }
 
+
+    resizeImg() {
+
+        imgStore.children.forEach(o => {
+            this.resizeOneImg(o)
+        })
+        this.isMoveX = true
+        this.isMoveY = true
+
+        let domTransX = 0
+        let domTransY = 0
+        let imgScale = 1
+
+        switch (store.readMode) {
+            case "none":
+                var curRatio = imgStore.children[0].displayImgW / imgStore.children[0].displayImgH
+                var screenRatio = imgStore.divFloatW / imgStore.divFloatH
+                if (imgStore.children[0].displayImgH <= imgStore.divFloatH) {
+                    this.isMoveY = false
+                    domTransY = (imgStore.divFloatH - imgStore.children[0].displayImgH * imgScale) / 2
+                }
+                if (imgStore.children[0].displayImgW <= imgStore.divFloatW) {
+                    this.isMoveX = false
+                    domTransX = (imgStore.divFloatW - imgStore.children[0].displayImgW * imgScale) / 2
+                }
+                break
+            case "width":
+                imgScale = imgStore.divFloatW / imgStore.children[0].displayImgW
+                this.isMoveX = false
+                if (imgStore.children[0].displayImgH * imgScale <= imgStore.divFloatH) {
+                    this.isMoveY = false
+                    domTransY = (imgStore.divFloatH - imgStore.children[0].displayImgH * imgScale) / 2
+                }
+
+                break
+            case "height":
+                imgScale = imgStore.divFloatH / imgStore.children[0].displayImgH
+                this.isMoveY = false
+                if (imgStore.children[0].displayImgW * imgScale <= imgStore.divFloatW) {
+                    this.isMoveX = false
+                    domTransX = (imgStore.divFloatW - imgStore.children[0].displayImgW * imgScale) / 2
+                }
+                break
+            case "fit":
+                var curRatio = imgStore.children[0].displayImgW / imgStore.children[0].displayImgH
+                var screenRatio = imgStore.divFloatW / imgStore.divFloatH
+                if (curRatio > screenRatio) {
+                    imgScale = imgStore.divFloatW / imgStore.children[0].displayImgW
+                }
+                else {
+                    imgScale = imgStore.divFloatH / imgStore.children[0].displayImgH
+                }
+                domTransX = (imgStore.divFloatW - imgStore.children[0].displayImgW * imgScale) / 2
+                domTransY = (imgStore.divFloatH - imgStore.children[0].displayImgH * imgScale) / 2
+                this.isMoveY = false
+                this.isMoveX = false
+                break
+        }
+
+        this.setMaxMin(imgScale, 1)
+
+        if (this.isMoveX) {
+            domTransX = (store.directX + 1) / 2 * this.minX
+        }
+        imgStore.domTransX = domTransX
+        imgStore.domTransY = domTransY
+        this.isDoubleTap = false
+        this.originScale = 1
+        this.curEXScale = 1
+        imgStore.domScale = 1
+    }
+
+    setMaxMin(imgscale?: number, domscale?: number) {
+
+        if (store.readMode != "udWaterfall") {
+            if (!imgscale) {
+                imgscale = imgStore.children[0].imgScale
+            }
+            if (!domscale) {
+                domscale = 1
+            }
+            this.maxX = 0
+            this.minX = Math.min(this.maxX, (imgStore.screenW - imgStore.children[0].displayImgW * imgscale * domscale))
+            this.maxY = 0
+            this.minY = Math.min(this.maxY, (imgStore.screenH - imgStore.children[0].displayImgH * imgscale * domscale))
+            console.log(this.minX, this.minY)
+        }
+    }
+
+    /** 设置移动 */
     setMove(x: number, y: number) {
         if (this.isMoveX) {
-            store.domTransX = Math.min(this.maxX, Math.max(this.minX, x))
+            imgStore.domTransX = Math.min(this.maxX, Math.max(this.minX, x))
         }
         if (this.isMoveY) {
-            store.domTransY = Math.min(this.maxY, Math.max(this.minY, y))
+            imgStore.domTransY = Math.min(this.maxY, Math.max(this.minY, y))
         }
     }
 
@@ -153,43 +201,43 @@ class JImgScroll {
 
     setPointScale(x: number, y: number, scale: number) {
         let limitEXScale = Math.min(Math.max(this.minScale, this.originScale * scale), this.maxScale)
-        let newScale = store.domScale / this.curEXScale * limitEXScale
+        let newScale = imgStore.domScale / this.curEXScale * limitEXScale
         this.curEXScale = limitEXScale
-        let delta = 1 / store.domScale * newScale
-        let domScale = store.domScale * delta
-        this.maxX = 0
-        this.minX = Math.min(this.maxX, store.screenW - store.displayImgW * newScale)
-        this.maxY = 0
-        this.minY = Math.min(this.maxY, store.screenH - store.displayImgH * newScale)
-        store.debugMsg = limitEXScale - store.domScale
-        let newX = (x - store.domTransX) / store.domScale
-        let newY = (y - store.domTransY) / store.domScale
-        newX = store.domTransX - (newX * (newScale - store.domScale))
-        newY = store.domTransY - (newY * (newScale - store.domScale))
-        if (store.displayImgW * domScale <= store.divFloatW) {
-            this.isMoveX = true
-            newX = (store.divFloatW - store.displayImgW * domScale) / 2
-        }
-        else {
-            this.isMoveX = true
-            newX = Math.min(this.maxX, Math.max(this.minX, newX))
-        }
-        if (store.displayImgH * domScale <= store.divFloatH) {
-            this.isMoveY = false
-            newY = (store.divFloatH - store.displayImgH * domScale) / 2
-        }
-        else {
-            this.isMoveY = true
-            newY = Math.min(this.maxY, Math.max(this.minY, newY))
-        }
-        store.domTransX = newX
-        store.domTransY = newY
+        let delta = 1 / imgStore.domScale * newScale
+        let domScale = imgStore.domScale * delta
+        this.setMaxMin(undefined, newScale)
 
-        store.domScale = domScale
+        let newX = (x - imgStore.domTransX) / imgStore.domScale
+        let newY = (y - imgStore.domTransY) / imgStore.domScale
+        newX = imgStore.domTransX - (newX * (newScale - imgStore.domScale))
+        newY = imgStore.domTransY - (newY * (newScale - imgStore.domScale))
+        if (store.readMode != 'udWaterfall') {
+            if (imgStore.children[0].displayImgW * imgStore.children[0].imgScale * domScale <= imgStore.divFloatW) {
+                this.isMoveX = true
+                newX = (imgStore.divFloatW - imgStore.children[0].displayImgW * imgStore.children[0].imgScale * domScale) / 2
+            }
+            else {
+                this.isMoveX = true
+                newX = Math.min(this.maxX, Math.max(this.minX, newX))
+            }
+            if (imgStore.children[0].displayImgH * imgStore.children[0].imgScale * domScale <= imgStore.divFloatH) {
+                this.isMoveY = false
+                newY = (imgStore.divFloatH - imgStore.children[0].displayImgH * imgStore.children[0].imgScale * domScale) / 2
+            }
+            else {
+                this.isMoveY = true
+                newY = Math.min(this.maxY, Math.max(this.minY, newY))
+            }
+        }
+        imgStore.domScale = domScale
+        imgStore.domTransX = newX
+        imgStore.domTransY = newY
+
+
     }
 
     setDoubleTap(ev: HammerInput) {
-        if (store.isVideo) {
+        if (store.readMode != "udWaterfall" && imgStore.children[0].isVideo) {
             this.setVideoPlay()
             return
         }
@@ -213,12 +261,12 @@ class JImgScroll {
     setPanMove(x: number, y: number) {
         let newX = x - this.prevMouseX
         let newY = y - this.prevMouseY
-        if ((store.domTransX > -1 && newX > 0) || (store.domTransX - 1 < this.minX && newX < 0)) {
+        if ((imgStore.domTransX > -1 && newX > 0) || (imgStore.domTransX - 1 < this.minX && newX < 0)) {
         }
         else {
             this.canSwiperNext = false
         }
-        this.setMove(store.domTransX + newX, store.domTransY + newY)
+        this.setMove(imgStore.domTransX + newX, imgStore.domTransY + newY)
         this.prevMouseX = x
         this.prevMouseY = y
 
@@ -228,12 +276,12 @@ class JImgScroll {
     async setSwipeMove(x: number, y: number) {
 
         if (x != 0 && (this.canSwiperNext || !this.isMoveX)) {
-            if ((!this.isMoveX || store.domTransX > -1) && x > 0) {
+            if ((!this.isMoveX || imgStore.domTransX > -1) && x > 0) {
                 await this.turnLeft()
                 jFileCache.autoSave()
                 return
             }
-            if ((!this.isMoveX || store.domTransX - 1 < store.screenW - store.displayImgW * store.domScale) && x < 0) {
+            if ((!this.isMoveX || imgStore.domTransX - 1 < imgStore.screenW - imgStore.children[0].displayImgW * imgStore.domScale) && x < 0) {
                 await this.turnRight()
                 jFileCache.autoSave()
                 return
@@ -263,8 +311,8 @@ class JImgScroll {
     }
 
     async setNext() {
-        if (this.isSplit && !store.splitNum) {
-            store.splitNum = 1
+        if (this.isSplit && !imgStore.children[0].splitNum) {
+            imgStore.children[0].splitNum = 1
             this.resizeImg()
             return
         }
@@ -276,7 +324,7 @@ class JImgScroll {
             })
             return
         }
-        store.splitNum = 0
+        imgStore.children[0].splitNum = 0
         store.isDisplayLoading = true
         setImgLoading()
         await jFileCache.setImgByNum(store.curNo + 1)
@@ -285,8 +333,8 @@ class JImgScroll {
     }
 
     async setPrev() {
-        if (this.isSplit && store.splitNum) {
-            store.splitNum = 0
+        if (this.isSplit && imgStore.children[0].splitNum) {
+            imgStore.children[0].splitNum = 0
             this.resizeImg()
             return
         }
@@ -298,7 +346,7 @@ class JImgScroll {
             })
             return
         }
-        store.splitNum = 1
+        imgStore.children[0].splitNum = 1
         store.isDisplayLoading = true
         setImgLoading()
         await jFileCache.setImgByNum(store.curNo - 1)
@@ -315,7 +363,7 @@ class JImgScroll {
         if (this.prevMouseX == null) {
             return
         }
-        this.setMove(store.domTransX + x - this.prevMouseX, store.domTransY + y - this.prevMouseY)
+        this.setMove(imgStore.domTransX + x - this.prevMouseX, imgStore.domTransY + y - this.prevMouseY)
         this.prevMouseX = x
         this.prevMouseY = y
     }
@@ -334,13 +382,13 @@ class JImgScroll {
             deltaY = 0
         }
 
-        deltaX = (deltaX ? (Math.abs(deltaX) / deltaX) : 0) * store.screenW * this.wheelRatio
-        deltaY = (deltaY ? (Math.abs(deltaY) / deltaY) : 0) * store.screenH * this.wheelRatio
-        this.setMove(store.domTransX + deltaX, store.domTransY + deltaY)
+        deltaX = (deltaX ? (Math.abs(deltaX) / deltaX) : 0) * imgStore.screenW * this.wheelRatio
+        deltaY = (deltaY ? (Math.abs(deltaY) / deltaY) : 0) * imgStore.screenH * this.wheelRatio
+        this.setMove(imgStore.domTransX + deltaX, imgStore.domTransY + deltaY)
     }
 
     setMouseWheelScale(ev: WheelEvent) {
-        this.setPointScale(ev.clientX - store.divFloatLeft, ev.clientY - store.divFloatTop, this.curEXScale + (ev.deltaY > 0 ? 0.1 : -0.1))
+        this.setPointScale(ev.clientX - imgStore.divFloatLeft, ev.clientY - imgStore.divFloatTop, this.curEXScale + (ev.deltaY > 0 ? 0.1 : -0.1))
     }
 
 }

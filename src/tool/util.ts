@@ -1,6 +1,7 @@
 import hammer from "hammerjs"
 import { store } from "../store"
 import { staticData } from "../const"
+import { imgStore } from "../imgStore"
 
 export type hammerEventType =
     "press" |
@@ -78,26 +79,26 @@ export class JHammer {
 
 /** 设置图片加载效果 */
 export function setImgLoading() {
-    store.isImgPrepareLoading = true
+    imgStore.isImgPrepareLoading = true
     setTimeout(() => {
-        if (store.isImgPrepareLoading) {
-            store.isImgLoading = true
+        if (imgStore.isImgPrepareLoading) {
+            imgStore.isImgLoading = true
         }
     }, staticData.imgLoadPrepareTime);
 }
 
 let transitionMS: number
 export function stopTransition() {
-    transitionMS = store.transitionMS
-    if (store.transitionMS != 0) {
-        store.transitionMS = 0
+    transitionMS = imgStore.transitionMS
+    if (imgStore.transitionMS != 0) {
+        imgStore.transitionMS = 0
     }
 
 }
 
 export function recoverTransition() {
-    if (store.transitionMS != transitionMS) {
-        store.transitionMS = transitionMS
+    if (imgStore.transitionMS != transitionMS) {
+        imgStore.transitionMS = transitionMS
     }
 
 }

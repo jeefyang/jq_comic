@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { store } from "../store"
+import { imgStore } from "../imgStore"
 import { jImgScroll } from "../tool/imgScroll"
 import { JHammer, stopTransition, recoverTransition } from "../tool/util"
 
@@ -121,7 +122,7 @@ let setWheel = (e: WheelEvent) => {
 
 <template>
     <div class="control_scroll_div"
-        :style="{ 'top': store.divFloatTop + 'px', 'left': store.divFloatLeft + 'px', 'width': store.divFloatW + 'px', 'height': store.divFloatH + 'px' }"
+        :style="{ 'top': imgStore.divFloatTop + 'px', 'left': imgStore.divFloatLeft + 'px', 'width': imgStore.divFloatW + 'px', 'height': imgStore.divFloatH + 'px' }"
         @mousedown="setMouseDown" draggable="false" @wheel="setWheel" ondragstart="return false;">
         <!-- 主操控 -->
         <div class='control_big_div' ref="bigDivRef">

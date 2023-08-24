@@ -10,7 +10,8 @@ const readModeMap: { key: typeof store.readMode, name: string }[] = [
     { key: "fit", name: "适应屏幕" },
     { key: "none", name: "原始" },
     { key: "width", name: "适应宽度" },
-    { key: "height", name: "适应高度" }
+    { key: "height", name: "适应高度" },
+    { key: "udWaterfall", name: "上下瀑布" }
 ]
 
 const splitImgMap: { key: typeof store.splitImg, name: string }[] = [

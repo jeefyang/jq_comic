@@ -1,46 +1,23 @@
 <script setup lang="ts">
-import { onMounted, watch, ref } from "vue";
+import { onMounted, ref } from "vue";
 import { store } from "../store"
-import { jImgScroll } from "../tool/imgScroll"
+import { imgStore } from "../imgStore"
+// import { jImgScroll } from "../tool/imgScroll"
 
 
 const divRef = ref(<HTMLDivElement>null)
-const imgRef = ref(<HTMLImageElement>null)
-const videoRef = ref(<HTMLVideoElement>null)
-let imgDom: HTMLImageElement
-let videoDom: HTMLVideoElement
+
+
 
 onMounted(() => {
-    imgDom = imgRef.value
-    videoDom = videoRef.value
-    jImgScroll.videoDom = videoDom
-    // divDom = divRef.value
-    watch([() => store.readMode], (_a, _b) => {
-        jImgScroll.resizeImg()
-    })
-    imgDom.onselectstart = () => { return false }
-    imgDom.onload = () => {
-        store.isImgPrepareLoading = false
-        store.isImgLoading = false
-        setTimeout(() => {
-            jImgScroll.resizeImg()
-        }, 100);
-    }
-    videoDom.oncanplay = () => {
-        store.isImgPrepareLoading = false
-        store.isImgLoading = false
-        if (store.isPlayedVideo) {
-            return
-        }
-        console.log("can", videoDom.paused)
-        jImgScroll.setVideoPlay(true)
-        store.isPlayedVideo = true
-        jImgScroll.resizeImg()
 
-    }
-    jImgScroll.resizeImg()
 
 })
+
+const imgOnLoad = () => {
+    imgStore.isImgPrepareLoading = false
+    imgStore.isImgLoading = false
+}
 
 
 
@@ -48,17 +25,24 @@ onMounted(() => {
 
 <template>
     <div class="comic_div" ref="divRef"
-        :style="{ 'top': store.divFloatTop + 'px', 'left': store.divFloatLeft + 'px', 'width': store.divFloatW + 'px', 'height': store.divFloatH + 'px' }">
-        <div class="display_box_div"
-            :style="{ 'width': store.displayImgW + 'px', 'height': store.displayImgH + 'px', 'transform': 'translate3d(' + (store.domTransX) + 'px,' + (store.domTransY) + 'px,0) scale(' + store.domScale + ')', 'transition': 'transform ' + store.transitionMS + 'ms ease-out' }">
-            <img v-show="!store.isVideo" class="comic_img" ref="imgRef" :src="store.canvasB64"
-                :style="{ 'transform': 'translate(' + (store.imgTransX) + 'px,' + (store.imgTransY) + 'px)' }"
-                draggable="false" ondragstart="return false;">
-            <video v-show="store.isVideo" class="comic_img" ref="videoRef" :src="store.canvasB64" autoplay loop prevload
-                :style="{ 'transform': 'translate(' + (store.imgTransX) + 'px,' + (store.imgTransY) + 'px)' }">
+        :style="{ 'top': imgStore.divFloatTop + 'px', 'left': imgStore.divFloatLeft + 'px', 'width': imgStore.divFloatW + 'px', 'height': imgStore.divFloatH + 'px' }">
+        <!-- 移动缩放用 -->
+        <div class="display_trans_box"
+            :style="{ 'transform': 'translate3d(' + (imgStore.domTransX) + 'px,' + (imgStore.domTransY) + 'px,0) scale(' + imgStore.domScale + ')', 'transition': 'transform ' + imgStore.transitionMS + 'ms ease-out' }">
+            <!-- 展开列表 -->
+            <div class="display_list" v-for="item in imgStore.children">
+                <!-- 标准状态 -->
+                <div class="display_show"
+                    :style="{ 'top': item.parentTransY + 'px', 'left': item.parentTransX, 'width': item.displayImgW + 'px', 'height': item.displayImgH + 'px', 'transform': 'scale(' + item.imgScale + ')' }">
+                    <img v-show="!item.isVideo" class="comic_img" ref="imgRef" :src="item.canvasB64" @load="imgOnLoad"
+                        :style="{ 'transform': 'translate(' + (item.imgTransX) + 'px,' + (item.imgTransY) + 'px)' }"
+                        draggable="false" ondragstart="return false;">
+                    <video v-show="item.isVideo" class="comic_img" :src="item.canvasB64" autoplay loop prevload
+                        :style="{ 'transform': 'translate(' + (item.imgTransX) + 'px,' + (item.imgTransY) + 'px)' }">
 
-            </video>
-
+                    </video>
+                </div>
+            </div>
         </div>
 
         <div class="bottom_div">
@@ -84,7 +68,10 @@ onMounted(() => {
     position: absolute;
     overflow: hidden;
     pointer-events: all;
+}
 
+.display_show {
+    position: absolute;
 }
 
 .display_box_div {
@@ -94,6 +81,15 @@ onMounted(() => {
     overflow: hidden;
     user-select: none;
     pointer-events: all;
+    transform-origin: left top;
+}
+
+.display_trans_box {
+  
+    transform-origin: left top;
+}
+
+.display_show {
     transform-origin: left top;
 }
 

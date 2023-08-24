@@ -5,6 +5,8 @@ import { staticData } from "../const"
 import { JConfigType, LocalSaveDataType } from "../type"
 import StreamZip from "node-stream-zip";
 import path from "path-browserify"
+import { imgStore, imgStoreChildType } from "../imgStore"
+import { jImgScroll } from "./imgScroll";
 
 
 class JFileCache {
@@ -73,7 +75,7 @@ class JFileCache {
         this._isControlDebug = store.isControlDebug
 
         // 不想覆盖的部分
-        store.transitionMS = 300
+        imgStore.transitionMS = 300
     }
 
     async init(server: JserverLink, config: JConfigType) {
@@ -462,13 +464,15 @@ class JFileCache {
             }
             store.imgCount = zipMsg.count
             let obj = await this.getFileDataTry(store.dirUrl, store.fileName, store.curNo)
-            store.canvasB64 = obj.base64
-            store.originImgW = obj.w
-            store.originImgH = obj.h
+            let imgObj: imgStoreChildType = {
+                canvasB64: obj.base64,
+                originImgW: obj.w,
+                originImgH: obj.h,
+                isVideo: obj.type == "video",
+                isPlayedVideo: false
+            }
+            jImgScroll.initImgObj(imgObj, true)
             store.isZipFile = true
-            store.isVideo = obj.type == "video"
-            store.isPlayedVideo = false
-            store.videoLoad = !store.videoLoad
             store.zipInFileName = obj?.zipInFileName
         }
         else {
@@ -482,13 +486,15 @@ class JFileCache {
             store.curNo = findIndex
             store.imgCount = dir.sortNoZipFile.length
             let obj = await this.getFileDataTry(store.dirUrl, store.fileName)
-            store.canvasB64 = obj.base64
-            store.originImgW = obj.w
-            store.originImgH = obj.h
+            let imgObj: imgStoreChildType = {
+                canvasB64: obj.base64,
+                originImgW: obj.w,
+                originImgH: obj.h,
+                isVideo: obj.type == "video",
+                isPlayedVideo: false
+            }
+            jImgScroll.initImgObj(imgObj, true)
             store.isZipFile = false
-            store.isVideo = obj.type == "video"
-            store.isPlayedVideo = false
-            store.videoLoad = !store.videoLoad
             store.zipInFileName = ""
         }
         return true
@@ -514,9 +520,14 @@ class JFileCache {
             store.fileName = dirMsg.sortNoZipFile[index].name
             obj = await this.getFileDataTry(store.dirUrl, store.fileName)
         }
-        store.canvasB64 = obj.base64
-        store.originImgW = obj.w
-        store.originImgH = obj.h
+        let imgObj: imgStoreChildType = {
+            canvasB64: obj.base64,
+            originImgW: obj.w,
+            originImgH: obj.h,
+            isVideo: obj.type == "video",
+            isPlayedVideo: false
+        }
+        jImgScroll.initImgObj(imgObj, false)
         store.curNo = index
         store.zipInFileName
     }

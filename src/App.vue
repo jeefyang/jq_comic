@@ -13,20 +13,21 @@ import { jserver } from './tool/serverLink'
 import { jFileCache } from './tool/fileCache';
 import { jImgScroll } from './tool/imgScroll';
 import { JConfigType } from './type';
+import { imgStore } from './imgStore';
 
 
 // const imgSrc = ref("")
 
 const resizeFunc = () => {
-  store.screenW = document.body.clientWidth
-  store.screenH = document.body.clientHeight
-  store.divFloatLeft = store.screenW * store.divFloatWRatio
-  store.divFloatW = store.screenW - (store.divFloatLeft * 2)
-  store.divFloatTop = store.screenH * store.divFloatHRatio
-  store.divFloatH = store.screenH - (store.divFloatTop * 2)
-  store.displayFileCol = Math.floor(store.screenW / 150) + 2
-  store.displayFileIconSize = Math.floor(store.screenW / 25) + 20
-  store.displayFileTextCount = Math.floor(store.screenW / 100) + 5
+  imgStore.screenW = document.body.clientWidth
+  imgStore.screenH = document.body.clientHeight
+  imgStore.divFloatLeft = imgStore.screenW * imgStore.divFloatWRatio
+  imgStore.divFloatW = imgStore.screenW - (imgStore.divFloatLeft * 2)
+  imgStore.divFloatTop = imgStore.screenH * imgStore.divFloatHRatio
+  imgStore.divFloatH = imgStore.screenH - (imgStore.divFloatTop * 2)
+  store.displayFileCol = Math.floor(imgStore.screenW / 150) + 2
+  store.displayFileIconSize = Math.floor(imgStore.screenW / 25) + 20
+  store.displayFileTextCount = Math.floor(imgStore.screenW / 100) + 5
 
 }
 
@@ -81,7 +82,7 @@ onMounted(async () => {
   <van-config-provider theme="dark">
     <div v-if="store.isServerCompleted">
       <ComicDisplay></ComicDisplay>
-      <ComicImgLoading v-if="store.isImgLoading && store.isImgPrepareLoading"></ComicImgLoading>
+      <ComicImgLoading v-if="imgStore.isImgLoading && imgStore.isImgPrepareLoading"></ComicImgLoading>
       <ComicControl></ComicControl>
       <FileManager v-if="store.displayFileManager"></FileManager>
       <ComicOPPanel v-if="store.displayOPPanel"></ComicOPPanel>
