@@ -137,6 +137,8 @@ class JImgScroll {
         let imgScale = 1
 
         switch (store.readMode) {
+            case "udWaterfall":
+                break
             case "none":
                 var curRatio = imgStore.children[0].displayImgW / imgStore.children[0].displayImgH
                 var screenRatio = imgStore.divFloatW / imgStore.divFloatH
@@ -196,26 +198,42 @@ class JImgScroll {
     }
 
     setMaxMin(imgscale?: number, domscale?: number) {
+        let children = imgStore.children
+        let startImgScale = imgscale
+        if (!startImgScale) {
+            startImgScale = children[0].imgScale
+        }
+        let endImgScale = imgscale
+        if (!endImgScale) {
+            endImgScale = children[children.length - 1].imgScale
+        }
+        if (!domscale) {
+            domscale = 1
+        }
+        this.maxX = Math.max(children[0].parentTransX * startImgScale * domscale, 0)
+        this.minX = Math.min(this.maxX, (imgStore.screenW - (children[children.length - 1].displayImgW * endImgScale * domscale) - children[children.length - 1].parentTransX * domscale))
+        this.maxY = Math.max(children[0].parentTransY * startImgScale * domscale, 0)
+        this.minY = Math.min(this.maxY, (imgStore.screenH - (children[children.length - 1].displayImgH * endImgScale * domscale) - children[children.length - 1].parentTransY * domscale))
 
-        if (store.readMode != "udWaterfall") {
-            if (!imgscale) {
-                imgscale = imgStore.children[0].imgScale
-            }
-            if (!domscale) {
-                domscale = 1
-            }
-            this.maxX = 0
-            this.minX = Math.min(this.maxX, (imgStore.screenW - imgStore.children[0].displayImgW * imgscale * domscale))
-            this.maxY = 0
-            this.minY = Math.min(this.maxY, (imgStore.screenH - imgStore.children[0].displayImgH * imgscale * domscale))
-        }
-        else {
-            let children = imgStore.children
-            this.minX = Math.min(-children[0].parentTransX, -children[children.length - 1].parentTransX)
-            this.maxX = Math.max(-children[0].parentTransX, -children[children.length - 1].parentTransX)
-            this.minY = Math.min(-children[0].parentTransY, -children[children.length - 1].parentTransY)
-            this.maxY = Math.max(-children[0].parentTransY, children[children.length - 1].parentTransY)
-        }
+        // if (store.readMode != "udWaterfall") {
+        //     if (!imgscale) {
+        //         imgscale = imgStore.children[0].imgScale
+        //     }
+        //     if (!domscale) {
+        //         domscale = 1
+        //     }
+        //     this.maxX = 0
+        //     this.minX = Math.min(this.maxX, (imgStore.screenW - imgStore.children[0].displayImgW * imgscale * domscale))
+        //     this.maxY = 0
+        //     this.minY = Math.min(this.maxY, (imgStore.screenH - imgStore.children[0].displayImgH * imgscale * domscale))
+        // }
+
+        // if (store.readMode == "udWaterfall") {
+        //     this.isMoveX = true
+        //     this.isMoveY = true
+
+
+        // }
     }
 
     /** 设置移动 */
@@ -265,8 +283,6 @@ class JImgScroll {
         imgStore.domScale = domScale
         imgStore.domTransX = newX
         imgStore.domTransY = newY
-
-
     }
 
     setDoubleTap(ev: HammerInput) {
@@ -343,6 +359,11 @@ class JImgScroll {
         }
     }
 
+    adjustPos() {
+        this.setMaxMin()
+        this.setMove(imgStore.domTransX, imgStore.domTransY)
+    }
+
     async setNextOnlyOne() {
         if (imgStore.children[0].isSplit && !imgStore.children[0].splitNum) {
             imgStore.children[0].splitNum = 1
@@ -377,6 +398,7 @@ class JImgScroll {
             imgStore.children.push(obj)
             this.resizeOneImg(children.length - 1)
             obj.isLoaded = true
+            this.adjustPos()
             await this.setNextWaterfall(count - 1)
             return
         }
@@ -393,7 +415,9 @@ class JImgScroll {
         imgStore.children.push(obj)
         this.resizeOneImg(children.length - 1)
         obj.isLoaded = true
+        this.adjustPos()
         await this.setNextWaterfall(count - 1)
+        return
     }
 
     async setNext() {
@@ -436,7 +460,9 @@ class JImgScroll {
             children.splice(0, 0, obj)
             this.resizeOneImg(0, 1)
             obj.isLoaded = true
+            this.adjustPos()
             await this.setPrevWaterfall(count - 1)
+
             return
         }
         if (first.index <= 0) {
@@ -452,6 +478,7 @@ class JImgScroll {
         children.splice(0, 0, obj)
         this.resizeOneImg(0, 1)
         obj.isLoaded = true
+        this.adjustPos()
         await this.setPrevWaterfall(count - 1)
         return
     }

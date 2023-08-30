@@ -46,13 +46,17 @@ onMounted(async () => {
         jImgScroll.setPanStart(0, 0, false)
         jImgScroll.setSwipeMove(e.deltaX, 0)
     }).on("swipeup", (e) => {
-
         jImgScroll.setPanStart(0, 0, false)
         jImgScroll.setSwipeMove(0, e.deltaY)
+        if (store.readMode == "udWaterfall") {
+            console.log("up")
+        }
     }).on("swipedown", (e) => {
-
         jImgScroll.setPanStart(0, 0, false)
         jImgScroll.setSwipeMove(0, e.deltaY)
+        if (store.readMode == "udWaterfall") {
+            console.log("down")
+        }
     }).on("pinchstart", () => {
         stopTransition()
         jImgScroll.scaleInit()
