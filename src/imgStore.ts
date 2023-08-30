@@ -31,7 +31,8 @@ export type imgStoreChildType = {
     isLoaded?: boolean
     /** 是否切割 */
     isSplit?: boolean
-
+    /** 顺序 */
+    index: number
 }
 
 export type imgStoreType = {

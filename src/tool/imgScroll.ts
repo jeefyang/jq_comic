@@ -3,6 +3,7 @@ import { showToast } from "vant"
 import { jFileCache } from "./fileCache"
 import { setImgLoading } from "./util"
 import { imgStore, imgStoreChildType } from "../imgStore"
+import { staticData } from "../const"
 
 class JImgScroll {
 
@@ -15,7 +16,6 @@ class JImgScroll {
     minY: number = 0
     maxX: number = 0
     maxY: number = 0
-    isSplit: boolean = true
     minScale: number = 1
     maxScale: number = 3
     isDoubleTap: boolean = false
@@ -34,19 +34,31 @@ class JImgScroll {
 
         if (isInit || store.readMode != "udWaterfall") {
             imgStore.children = [obj]
+            this.resizeImg()
         }
-        else {
-            imgStore.children.push(obj)
+
+        if (store.readMode == "udWaterfall") {
+            this.setNextWaterfall()
+            // this.setWaterfallImgObj(1)
         }
-        this.resizeImg()
+        // else {
+
+        // }
+
     }
+
+
 
     setVideoPlay(v?: boolean) {
 
     }
 
-    resizeOneImg(obj: imgStoreChildType) {
+    resizeOneImg(index: number, lastAdd: -1 | 1 = -1) {
+        let obj = imgStore.children[index]
         obj.isSplit = store.splitImg == "split" || (store.splitImg == "auto" && obj.originImgW > obj.originImgH)
+        if (!obj.splitNum) {
+            obj.splitNum = 0
+        }
         if (!obj.isSplit) {
             obj.displayImgW = obj.originImgW
             obj.displayImgH = obj.originImgH
@@ -79,8 +91,9 @@ class JImgScroll {
                 break
         }
         obj.imgScale = imgScale
-        let imgTranslateX = 0
-        if (!this.isSplit) {
+        let imgTransX = 0
+        let imgTransY = 0
+        if (!obj.isSplit) {
         }
         else {
             let splitNum = 0
@@ -88,20 +101,34 @@ class JImgScroll {
                 splitNum = 1
             }
             else { splitNum = 0 }
-            imgTranslateX -= obj.originImgW / 2 * splitNum
+            imgTransX -= obj.originImgW / 2 * splitNum
         }
-        obj.imgTransX = imgTranslateX
-        obj.imgTransY = 0
+        obj.imgTransX = imgTransX
+        obj.imgTransY = imgTransY
         obj.parentTransX = 0
-        obj.parentTransY = 0
+        if (store.readMode == "udWaterfall") {
+            let last = imgStore.children[index + lastAdd]
+            if (!last) {
+                obj.parentTransY = 0
+            }
+            else {
+                obj.parentTransY = last.parentTransY - (staticData.splitD * lastAdd) - (last.displayImgH * lastAdd * last.imgScale)
+                // obj.parentTransY = last.parentTransY - (staticData.splitD * lastAdd / obj.imgScale) - (obj.displayImgH * lastAdd * obj.imgScale)
+            }
+
+        }
+        else {
+            obj.parentTransY = 0
+        }
+
+        return obj
     }
 
 
     resizeImg() {
-
-        imgStore.children.forEach(o => {
-            this.resizeOneImg(o)
-        })
+        for (let i = 0; i < imgStore.children.length; i++) {
+            this.resizeOneImg(i)
+        }
         this.isMoveX = true
         this.isMoveY = true
 
@@ -181,7 +208,13 @@ class JImgScroll {
             this.minX = Math.min(this.maxX, (imgStore.screenW - imgStore.children[0].displayImgW * imgscale * domscale))
             this.maxY = 0
             this.minY = Math.min(this.maxY, (imgStore.screenH - imgStore.children[0].displayImgH * imgscale * domscale))
-            console.log(this.minX, this.minY)
+        }
+        else {
+            let children = imgStore.children
+            this.minX = Math.min(-children[0].parentTransX, -children[children.length - 1].parentTransX)
+            this.maxX = Math.max(-children[0].parentTransX, -children[children.length - 1].parentTransX)
+            this.minY = Math.min(-children[0].parentTransY, -children[children.length - 1].parentTransY)
+            this.maxY = Math.max(-children[0].parentTransY, children[children.length - 1].parentTransY)
         }
     }
 
@@ -310,10 +343,11 @@ class JImgScroll {
         }
     }
 
-    async setNext() {
-        if (this.isSplit && !imgStore.children[0].splitNum) {
+    async setNextOnlyOne() {
+        if (imgStore.children[0].isSplit && !imgStore.children[0].splitNum) {
             imgStore.children[0].splitNum = 1
             this.resizeImg()
+            jFileCache.preloadImg(store.curNo + 1, 1)
             return
         }
         if (store.curNo + 1 >= store.imgCount) {
@@ -324,18 +358,55 @@ class JImgScroll {
             })
             return
         }
-        imgStore.children[0].splitNum = 0
         store.isDisplayLoading = true
         setImgLoading()
-        await jFileCache.setImgByNum(store.curNo + 1)
+        await jFileCache.setImgByNum(store.curNo + 1, 0)
         store.isDisplayLoading = false
-        await jFileCache.preloadImg(store.curNo + 1, -1)
+        await jFileCache.preloadImg(store.curNo + 2, 1)
     }
 
-    async setPrev() {
-        if (this.isSplit && imgStore.children[0].splitNum) {
+    async setNextWaterfall(count: number = staticData.advanceImgCount) {
+        if (count <= 0) {
+            return
+        }
+        let children = imgStore.children
+        let last = children[children.length - 1]
+        if (last.isSplit && !last.splitNum) {
+            let obj: (typeof children)[number] = JSON.parse(JSON.stringify(last))
+            obj.splitNum = 1
+            imgStore.children.push(obj)
+            this.resizeOneImg(children.length - 1)
+            obj.isLoaded = true
+            await this.setNextWaterfall(count - 1)
+            return
+        }
+        if (last.index + 1 >= store.imgCount) {
+            showToast({
+                message: "已经是尾页了",
+                forbidClick: true,
+                duration: 1000
+            })
+            return
+        }
+        // let curno=last
+        let obj = await jFileCache.getImgByNum(last.index + 1, 0)
+        imgStore.children.push(obj)
+        this.resizeOneImg(children.length - 1)
+        obj.isLoaded = true
+        await this.setNextWaterfall(count - 1)
+    }
+
+    async setNext() {
+        if (store.readMode != "udWaterfall") {
+            await this.setNextOnlyOne()
+        }
+    }
+
+    async setPrevOnlyOne() {
+        if (imgStore.children[0].isSplit && imgStore.children[0].splitNum) {
             imgStore.children[0].splitNum = 0
             this.resizeImg()
+            await jFileCache.preloadImg(store.curNo - 1, -1)
             return
         }
         if (store.curNo <= 0) {
@@ -346,12 +417,49 @@ class JImgScroll {
             })
             return
         }
-        imgStore.children[0].splitNum = 1
         store.isDisplayLoading = true
         setImgLoading()
-        await jFileCache.setImgByNum(store.curNo - 1)
+        await jFileCache.setImgByNum(store.curNo - 1, 1)
         store.isDisplayLoading = false
-        await jFileCache.preloadImg(store.curNo - 1, -1)
+        await jFileCache.preloadImg(store.curNo - 2, -1)
+    }
+
+    async setPrevWaterfall(count: number = staticData.advanceImgCount) {
+        if (count <= 0) {
+            return
+        }
+        let children = imgStore.children
+        let first = children[0]
+        if (first.isSplit && first.splitNum) {
+            let obj: (typeof children)[number] = JSON.parse(JSON.stringify(first))
+            obj.splitNum = 0
+            children.splice(0, 0, obj)
+            this.resizeOneImg(0, 1)
+            obj.isLoaded = true
+            await this.setPrevWaterfall(count - 1)
+            return
+        }
+        if (first.index <= 0) {
+            showToast({
+                message: "已经是首页了",
+                forbidClick: true,
+                duration: 1000
+            })
+            return
+        }
+        // let curno=last
+        let obj = await jFileCache.getImgByNum(first.index - 1, 0)
+        children.splice(0, 0, obj)
+        this.resizeOneImg(0, 1)
+        obj.isLoaded = true
+        await this.setPrevWaterfall(count - 1)
+        return
+    }
+
+    async setPrev() {
+        if (store.readMode != "udWaterfall") {
+            await this.setPrevOnlyOne()
+        }
     }
 
     setMouseDown(x: number, y: number) {

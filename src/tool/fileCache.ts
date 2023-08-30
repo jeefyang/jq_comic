@@ -153,7 +153,7 @@ class JFileCache {
         if (index == -1) {
             return
         }
-        console.log(index)
+        // console.log(index)
         json.storeList.splice(index, 1)
         let newTxt = JSON.stringify(json)
         localStorage.setItem(this.localStorageKey, newTxt)
@@ -242,7 +242,7 @@ class JFileCache {
                 break
         }
         data.sortType = store.imgSortType
-        console.log(JSON.parse(JSON.stringify(data.sortList)))
+        // console.log(JSON.parse(JSON.stringify(data.sortList)))
     }
 
     private _setFloderSort(data: JFolderDisplayType) {
@@ -394,7 +394,7 @@ class JFileCache {
                 return
             }
             zipInFileName = msg.sortList[index].data.name
-            console.log(url, zipInFileName)
+            // console.log(url, zipInFileName)
             let arr = zipInFileName.split('.')
             fileEx = arr[arr.length - 1].toLowerCase()
             // buffer = await this.server.getZipInFileByName(url, zipInFileName)
@@ -469,7 +469,8 @@ class JFileCache {
                 originImgW: obj.w,
                 originImgH: obj.h,
                 isVideo: obj.type == "video",
-                isPlayedVideo: false
+                isPlayedVideo: false,
+                index: store.curNo
             }
             jImgScroll.initImgObj(imgObj, true)
             store.isZipFile = true
@@ -491,7 +492,8 @@ class JFileCache {
                 originImgW: obj.w,
                 originImgH: obj.h,
                 isVideo: obj.type == "video",
-                isPlayedVideo: false
+                isPlayedVideo: false,
+                index: store.curNo
             }
             jImgScroll.initImgObj(imgObj, true)
             store.isZipFile = false
@@ -500,8 +502,8 @@ class JFileCache {
         return true
     }
 
-    /** 通过序号设置图片 */
-    async setImgByNum(index: number) {
+    /** 通过序号获取图片 */
+    async getImgByNum(index: number, splitNum?: 0 | 1) {
         if (index < 0) {
             return
         }
@@ -525,11 +527,20 @@ class JFileCache {
             originImgW: obj.w,
             originImgH: obj.h,
             isVideo: obj.type == "video",
-            isPlayedVideo: false
+            isPlayedVideo: false,
+            index: index
         }
+        if (splitNum != undefined) {
+            imgObj.splitNum = splitNum
+        }
+        return imgObj
+    }
+
+    /** 通过序号设置图片 */
+    async setImgByNum(index: number, splitNum?: 0 | 1) {
+        let imgObj = await this.getImgByNum(index, splitNum)
         jImgScroll.initImgObj(imgObj, false)
         store.curNo = index
-        store.zipInFileName
     }
 
     /** 停止预加载 */

@@ -1,22 +1,26 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { store } from "../store"
 import { imgStore } from "../imgStore"
+import { jImgScroll } from "../tool/imgScroll";
 // import { jImgScroll } from "../tool/imgScroll"
 
 
 const divRef = ref(<HTMLDivElement>null)
-
+const displayRef = ref(<HTMLDivElement>null)
 
 
 onMounted(() => {
-
+    watch([() => store.readMode, () => store.splitImg], () => {
+        jImgScroll.resizeImg()
+    })
 
 })
 
 const imgOnLoad = () => {
     imgStore.isImgPrepareLoading = false
     imgStore.isImgLoading = false
+
 }
 
 
@@ -27,19 +31,18 @@ const imgOnLoad = () => {
     <div class="comic_div" ref="divRef"
         :style="{ 'top': imgStore.divFloatTop + 'px', 'left': imgStore.divFloatLeft + 'px', 'width': imgStore.divFloatW + 'px', 'height': imgStore.divFloatH + 'px' }">
         <!-- 移动缩放用 -->
-        <div class="display_trans_box"
+        <div class="display_trans_box" ref="displayRef"
             :style="{ 'transform': 'translate3d(' + (imgStore.domTransX) + 'px,' + (imgStore.domTransY) + 'px,0) scale(' + imgStore.domScale + ')', 'transition': 'transform ' + imgStore.transitionMS + 'ms ease-out' }">
             <!-- 展开列表 -->
             <div class="display_list" v-for="item in imgStore.children">
                 <!-- 标准状态 -->
                 <div class="display_show"
                     :style="{ 'top': item.parentTransY + 'px', 'left': item.parentTransX, 'width': item.displayImgW + 'px', 'height': item.displayImgH + 'px', 'transform': 'scale(' + item.imgScale + ')' }">
-                    <img v-show="!item.isVideo" class="comic_img" ref="imgRef" :src="item.canvasB64" @load="imgOnLoad"
+                    <img v-if="!item.isVideo" class="comic_img" ref="imgRef" :src="item.canvasB64" @load="imgOnLoad"
                         :style="{ 'transform': 'translate(' + (item.imgTransX) + 'px,' + (item.imgTransY) + 'px)' }"
                         draggable="false" ondragstart="return false;">
-                    <video v-show="item.isVideo" class="comic_img" :src="item.canvasB64" autoplay loop prevload
+                    <video v-if="item.isVideo" class="comic_img" :src="item.canvasB64" autoplay loop prevload
                         :style="{ 'transform': 'translate(' + (item.imgTransX) + 'px,' + (item.imgTransY) + 'px)' }">
-
                     </video>
                 </div>
             </div>
@@ -72,6 +75,7 @@ const imgOnLoad = () => {
 
 .display_show {
     position: absolute;
+    /* display: flex; */
 }
 
 .display_box_div {
@@ -85,8 +89,10 @@ const imgOnLoad = () => {
 }
 
 .display_trans_box {
-  
+
     transform-origin: left top;
+    display: flex;
+    flex-direction: column;
 }
 
 .display_show {

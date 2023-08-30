@@ -19,6 +19,7 @@ import { imgStore } from './imgStore';
 // const imgSrc = ref("")
 
 const resizeFunc = () => {
+  console.log("resizeFunc")
   imgStore.screenW = document.body.clientWidth
   imgStore.screenH = document.body.clientHeight
   imgStore.divFloatLeft = imgStore.screenW * imgStore.divFloatWRatio
@@ -56,14 +57,12 @@ onMounted(async () => {
     }
     jserver.host = host
   }
+  resizeFunc()
   await jserver.init()
   let v = await jFileCache.init(jserver, config)
-  // await jFileCache.test()
 
-  // await jserver.testFolder()
   store.isServerCompleted = true
-  // store.displayFileManager = true
-  resizeFunc()
+
   window.addEventListener("resize", () => {
     resizeFunc()
   })
@@ -79,17 +78,20 @@ onMounted(async () => {
 </script>
 
 <template>
-  <van-config-provider theme="dark">
-    <div v-if="store.isServerCompleted">
-      <ComicDisplay></ComicDisplay>
-      <ComicImgLoading v-if="imgStore.isImgLoading && imgStore.isImgPrepareLoading"></ComicImgLoading>
-      <ComicControl></ComicControl>
-      <FileManager v-if="store.displayFileManager"></FileManager>
-      <ComicOPPanel v-if="store.displayOPPanel"></ComicOPPanel>
-      <ComicBottomBar v-if="store.displayBottomBar"></ComicBottomBar>
+  <div class="app" :style="{ 'background-color': store.background }">
+    <van-config-provider theme="dark">
+      <div v-if="store.isServerCompleted">
+        <ComicDisplay></ComicDisplay>
+        <ComicImgLoading v-if="imgStore.isImgLoading && imgStore.isImgPrepareLoading"></ComicImgLoading>
+        <ComicControl></ComicControl>
+        <FileManager v-if="store.displayFileManager"></FileManager>
+        <ComicOPPanel v-if="store.displayOPPanel"></ComicOPPanel>
+        <ComicBottomBar v-if="store.displayBottomBar"></ComicBottomBar>
 
-    </div>
-  </van-config-provider>
+      </div>
+    </van-config-provider>
+  </div>
+
 
 
   <!-- 测试 -->

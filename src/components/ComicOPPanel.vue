@@ -6,6 +6,8 @@ import { jImgScroll } from '../tool/imgScroll';
 import { jFileCache } from '../tool/fileCache';
 import { NameSortType } from '../type';
 import { showToast } from 'vant';
+import { staticData } from '../const';
+import { imgStore } from '../imgStore';
 const readModeMap: { key: typeof store.readMode, name: string }[] = [
     { key: "fit", name: "适应屏幕" },
     { key: "none", name: "原始" },
@@ -53,6 +55,12 @@ const freshImg = async () => {
     await jFileCache.openFile(store.dirUrl, store.fileName, store.curNo)
     return
 }
+
+
+const dispatchTest = () => {
+    console.log(imgStore.children)
+}
+
 </script>
 <template>
     <van-action-sheet v-model:show="store.displayOPPanel" title="设置" :closeable="false">
@@ -191,9 +199,19 @@ const freshImg = async () => {
         <!-- 空行 -->
         <div class="br" v-if="store.isControlDebug"></div>
 
+        <!-- 背景 -->
+        <div class="sort">
+            <div class="sort_title">背景:</div>
+            <van-button color="#ffffff" plain @click="store.background = staticData.defaultBackground">默认</van-button>
+            <input type="color" v-model="store.background">
+        </div>
+        <!-- 空行 -->
+        <div class="br" v-if="store.isControlDebug"></div>
+
         <!-- 常规按钮功能 -->
         <div class="sort">
             <van-button type="default" @click="setRefresh">刷新</van-button>
+            <van-button type="default" :disabled="!store.isAutoSave" @click="dispatchTest">测试</van-button>
             <van-button type="default" :disabled="!store.isAutoSave" @click="setAutoSave(true)">保存</van-button>
         </div>
         <!-- 空行 -->

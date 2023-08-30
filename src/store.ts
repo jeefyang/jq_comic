@@ -1,5 +1,6 @@
 import { reactive } from "vue"
 import { NameSortType } from "./type"
+import { staticData } from "./const"
 
 export const store = reactive({
     /** 选中关键字 */
@@ -56,13 +57,12 @@ export const store = reactive({
     isDisplayDebugMsg: <boolean>false,
     /** 测试数据 */
     debugMsg: <string | number>"",
-
     /** 是否反转操作 */
     isCtrlReverse: <boolean>false,
     /** 是否为压缩包文件 */
     isZipFile: <boolean>false,
-
-
     /** 自动保存 */
     isAutoSave: <boolean>false,
+    /** 背景色 */
+    background: <string>staticData.defaultBackground
 })
