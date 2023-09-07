@@ -2,12 +2,12 @@
 import { onMounted } from 'vue';
 
 import { store } from "../store"
-import { jImgScroll } from '../tool/imgScroll';
 import { jFileCache } from '../tool/fileCache';
 import { NameSortType } from '../type';
 import { showToast } from 'vant';
 import { staticData } from '../const';
 import { imgStore } from '../imgStore';
+import { imgCommon } from '../tool/imgCommon';
 const readModeMap: { key: typeof store.readMode, name: string }[] = [
     { key: "fit", name: "适应屏幕" },
     { key: "none", name: "原始" },
@@ -52,13 +52,13 @@ const setRefresh = () => {
 }
 
 const freshImg = async () => {
-    await jFileCache.openFile(store.dirUrl, store.fileName, store.curNo)
-    return
+    // await jFileCache.openFile(store.dirUrl, store.fileName, store.curNo)
+    // return
 }
 
 
 const dispatchTest = () => {
-    console.log(imgStore.children)
+    console.log(imgStore)
 }
 
 </script>
@@ -77,7 +77,7 @@ const dispatchTest = () => {
         <!-- 分割模式 -->
         <div class="sort">
             <div class="sort_title">分割:</div>
-            <van-radio-group v-model="store.splitImg" direction="horizontal" @change="jImgScroll.resizeImg()">
+            <van-radio-group v-model="store.splitImg" direction="horizontal" @change="imgCommon.screenResize()">
                 <van-radio v-for="(item, index) in splitImgMap" :key="index" :name="item.key">{{ item.name }}</van-radio>
             </van-radio-group>
         </div>
@@ -98,7 +98,7 @@ const dispatchTest = () => {
         <div class="sort">
             <div class="sort_title">方向:</div>
             <van-dropdown-menu>
-                <van-dropdown-item v-model="store.directX" :options="directXMap" @change="jImgScroll.resizeImg()" />
+                <van-dropdown-item v-model="store.directX" :options="directXMap" @change="imgCommon.screenResize()" />
             </van-dropdown-menu>
         </div>
         <!-- 空行 -->

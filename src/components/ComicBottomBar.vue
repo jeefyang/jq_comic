@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import { store } from "../store"
-import { jFileCache } from "../tool/fileCache";
 import { JHammer } from "../tool/util"
+import { imgStore } from "../imgStore";
+import { imgCommon } from "../tool/imgCommon";
 
 let curNo = ref(<number>store.curNo + 1)
 let numInputRef = ref(<HTMLInputElement>null)
@@ -16,8 +17,8 @@ onMounted(() => {
         if (e < 1) {
             curNo.value = 1
         }
-        if (e > store.imgCount) {
-            curNo.value = store.imgCount
+        if (e > imgStore.len) {
+            curNo.value = imgStore.len
         }
     })
 })
@@ -27,8 +28,7 @@ let setCloseFunc = () => {
 }
 
 let setCurNoFunc = () => {
-    jFileCache.setImgByNum(curNo.value - 1)
-    store.curNo = curNo.value - 1
+    imgCommon.jumpImg(curNo.value - 1)
 }
 
 </script>
@@ -39,12 +39,12 @@ let setCurNoFunc = () => {
         <div class="bottom_bar_div">
             <!-- 占位 -->
             <div class="site_div"></div>
-            <input type="number" class="bottom_num_input" v-model="curNo" @change="setCurNoFunc" :max="store.imgCount"
-                min="1" ref="numInputRef">
+            <input type="number" class="bottom_num_input" v-model="curNo" @change="setCurNoFunc" :max="imgStore.len" min="1"
+                ref="numInputRef">
             <!-- 占位 -->
             <div class="site_div"></div>
             <div class="slider_div">
-                <van-slider v-model="curNo" :min="1" :max="store.imgCount" @change="setCurNoFunc" bar-height="10px">
+                <van-slider v-model="curNo" :min="1" :max="imgStore.len" @change="setCurNoFunc" bar-height="10px">
                     <template #button>
                         <div class="custom-button" draggable="false" ondragstart="return false;">{{ curNo }}</div>
                     </template>
@@ -52,7 +52,7 @@ let setCurNoFunc = () => {
             </div>
             <!-- 占位 -->
             <div class="site_div"></div>
-            <div>{{ store.imgCount }}</div>
+            <div>{{ imgStore.len }}</div>
             <!-- 占位 -->
             <div class="site_div"></div>
         </div>

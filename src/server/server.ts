@@ -7,6 +7,8 @@ import path from "path"
 import { fileURLToPath } from "url"
 
 import { JConfigType } from "../type"
+import { zipFactory } from "./zipFactory";
+import { URL } from 'node:url';
 
 console.log("start!")
 const app = express()
@@ -18,8 +20,30 @@ app.use('/trpc', createExpressMiddleware({
     router: appRouter,
     createContext: () => ({}),
 }))
-app.get('/test', async (_req, res, _next) => {
+app.get('/test', async (_req, res, next) => {
     res.status(200).set({ "Content-Type": "text/html" }).end("helloworld")
+    next()
+})
+
+app.get("/getZipInFileByName", async (req, res, next) => {
+    // req.url
+    // console.log('getZipInFileByName', req.originalUrl + '/' + req.url)
+    let urldata = new URL(req.url, `http://${req.headers.host}`)
+    let fileUrl = urldata.searchParams.get("url")
+    let fileName = urldata.searchParams.get("fileName")
+    console.log(fileName)
+    let data = await (await zipFactory.getChild(fileUrl)).getFileByName(fileName)
+    res.send(data)
+    next()
+})
+
+app.get("/getFile", async (req, res, next) => {
+    console.log('getFile')
+    let url = new URL(req.url, `http://${req.headers.host}`)
+    let fileUrl = url.searchParams.get("url")
+    let data = await fs.readFileSync(fileUrl)
+    res.send(data)
+    next()
 })
 
 if (import.meta.env.PROD) {

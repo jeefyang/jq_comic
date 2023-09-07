@@ -7,14 +7,10 @@ export const store = reactive({
     switchKey: <string>"",
     /** 当前文件路径,不能带文件夹 */
     fileName: <string>"",
-    /** 压缩包里的文件名 */
-    zipInFileName: <string>"",
     /** 当前文件夹路径 */
     dirUrl: <string>"",
     /** 基础文件夹路径,一般不显示 */
     baseDirUrl: <string>"",
-    /** 图片数量 */
-    imgCount: <number>0,
     /** 当前显示第几张图片 */
     curNo: <number>0,
     /** 图片观看排列顺序 */
@@ -55,12 +51,8 @@ export const store = reactive({
     isDisplayFileName: <boolean>false,
     /** 是否显示测试用的数据 */
     isDisplayDebugMsg: <boolean>false,
-    /** 测试数据 */
-    debugMsg: <string | number>"",
     /** 是否反转操作 */
     isCtrlReverse: <boolean>false,
-    /** 是否为压缩包文件 */
-    isZipFile: <boolean>false,
     /** 自动保存 */
     isAutoSave: <boolean>false,
     /** 背景色 */

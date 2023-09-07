@@ -1,19 +1,17 @@
 import { JFolderDisplayType, JFileFormatType } from "../type";
 import { JserverLink } from "../tool/serverLink"
 import { store } from "../store"
-import { staticData } from "../const"
 import { JConfigType, LocalSaveDataType } from "../type"
 import StreamZip from "node-stream-zip";
 import path from "path-browserify"
-import { imgStore, imgStoreChildType } from "../imgStore"
-import { jImgScroll } from "./imgScroll";
+import { imgStoreChildType } from "../imgStore"
 
 
 class JFileCache {
     /** 文件夹缓存 */
     dirCache: { [propName: string]: JFolderDisplayType } = {}
     /** 图片缓存,会限制个数 */
-    imgCache: { dirUrl: string, fileName: string, isZip?: boolean, zipIndex?: number, time: number, base64: string, w?: number, h?: number, zipInFileName?: string, type: "img" | "video", exName?: string }[] = []
+    imgCache: imgStoreChildType[] = []
     /** 压缩包信息,为了减少服务器读取 */
     zipMsgCache: {
         dirUrl: string,
@@ -73,9 +71,6 @@ class JFileCache {
         }
         store.isControlDebug = store.isControlDebug || this._isControlDebug
         this._isControlDebug = store.isControlDebug
-
-        // 不想覆盖的部分
-        imgStore.transitionMS = 300
     }
 
     async init(server: JserverLink, config: JConfigType) {
@@ -84,13 +79,8 @@ class JFileCache {
         this._initSwitchKey()
         this._initStore()
         let url = `${store.dirUrl}/${store.fileName}`
-        let v = await this.server.isFile(url)
-        if (v) {
-            await this.openFile(store.dirUrl, store.fileName, store.curNo)
-            return true
-        }
-        return false
-
+        let v = await this.server.postIsFile(url)
+        return v
     }
 
     getLocalStorage() {
@@ -290,7 +280,7 @@ class JFileCache {
             this._setFloderSort(this.dirCache[url])
             return this.dirCache[url]
         }
-        let obj = await this.server.getFolder(url)
+        let obj = await this.server.postFolder(url)
         obj.noZipFiles = []
         for (let i = 0; i < obj.files.length; i++) {
             if (obj.files[i].exName == "zip") {
@@ -314,7 +304,7 @@ class JFileCache {
             return this.zipMsgCache[index]
         }
         let url = `${dirUrl}/${fileName}`
-        let zipData = await this.server.getZipMsg(url)
+        let zipData = await this.server.postZipMsg(url)
         index = this.zipMsgCache.push({
             dirUrl, fileName, count: zipData.list.length, list: zipData.list
         })
@@ -323,14 +313,14 @@ class JFileCache {
     }
 
     /** 获取图片缓存 */
-    private _getImgCache(dirUrl?: string, fileName?: string, zipIndex: number = 0) {
+    private _getImgCache(dirUrl?: string, fileName?: string, zipInFileName?: string) {
         dirUrl = dirUrl || store.dirUrl
         fileName = fileName || store.fileName
         let arr = store.fileName.split('.')
         let ex = arr[arr.length - 1].toLowerCase()
         let index = -1
         if (ex == "zip") {
-            index = this.imgCache.findIndex(c => c.isZip && c.dirUrl == dirUrl && c.fileName == fileName && c.zipIndex == zipIndex)
+            index = this.imgCache.findIndex(c => c.isZip && c.dirUrl == dirUrl && c.fileName == fileName && c.zipInFileName == zipInFileName)
         }
         else {
             index = this.imgCache.findIndex(c => !c.isZip && c.dirUrl == dirUrl && c.fileName == fileName)
@@ -339,24 +329,22 @@ class JFileCache {
     }
 
     /** 设置图片缓存 */
-    private _setImgCache(data: { base64: string, w: number, h: number, zipInFileName?: string, exName: string, type: "img" | "video" }, dirUrl?: string, fileName?: string, zipIndex: number = 0) {
+    private _setImgCache(data: { dataUrl: string, zipInFileName?: string, exName: string, type: "img" | "video" }, dirUrl?: string, fileName?: string) {
 
         dirUrl = dirUrl || store.dirUrl
         fileName = fileName || store.fileName
-        if (this._getImgCache(dirUrl, fileName, zipIndex)) {
+        if (this._getImgCache(dirUrl, fileName, data.zipInFileName)) {
             return
         }
         let arr = fileName.split('.')
         let ex = arr[arr.length - 1].toLowerCase()
-        let obj: (typeof JFileCache.prototype.imgCache)[number] = { isZip: ex == "zip", dirUrl, fileName, zipIndex, base64: data.base64, w: data.w, h: data.h, time: new Date().getMilliseconds(), zipInFileName: data.zipInFileName, exName: data.exName, type: data.type }
+        let obj: imgStoreChildType = { isZip: ex == "zip", dirUrl, fileName, dataUrl: data.dataUrl, time: new Date().getMilliseconds(), zipInFileName: data.zipInFileName, exName: data.exName, type: data.type, childIndex: this.imgCache.length }
         this.imgCache.push(obj)
-        this.imgCache = this.imgCache.sort((a, b) => b.time - a.time)
-        this.imgCache = this.imgCache.slice(0, staticData.saveImgCount)
         return obj
     }
 
     /** 获取文件数据(尝试版) */
-    async getFileDataTry(dirUrl: string, fileName: string, index: number = 0, reboot: number = 3) {
+    async getFileDataTry(dirUrl: string, fileName: string, index: number = 0, reboot: number = 3): Promise<imgStoreChildType> {
         try {
             let data = await this.getFileData(dirUrl, fileName, index)
             if (!data) {
@@ -366,7 +354,7 @@ class JFileCache {
         }
         catch {
             if (reboot == 0) {
-                console.warn("多次获取无果,跳出bug")
+                console.warn({ dirUrl, fileName, index }, "多次获取无果,跳出bug")
                 return
             }
             console.warn(`获取失败,再次获取,还有${reboot - 1}次重试`)
@@ -376,204 +364,55 @@ class JFileCache {
 
     /** 获取文件数据 */
     async getFileData(dirUrl: string, fileName: string, index: number = 0) {
-        let cache = this._getImgCache(dirUrl, fileName, index)
-        if (cache) {
-            return cache
-        }
+
         let arr = fileName.split('.')
         let ex = arr[arr.length - 1].toLowerCase()
         let url = `${dirUrl}/${fileName}`
-        let base64: string
+        let dataUrl: string
         let zipInFileName: string
         let fileEx: string = ex
-        // let buffer: Buffer
-        let b64Data: string = ""
         if (ex == "zip") {
             let msg = await this.getZipMsg(dirUrl, fileName)
             if (msg.sortList.length == 0) {
                 return
             }
+
             zipInFileName = msg.sortList[index].data.name
-            // console.log(url, zipInFileName)
+            let cache = this._getImgCache(dirUrl, fileName, zipInFileName)
+            if (cache) {
+                return cache
+            }
             let arr = zipInFileName.split('.')
             fileEx = arr[arr.length - 1].toLowerCase()
-            // buffer = await this.server.getZipInFileByName(url, zipInFileName)
-            b64Data = await this.server.getZipInFileB64ByName(url, zipInFileName)
+            dataUrl = this.server.getZipInFileUrlByName(url, zipInFileName)
         }
         else {
-            // buffer = await this.server.getFile(url)
-            b64Data = await this.server.getFileB64(url)
+            let cache = this._getImgCache(dirUrl, fileName, zipInFileName)
+            if (cache) {
+                return cache
+            }
+            dataUrl = this.server.getFileUrl(url)
         }
-        let w = 0
-        let h = 0
         let type: "img" | "video"
-
         if (this.imgEXList.includes(<any>fileEx)) {
             type = "img"
-            // base64 = 'data:image/' + fileEx + ';base64,' + btoa(new Uint8Array((<any>buffer).data).reduce((res, byte) => res + String.fromCharCode(byte), ''))
-            base64 = 'data:image/' + fileEx + ';base64,' + b64Data
-            let img = new Image()
-            await new Promise((res, _rej) => {
-                img.src = base64
-                img.onload = () => {
-                    w = img.width
-                    h = img.height
-                    img.remove()
-                    res(undefined)
-                }
-            })
         }
         else if (this.videoEXList.includes(<any>fileEx)) {
             type = "video"
-            // base64 = 'data:video/' + fileEx + ';base64,' + btoa(new Uint8Array((<any>buffer).data).reduce((res, byte) => res + String.fromCharCode(byte), ''))
-            base64 = 'data:video/' + fileEx + ';base64,' + b64Data
-            let video = document.createElement("video")
-            document.body.append(video)
-            await new Promise((res, _rej) => {
-                video.src = base64
-
-                video.oncanplay = () => {
-                    w = video.clientWidth
-                    h = video.clientHeight
-                    video.remove()
-                    res(undefined)
-                }
-            })
         }
         else {
             return
         }
 
-        return this._setImgCache({ base64, w: w, h: h, zipInFileName, exName: fileEx, type: type }, dirUrl, fileName, index)
+        return this._setImgCache({ dataUrl: dataUrl, zipInFileName, exName: fileEx, type: type }, dirUrl, fileName)
     }
 
-    /** 打开文件 */
-    async openFile(dirUrl?: string, fileName?: string, index: number = 0) {
-        store.dirUrl = dirUrl || store.dirUrl
-        store.fileName = fileName || store.fileName
-        store.curDirUrl = store.dirUrl
-        let arr = store.fileName.split('.')
-        let ex = arr[arr.length - 1].toLowerCase()
-        if (ex == 'zip') {
 
-            store.curNo = index
-            store.isZipFile = true
-            let zipMsg = await this.getZipMsg(dirUrl, fileName)
-            if (zipMsg.count == 0) {
-                return false
-            }
-            store.imgCount = zipMsg.count
-            let obj = await this.getFileDataTry(store.dirUrl, store.fileName, store.curNo)
-            let imgObj: imgStoreChildType = {
-                canvasB64: obj.base64,
-                originImgW: obj.w,
-                originImgH: obj.h,
-                isVideo: obj.type == "video",
-                isPlayedVideo: false,
-                index: store.curNo
-            }
-            jImgScroll.initImgObj(imgObj, true)
-            store.isZipFile = true
-            store.zipInFileName = obj?.zipInFileName
-        }
-        else {
-            store.isZipFile = false
-            let dir = await this.getFolder(dirUrl)
-            let findIndex = dir.sortNoZipFile.findIndex(c => c.name == fileName)
-            if (findIndex == -1) {
-                return false
-            }
 
-            store.curNo = findIndex
-            store.imgCount = dir.sortNoZipFile.length
-            let obj = await this.getFileDataTry(store.dirUrl, store.fileName)
-            let imgObj: imgStoreChildType = {
-                canvasB64: obj.base64,
-                originImgW: obj.w,
-                originImgH: obj.h,
-                isVideo: obj.type == "video",
-                isPlayedVideo: false,
-                index: store.curNo
-            }
-            jImgScroll.initImgObj(imgObj, true)
-            store.isZipFile = false
-            store.zipInFileName = ""
-        }
-        return true
-    }
 
-    /** 通过序号获取图片 */
-    async getImgByNum(index: number, splitNum?: 0 | 1) {
-        if (index < 0) {
-            return
-        }
-        if (store.imgCount <= index - 1) {
-            return
-        }
-        let obj: Awaited<ReturnType<typeof JFileCache.prototype.getFileData>>
 
-        if (store.isZipFile) {
 
-            obj = await this.getFileDataTry(store.dirUrl, store.fileName, index)
-            store.zipInFileName = obj.zipInFileName
-        }
-        else {
-            let dirMsg = await this.getFolder(store.dirUrl)
-            store.fileName = dirMsg.sortNoZipFile[index].name
-            obj = await this.getFileDataTry(store.dirUrl, store.fileName)
-        }
-        let imgObj: imgStoreChildType = {
-            canvasB64: obj.base64,
-            originImgW: obj.w,
-            originImgH: obj.h,
-            isVideo: obj.type == "video",
-            isPlayedVideo: false,
-            index: index
-        }
-        if (splitNum != undefined) {
-            imgObj.splitNum = splitNum
-        }
-        return imgObj
-    }
 
-    /** 通过序号设置图片 */
-    async setImgByNum(index: number, splitNum?: 0 | 1) {
-        let imgObj = await this.getImgByNum(index, splitNum)
-        jImgScroll.initImgObj(imgObj, false)
-        store.curNo = index
-    }
-
-    /** 停止预加载 */
-    async stopPreloadImg() {
-        this.preloadCount = 0
-        this.preloadIndex = -1
-    }
-
-    /** 预加载图片 */
-    async preloadImg(index: number, add: number, count: number = staticData.advanceImgCount) {
-        if (count == 0) {
-            return
-        }
-        if (index < 0) {
-            return
-        }
-        if (store.imgCount - 1 <= index) {
-            return
-        }
-        this.preloadIndex = index + add
-        this.preloadCount = count - 1
-        if (store.isZipFile) {
-            await this.getFileData(store.dirUrl, store.fileName, index)
-            await this.preloadImg(this.preloadIndex, add, this.preloadCount)
-        }
-        else {
-            let dirMsg = await this.getFolder(store.dirUrl)
-            let fileName = dirMsg.sortNoZipFile[index].name
-            await this.getFileData(store.dirUrl, fileName)
-            await this.preloadImg(this.preloadIndex, add, this.preloadCount)
-        }
-        return
-    }
 }
 
 export let jFileCache = new JFileCache()

@@ -1,7 +1,7 @@
 import hammer from "hammerjs"
 import { store } from "../store"
 import { staticData } from "../const"
-import { imgStore } from "../imgStore"
+import { imgStore, imgStoreChildType, imgStoreDisplayChildTtype } from "../imgStore"
 
 export type hammerEventType =
     "press" |
@@ -72,10 +72,8 @@ export class JHammer {
         this.h.get("pinch").set({ enable: true })
         return this
     }
-
-
-
 }
+
 
 /** 设置图片加载效果 */
 export function setImgLoading() {
@@ -89,16 +87,25 @@ export function setImgLoading() {
 
 let transitionMS: number
 export function stopTransition() {
-    transitionMS = imgStore.transitionMS
-    if (imgStore.transitionMS != 0) {
-        imgStore.transitionMS = 0
-    }
+    // transitionMS = imgStore.transitionMS
+    // if (imgStore.transitionMS != 0) {
+    //     imgStore.transitionMS = 0
+    // }
 
 }
 
 export function recoverTransition() {
-    if (imgStore.transitionMS != transitionMS) {
-        imgStore.transitionMS = transitionMS
-    }
+    // if (imgStore.transitionMS != transitionMS) {
+    //     imgStore.transitionMS = transitionMS
+    // }
 
+}
+
+export function cloneImgStoreChild(child: imgStoreDisplayChildTtype) {
+    //@ts-ignore
+    let clone: imgStoreDisplayChildTtype = {}
+    Object.keys(child).forEach(k => {
+        clone[k] = child[k]
+    })
+    return clone
 }

@@ -1,49 +1,73 @@
 import { reactive } from "vue"
+import { JAreaType } from "./const"
 
-export type imgStoreChildType = {
-    /** 画布数据,必须存在 */
-    canvasB64: string
-    /** 图片原始宽,必须存在 */
-    originImgW: number
-    /** 图片原始高,必须存在 */
-    originImgH: number
+export type imgStoreDisplayChildTtype = {
+    searchIndex: number
     /** 图片偏移坐标x */
-    imgTransX?: number
+    transX?: number
     /** 图片偏移坐标y */
-    imgTransY?: number
+    transY?: number
     /** 图片缩放 */
-    imgScale?: number
+    scale?: number
     /** 图片显示的宽度 */
-    displayImgW?: number
+    displayW?: number
     /** 图片显示的高度 */
-    displayImgH?: number
-    /** 是否为视频文件 */
-    isVideo?: boolean
+    displayH?: number
     /** 是否已经开始播放视频 */
     isPlayedVideo?: boolean
-    /** 切割后的第几张 */
-    splitNum?: 0 | 1
     /** 包裹元素的位移x */
     parentTransX?: number
     /** 包裹元素的位移y */
     parentTransY?: number
-    /** 是否完全加载好 */
-    isLoaded?: boolean
+    /** 展示用的顺序 */
+    displayIndex: number
     /** 是否切割 */
     isSplit?: boolean
-    /** 顺序 */
-    index: number
+    /** 是否完全加载好 */
+    isLoaded?: boolean
+    /** 切割后的第几张 */
+    splitNum?: 0 | 1
+
+}
+
+export type imgStoreChildType = {
+    /** 画布数据,必须存在 */
+    dataUrl: string
+    /** 图片原始宽,后期获取 */
+    originW?: number
+    /** 图片原始高,后期获取 */
+    originH?: number
+    /** 类型 */
+    type: "img" | "video"
+    /** 文件名称 */
+    fileName: string
+    /** 是否压缩包 */
+    isZip: boolean
+    /** 压缩包内文件 */
+    zipInFileName?: string
+    /** 文件夹路径 */
+    dirUrl: string,
+    /** 获取时间 */
+    time: number
+    /** 后缀名 */
+    exName: string
+    /** 是否完整 */
+    isComplete?: boolean
+    /** 子节点排序 */
+    childIndex: number
 }
 
 export type imgStoreType = {
     /** 子节点 */
-    children: imgStoreChildType[]
+    children: imgStoreDisplayChildTtype[]
     /** 屏幕宽 */
     screenW: number
     /** 屏幕高 */
     screenH: number
     /** dom元素缩放比例 */
     domScale: number
+    /** dom元素矩阵 */
+    domMatrix3d: string
     /** 当前包裹元素位置X */
     domTransX: number
     /** 当前包裹元素 位置Y */
@@ -63,9 +87,35 @@ export type imgStoreType = {
     /** 图片是否正在加载 */
     isImgLoading: boolean
     /** 图片是否准备加载 */
-    isImgPrepareLoading: boolean,
+    isImgPrepareLoading: boolean
     /** 动画时间 */
     transitionMS: number
+    /** 是否正在读取下个瀑布,用来限制单线程读取,缓解服务器压力 */
+    isNextWaterfall: boolean
+    /** 是否正在读取上个瀑布,用来限制单线程读取,缓解服务器压力 */
+    isPrevWaterfall: boolean
+    /** 间隔 */
+    margin: number
+    /** 是否为压缩包,用于显示 */
+    isZip: boolean
+    /** 压缩包里文件名,用于显示 */
+    zipInFileName: string
+    /** 图片数量 */
+    len: number
+    /** 信息底部位置 */
+    msgBottom: number
+    /** 瀑布图片上数量 */
+    waterfallPrevImgCount: number
+    /** 瀑布图片下数量 */
+    waterfallNextImgCount: number
+    /** 浏览到子节点第几个 */
+    viewChildIndex: number
+    /** 触碰区域 */
+    areaTouch: JAreaType[]
+    /** 显示触碰区域 */
+    displayArea: boolean
+    /** 测试数据 */
+    debugMsg: string | number
 }
 
 export const imgStore = reactive(<imgStoreType>{
@@ -81,7 +131,25 @@ export const imgStore = reactive(<imgStoreType>{
     divFloatLeft: 0,
     divFloatW: 0,
     divFloatH: 0,
+    margin: 5,
     isImgLoading: false,
     isImgPrepareLoading: false,
-    transitionMS: 300
+    transitionMS: 300,
+    isNextWaterfall: false,
+    isPrevWaterfall: false,
+    isZip: false,
+    zipInFileName: "",
+    len: 0,
+    msgBottom: 30,
+    waterfallNextImgCount: 4,
+    waterfallPrevImgCount: 4,
+    areaTouch: [],
+    displayArea: false,
+    debugMsg: "",
+    domMatrix3d: `matrix3d(
+        1,0,0,0,
+        0,1,0,0,
+        0,0,1,0,
+        0,0,0,1
+        )`
 })

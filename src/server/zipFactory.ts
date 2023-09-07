@@ -81,3 +81,5 @@ export class JZipFactory {
     }
 
 }
+
+export const zipFactory = new JZipFactory()

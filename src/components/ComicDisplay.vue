@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import { store } from "../store"
-import { imgStore } from "../imgStore"
+import { imgStore, imgStoreDisplayChildTtype } from "../imgStore"
 import { jImgScroll } from "../tool/imgScroll";
-// import { jImgScroll } from "../tool/imgScroll"
+import { jDisplayAnime } from "../tool/anime";
+import { jFileCache } from "../tool/fileCache";
+
 
 
 const divRef = ref(<HTMLDivElement>null)
@@ -11,15 +13,28 @@ const displayRef = ref(<HTMLDivElement>null)
 
 
 onMounted(() => {
+    jDisplayAnime.init(displayRef.value)
     watch([() => store.readMode, () => store.splitImg], () => {
         jImgScroll.resizeImg()
     })
 
 })
 
-const imgOnLoad = () => {
+const imgOnLoad = (e: Event, item: imgStoreDisplayChildTtype, index: number) => {
+
+    let obj = jFileCache.imgCache[item.searchIndex]
+    if (!obj.isComplete) {
+        obj.originW = (<any>e.target).width
+        obj.originH = (<any>e.target).height
+        obj.isComplete = true
+    }
+    jImgScroll.resizeOneImg(index)
+    item.isLoaded = true
+    jImgScroll.resizeImg()
+    jImgScroll.setDomMatrix3d()
     imgStore.isImgPrepareLoading = false
     imgStore.isImgLoading = false
+    console.log("loaded")
 
 }
 
@@ -30,28 +45,12 @@ const imgOnLoad = () => {
 <template>
     <div class="comic_div" ref="divRef"
         :style="{ 'top': imgStore.divFloatTop + 'px', 'left': imgStore.divFloatLeft + 'px', 'width': imgStore.divFloatW + 'px', 'height': imgStore.divFloatH + 'px' }">
-        <!-- 移动缩放用 -->
-        <div class="display_trans_box" ref="displayRef"
-            :style="{ 'transform': 'translate3d(' + (imgStore.domTransX) + 'px,' + (imgStore.domTransY) + 'px,0) scale(' + imgStore.domScale + ')', 'transition': 'transform ' + imgStore.transitionMS + 'ms ease-out' }">
-            <!-- 展开列表 -->
-            <div class="display_list" v-for="item in imgStore.children">
-                <!-- 标准状态 -->
-                <div class="display_show"
-                    :style="{ 'top': item.parentTransY + 'px', 'left': item.parentTransX, 'width': item.displayImgW + 'px', 'height': item.displayImgH + 'px', 'transform': 'scale(' + item.imgScale + ')' }">
-                    <img v-if="!item.isVideo" class="comic_img" ref="imgRef" :src="item.canvasB64" @load="imgOnLoad"
-                        :style="{ 'transform': 'translate(' + (item.imgTransX) + 'px,' + (item.imgTransY) + 'px)' }"
-                        draggable="false" ondragstart="return false;">
-                    <video v-if="item.isVideo" class="comic_img" :src="item.canvasB64" autoplay loop prevload
-                        :style="{ 'transform': 'translate(' + (item.imgTransX) + 'px,' + (item.imgTransY) + 'px)' }">
-                    </video>
-                </div>
-            </div>
-        </div>
+
 
         <div class="bottom_div">
             <!-- 第几页 -->
             <div class="vintage2" v-if="store.isDisplayImgNum" :style="{ 'color': store.textMsgColor }">
-                {{ store.curNo + 1 }}/{{ store.imgCount }}</div>
+                {{ store.curNo + 1 }}/{{ imgStore.len }}</div>
             <!-- 文件信息 -->
             <div class="vintage2" :style="{ 'color': store.textMsgColor }" v-if="store.isDisplayFileName">{{
                 store.fileName + (store.zipInFileName ? (' /' + store.zipInFileName) : '')
@@ -95,6 +94,10 @@ const imgOnLoad = () => {
     flex-direction: column;
 }
 
+.display_container {
+    transform-origin: left top;
+}
+
 .display_show {
     transform-origin: left top;
 }
@@ -115,5 +118,6 @@ const imgOnLoad = () => {
     left: 0px;
     bottom: 0px;
     width: 100%;
+    pointer-events: none;
 }
 </style>

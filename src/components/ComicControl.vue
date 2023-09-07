@@ -3,7 +3,7 @@ import { onMounted, ref } from "vue";
 import { store } from "../store"
 import { imgStore } from "../imgStore"
 import { jImgScroll } from "../tool/imgScroll"
-import { JHammer, stopTransition, recoverTransition } from "../tool/util"
+import { JHammer, stopTransition, recoverTransition, jtimeoutFuncClass } from "../tool/util"
 
 const bigDivRef = ref(<HTMLDivElement>null)
 const leftDivRef = ref(<HTMLDivElement>null)
@@ -29,89 +29,151 @@ onMounted(async () => {
         }, 1000);
     }
 
-
-    new JHammer(bigDiv).setDirection('pan').setDirection("swipe").openPinch().on("panstart", (_e) => {
-
-        jImgScroll.setPanStart(_e.deltaX, _e.deltaY)
-    }).on("panmove", (e) => {
-        jImgScroll.setPanMove(e.deltaX, e.deltaY)
-    }).on("swipeleft", (e) => {
-        console.log("left")
-
-        jImgScroll.setPanStart(0, 0, false)
-        jImgScroll.setSwipeMove(e.deltaX, 0)
-    }).on("swiperight", (e) => {
-        console.log("right")
-
-        jImgScroll.setPanStart(0, 0, false)
-        jImgScroll.setSwipeMove(e.deltaX, 0)
-    }).on("swipeup", (e) => {
-        jImgScroll.setPanStart(0, 0, false)
-        jImgScroll.setSwipeMove(0, e.deltaY)
-        if (store.readMode == "udWaterfall") {
-            console.log("up")
+    let startX: number = undefined
+    let startY: number = undefined
+    let bigMoveFunc = (clientX: number, clientY: number) => {
+        if (startX == undefined || startY == undefined) {
+            startX = clientX
+            startY = clientY
+            return
         }
-    }).on("swipedown", (e) => {
-        jImgScroll.setPanStart(0, 0, false)
-        jImgScroll.setSwipeMove(0, e.deltaY)
-        if (store.readMode == "udWaterfall") {
-            console.log("down")
+        let deltaX = clientX - startX
+        let deltaY = clientY - startY
+        imgStore.domTransX += deltaX
+        imgStore.domTransY += deltaY
+        startX = clientX
+        startY = clientY
+        jImgScroll.setMove()
+        jImgScroll.setDomMatrix3d()
+    }
+    bigDiv.addEventListener('mousemove', (e) => {
+        if (e.buttons == 0) {
+            return
         }
-    }).on("pinchstart", () => {
-        stopTransition()
-        jImgScroll.scaleInit()
 
-    }).on("pinchend", () => {
-        recoverTransition()
-    }).on("pinch", (ev) => {
-        jImgScroll.setPointScale(ev.center.x, ev.center.y, ev.scale)
-    }).on("doubletap", (ev) => {
-        jImgScroll.setDoubleTap(ev)
-        doubletapFunc()
+        bigMoveFunc(e.clientX, e.clientY)
     })
 
-    new JHammer(leftDiv).on("tap", () => {
-        // setLeftClickFunc()
-    })
-
-    new JHammer(rightDiv).on("tap", () => {
-        // setRightClickFunc()
-    })
-
-    new JHammer(topBarDiv).on("tap", (_e) => {
-        setTimeout(() => {
-            if (!isDoubleTap) {
-                store.displayFileManager = true
-            }
-        }, 200);
-    })
-
-    new JHammer(bottomBarDiv).on("tap", (_e) => {
-        setTimeout(() => {
-            if (!isDoubleTap) {
-                store.displayBottomBar = true
-            }
-        }, 200);
-
-    })
-
-    new JHammer(centerOPDiv).on("tap", (_e) => {
-        setTimeout(() => {
-            if (!isDoubleTap) {
-                store.displayOPPanel = true
-            }
-        }, 200);
+    bigDiv.addEventListener('mouseup', () => {
+        startX = undefined
+        startY = undefined
     })
 
 
-    // document.body.addEventListener("mousemove", (e) => {
-    //     jImgScroll.setMouseMove(e.clientX, e.clientY)
+
+    bigDiv.addEventListener("touchmove", (e) => {
+        if (e.touches.length == 1) {
+            bigMoveFunc(e.touches[0].clientX, e.touches[0].clientY)
+        }
+    })
+
+    bigDiv.addEventListener('touchend', () => {
+        startX = undefined
+        startY = undefined
+    })
+
+    // new JHammer(bigDiv).setDirection('pan').setDirection("swipe").openPinch().on("panstart", (_e) => {
+
+    //     jImgScroll.setPanStart(_e.deltaX, _e.deltaY)
+    // }).on("panmove", (e) => {
+    //     jImgScroll.setPanMove(e.deltaX, e.deltaY)
+    //     jImgScroll.setDomMatrix3d()
+    //     // if (store.readMode == "udWaterfall") {
+    //     //     jtimeoutFuncClass.setFunc(() => {
+    //     //         jImgScroll.overloadImgByMove()
+    //     //         jImgScroll.setNumByoverImg()
+    //     //     }, "xx", 500)
+    //     // }
+
+    // }).on("swipeleft", (e) => {
+    //     console.log("left")
+
+    //     jImgScroll.setPanStart(0, 0, false)
+    //     jImgScroll.setSwipeMove(e.deltaX, 0)
+    //     jImgScroll.setDomMatrix3d()
+    // }).on("swiperight", (e) => {
+    //     console.log("right")
+
+    //     jImgScroll.setPanStart(0, 0, false)
+    //     jImgScroll.setSwipeMove(e.deltaX, 0)
+    //     jImgScroll.setDomMatrix3d()
+    // })
+    //     // 上滑操作
+    //     .on("swipeup", (e) => {
+    //         // jImgScroll.setPanStart(0, 0, false)
+    //         // jImgScroll.setSwipeMove(0, e.deltaY)
+    //         // jImgScroll.setDomMatrix3d()
+    //     })
+    //     // 下滑操作
+    //     .on("swipedown", (e) => {
+    //         // jImgScroll.setPanStart(0, 0, false)
+    //         // jImgScroll.setSwipeMove(0, e.deltaY)
+    //         // jImgScroll.setDomMatrix3d()
+    //     })
+    //     // 双指缩放前
+    //     .on("pinchstart", () => {
+    //         stopTransition()
+    //         jImgScroll.scaleInit()
+
+    //     })
+    //     // 双指缩放后
+    //     .on("pinchend", () => {
+    //         recoverTransition()
+    //         jImgScroll.setDomMatrix3d()
+    //     })
+    //     // 双指缩放
+    //     .on("pinch", (ev) => {
+    //         jImgScroll.setPointScale(ev.center.x, ev.center.y, ev.scale)
+    //     })
+    //     //双击
+    //     .on("doubletap", (ev) => {
+    //         jImgScroll.setDoubleTap(ev)
+    //         doubletapFunc()
+    //         jImgScroll.setDomMatrix3d()
+    //     })
+
+    // new JHammer(leftDiv).on("tap", () => {
+    //     // setLeftClickFunc()
     // })
 
-    // document.body.addEventListener("mouseup", (_e) => {
-    //     jImgScroll.setMouseUp()
+    // new JHammer(rightDiv).on("tap", () => {
+    //     // setRightClickFunc()
     // })
+
+    // new JHammer(topBarDiv).on("tap", (_e) => {
+    //     setTimeout(() => {
+    //         if (!isDoubleTap) {
+    //             store.displayFileManager = true
+    //         }
+    //     }, 200);
+    // })
+
+    // new JHammer(bottomBarDiv).on("tap", (_e) => {
+    //     setTimeout(() => {
+    //         if (!isDoubleTap) {
+    //             store.displayBottomBar = true
+    //         }
+    //     }, 200);
+
+    // })
+
+    // new JHammer(centerOPDiv).on("tap", (_e) => {
+    //     setTimeout(() => {
+    //         if (!isDoubleTap) {
+    //             store.displayOPPanel = true
+    //         }
+    //     }, 200);
 })
+
+
+// document.body.addEventListener("mousemove", (e) => {
+//     jImgScroll.setMouseMove(e.clientX, e.clientY)
+// })
+
+// document.body.addEventListener("mouseup", (_e) => {
+//     jImgScroll.setMouseUp()
+// })
+// })
 
 
 let setMouseDown = (e: MouseEvent) => {

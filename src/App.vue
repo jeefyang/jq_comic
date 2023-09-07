@@ -1,19 +1,19 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 
-import ComicDisplay from "./components/ComicDisplay.vue"
-import ComicControl from "./components/ComicControl.vue"
 import FileManager from "./components/FileManager.vue"
 import ComicBottomBar from "./components/ComicBottomBar.vue"
-import ComicImgLoading from "./components/ComicImgLoading.vue"
+
 import ComicOPPanel from "./components/ComicOPPanel.vue"
 
 import { store } from './store';
 import { jserver } from './tool/serverLink'
 import { jFileCache } from './tool/fileCache';
-import { jImgScroll } from './tool/imgScroll';
 import { JConfigType } from './type';
 import { imgStore } from './imgStore';
+import ComicDisplayWaterfall from './components/ComicDisplayWaterfall.vue'
+import ComicDisplayArea from './components/ComicDisplayArea.vue'
+import { imgCommon } from './tool/imgCommon';
 
 
 // const imgSrc = ref("")
@@ -58,17 +58,18 @@ onMounted(async () => {
     jserver.host = host
   }
   resizeFunc()
+
   await jserver.init()
-  let v = await jFileCache.init(jserver, config)
 
+  var v = await jFileCache.init(jserver, config)
+  if (v) {
+    await imgCommon.init()
+  }
   store.isServerCompleted = true
-
   window.addEventListener("resize", () => {
     resizeFunc()
   })
-  if (v) {
-    jImgScroll.resizeImg()
-  }
+
 
   // watch(()=>[store.readMode],()=>{
 
@@ -81,9 +82,8 @@ onMounted(async () => {
   <div class="app" :style="{ 'background-color': store.background }">
     <van-config-provider theme="dark">
       <div v-if="store.isServerCompleted">
-        <ComicDisplay></ComicDisplay>
-        <ComicImgLoading v-if="imgStore.isImgLoading && imgStore.isImgPrepareLoading"></ComicImgLoading>
-        <ComicControl></ComicControl>
+        <ComicDisplayWaterfall></ComicDisplayWaterfall>
+        <ComicDisplayArea v-if="imgStore.displayArea"></ComicDisplayArea>
         <FileManager v-if="store.displayFileManager"></FileManager>
         <ComicOPPanel v-if="store.displayOPPanel"></ComicOPPanel>
         <ComicBottomBar v-if="store.displayBottomBar"></ComicBottomBar>
