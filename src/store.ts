@@ -12,7 +12,7 @@ export const store = reactive({
     /** 基础文件夹路径,一般不显示 */
     baseDirUrl: <string>"",
     /** 当前显示第几张图片 */
-    curNo: <number>0,
+    displayIndex: <number>38,
     /** 图片观看排列顺序 */
     imgSortType: <NameSortType>"名称",
     /** 阅读模式 */

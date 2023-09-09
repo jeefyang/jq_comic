@@ -362,9 +362,68 @@ class JFileCache {
         }
     }
 
+    /** 获取文件列表数据 */
+    async getFileListData(dirUrl: string, fileName: string) {
+        let arr = fileName.split('.')
+        let ex = arr[arr.length - 1].toLowerCase()
+        let url = `${dirUrl}/${fileName}`
+        let list: imgStoreChildType[] = []
+        let isZip = false
+        if (ex == "zip") {
+            isZip = true
+            let msg = await this.getZipMsg(dirUrl, fileName)
+            if (msg.sortList.length == 0) {
+                return { list, isZip }
+            }
+            for (let i = 0; i < msg.sortList.length; i++) {
+                let child = msg.sortList[i]
+                let cache = this._getImgCache(dirUrl, fileName, child.data.name)
+                if (cache) {
+                    list.push(cache)
+                    continue
+                }
+                let arr = child.data.name.split('.')
+                let fileEx = arr[arr.length - 1].toLowerCase()
+                let dataUrl = this.server.getZipInFileUrlByName(url, child.data.name)
+                let type: "img" | "video"
+                if (this.imgEXList.includes(<any>fileEx)) {
+                    type = "img"
+                }
+                else if (this.videoEXList.includes(<any>fileEx)) {
+                    type = "video"
+                }
+                list.push(this._setImgCache({ dataUrl: dataUrl, zipInFileName: child.data.name, exName: fileEx, type: type }, dirUrl, fileName))
+            }
+            return { list, isZip }
+        }
+        let msg = await this.getFolder(dirUrl)
+        if (msg.sortNoZipFile.length == 0) {
+            return { list, isZip }
+        }
+        for (let i = 0; i < msg.sortNoZipFile.length; i++) {
+            let child = msg.sortNoZipFile[i]
+            let cache = this._getImgCache(dirUrl, child[i])
+            if (cache) {
+                list.push(cache)
+                continue
+            }
+            let arr = child[i].split('.')
+            let fileEx = arr[arr.length - 1].toLowerCase()
+            let dataUrl = this.server.getFileUrl(`${dirUrl}/${child[i]}`)
+            let type: "img" | "video"
+            if (this.imgEXList.includes(<any>fileEx)) {
+                type = "img"
+            }
+            else if (this.videoEXList.includes(<any>fileEx)) {
+                type = "video"
+            }
+            list.push(this._setImgCache({ dataUrl: dataUrl, exName: fileEx, type: type }, dirUrl, child[i]))
+        }
+        return { list, isZip }
+    }
+
     /** 获取文件数据 */
     async getFileData(dirUrl: string, fileName: string, index: number = 0) {
-
         let arr = fileName.split('.')
         let ex = arr[arr.length - 1].toLowerCase()
         let url = `${dirUrl}/${fileName}`

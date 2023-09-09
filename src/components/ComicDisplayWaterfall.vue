@@ -1,32 +1,45 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { imgStore, imgStoreDisplayChildTtype } from '../imgStore'
 import { jFileCache } from "../tool/fileCache"
 import ComicDisplayBottom from './ComicDisplayBottom.vue'
 import { imgCommon } from '../tool/imgCommon';
 import { store } from '../store';
 import { jaction } from "../tool/action"
-import { jImgWaterfall } from '../tool/imgWaterfall'
+
 
 const divRef = ref(<HTMLDivElement>null)
 
 onMounted(() => {
-    jImgWaterfall.displayDiv = divRef.value
+    watch([() => store.splitImg], () => {
+        console.log("xx")
+        for (let i = 0; i < imgStore.children.length; i++) {
+            let child = imgStore.children[i]
+            child.isLoaded && imgCommon.imgResize(child)
+        }
+        imgCommon.jumpImg(store.displayIndex)
+    })
+    imgCommon.setDiv(divRef.value)
 })
 
 const imgOnLoad = (e: Event, item: imgStoreDisplayChildTtype) => {
     let cache = jFileCache.imgCache[item.searchIndex]
+    let oldH = item.displayH * item.scale * imgStore.domScale
     cache.originW = (<HTMLImageElement>e.target).width
     cache.originH = (<HTMLImageElement>e.target).height
     cache.isComplete = true
     imgCommon.imgResize(item)
+    if (item.displayIndex <= store.displayIndex || (item.displayIndex == store.displayIndex && item.splitNum < imgStore.curSplit)) {
+        divRef.value.scrollTop += item.displayH * item.scale - oldH
+    }
     item.isLoaded = true
 }
 
-let wheelCache: WheelEvent
+let _wheelCache: WheelEvent
 
 const onWheel = (e: WheelEvent) => {
-    wheelCache = e
+    _wheelCache = e
+
 }
 
 const onScroll = (e: Event) => {
@@ -34,10 +47,10 @@ const onScroll = (e: Event) => {
         let div = <HTMLDivElement>e.target
         let startY = 0
         let index = imgStore.children.findIndex(c => {
-            if (!imgCommon.isImg(c)) {
+            if (!imgCommon.isviewDisplay(c)) {
                 return false
             }
-            let h = startY + c.displayH * c.scale
+            let h = startY + c.displayH * c.scale * imgStore.domScale
             if (h >= div.scrollTop) {
                 return true
             }
@@ -45,32 +58,37 @@ const onScroll = (e: Event) => {
             return false
         })
         if (index == -1) {
-            wheelCache = undefined
             return
         }
-
         let child = imgStore.children[index]
         let cache = jFileCache.imgCache[child.searchIndex]
-        store.curNo = child.displayIndex
+        store.displayIndex = child.displayIndex
         store.fileName = cache.fileName
         imgStore.viewChildIndex = index
         imgStore.zipInFileName = cache.zipInFileName
-        if (wheelCache == undefined) {
-            return
+        imgStore.curSplit = child.splitNum
+        let screensh = div.scrollTop
+        let srceeneh = div.scrollTop + imgStore.divFloatH
+        for (let i = index; i < imgStore.children.length; i++) {
+            let c = imgStore.children[i]
+            if (!imgCommon.isviewDisplay(c)) {
+                continue
+            }
+            let h = startY + c.displayH * c.scale * imgStore.domScale
+            if ((screensh <= startY && srceeneh >= startY) ||
+                (screensh <= h && srceeneh >= h) ||
+                (screensh >= startY && srceeneh <= h)
+            ) {
+                console.log(c.searchIndex)
+                c.isView = true
+            }
+            startY = h + imgStore.margin
         }
-        let last = imgStore.children[imgStore.children.length - 1]
-        if (wheelCache.deltaY > 0 && last.displayIndex - imgStore.viewChildIndex < imgStore.waterfallNextImgCount) {
-            imgCommon.setNextImg()
-        }
-        if (wheelCache.deltaY < 0 && imgStore.viewChildIndex < imgStore.waterfallPrevImgCount) {
-            imgCommon.setPrevImg()
-        }
-        wheelCache = undefined
-    }, "waterfallScroll", 500)
+    }, "waterfallScroll", 100)
 
 }
 
-let isDomScale = false
+
 let isDblclick = false
 const onDblclick = (e: MouseEvent) => {
     isDblclick = true
@@ -78,13 +96,13 @@ const onDblclick = (e: MouseEvent) => {
     let clientY = e.clientY - imgStore.divFloatTop
     let div = divRef.value
     let oldSDomScale = imgStore.domScale
-    imgStore.domScale = !isDomScale ? 3 : 1
-    isDomScale = !isDomScale
+    imgStore.domScale = imgStore.domScale == 1 ? 2 : 1
     let left = (div.scrollLeft + clientX) / oldSDomScale * imgStore.domScale - (clientX)
     let top = (div.scrollTop + clientY) / oldSDomScale * imgStore.domScale - (clientY)
     setTimeout(() => {
-        div.scrollTo({ left: left, top: top, behavior: 'smooth' })
-    }, 1000);
+
+        div.scrollTo({ left: left, top: top, behavior: 'auto' })
+    }, 50);
 
     // console.log(div.scrollTop + e.clientY, offsetY)
 
@@ -110,22 +128,31 @@ const onClick = (e: MouseEvent) => {
         @scroll="onScroll" @wheel="onWheel" @dblclick="onDblclick" @click="onClick">
 
         <!-- 移动缩放用 -->
-        <div class="display_trans_box" ref="displayRef" :style="{ 'transform': 'scale(' + imgStore.domScale + ')' }">
+        <div class="display_trans_box" ref="displayRef"
+            :style="{ 'width': imgStore.divFloatW + 'px', 'height': imgStore.divFloatH + 'px', 'transform': 'scale(' + imgStore.domScale + ')' }">
             <!-- 展开列表 -->
             <div class="display_list" v-for="(item, index) in imgStore.children" :key="item.searchIndex">
-                <div v-if="item.isSplit || item.splitNum != 1 || !item.isLoaded"
+                <div v-if="imgCommon.isviewDisplay(item)"
                     :style="{ 'width': (item.scale * item.displayW) + 'px', 'height': (item.scale * item.displayH) + 'px', 'margin': '0px 0px ' + ((index + 1 < imgStore.children.length) ? imgStore.margin : 0) + 'px 0px' }">
                     <!-- 包裹可视部分 -->
                     <div class="display_container" :style="{ 'transform': 'scale(' + item.scale + ')' }">
                         <!-- 标准状态 -->
                         <div class="display_show"
                             :style="{ 'width': item.displayW + 'px', 'height': item.displayH + 'px', }">
-                            <img v-if="jFileCache.imgCache[item.searchIndex].type == 'img'" class="comic_img" ref="imgRef"
+                            <!-- 加载 -->
+                            <div class="imgLoading" v-if="imgCommon.isViewLoading(item)">
+                                <div class="imgLoading_center">
+                                    <van-loading vertical type="spinner" size="50" text-size="50">{{ item.displayIndex
+                                    }}_{{ item.splitNum }}</van-loading>
+                                </div>
+                            </div>
+                            <!-- 图片 -->
+                            <img v-if="imgCommon.isViewImg(item)" class="comic_img" ref="imgRef"
                                 :src="jFileCache.imgCache[item.searchIndex].dataUrl" @load="(e) => { imgOnLoad(e, item) }"
                                 :style="{ 'transform': 'translate(' + (item.transX) + 'px,' + (item.transY) + 'px)' }"
                                 draggable="false" ondragstart="return false;">
-
-                            <video v-if="jFileCache.imgCache[item.searchIndex].type == 'video'" class="comic_img"
+                            <!-- 视频 -->
+                            <video v-if="imgCommon.isViewVideo(item)" class="comic_img"
                                 :src="jFileCache.imgCache[item.searchIndex].dataUrl" autoplay loop prevload
                                 :style="{ 'transform': 'translate(' + (item.transX) + 'px,' + (item.transY) + 'px)' }">
                             </video>
@@ -147,12 +174,35 @@ const onClick = (e: MouseEvent) => {
     display: none;
 }
 
+.comic_img {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+.imgLoading_center {
+    position: absolute;
+    width: 100%;
+    /* height: 100px; */
+    top: 45%
+}
+
+
+.imgLoading {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    background-color: green;
+}
 
 .display_trans_box {
 
     transform-origin: left top;
     display: flex;
     flex-direction: column;
+    /* position: absolute; */
 }
 
 .display_container {

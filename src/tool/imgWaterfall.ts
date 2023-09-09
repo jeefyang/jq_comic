@@ -9,14 +9,19 @@ class JImgWaterfall implements JImgCommonType {
 
     async init() {
         for (let i = 0; i < imgStore.waterfallNextImgCount; i++) {
-            await imgCommon.setNextImg()
+            let displayIndex = i + store.displayIndex
+            for (let j = 0; j < imgStore.children.length; j++) {
+                if (imgStore.children[j].displayIndex == displayIndex) {
+                    imgStore.children[j].isView = true
+                }
+            }
         }
         return true
     }
 
     preprocessChildImg(obj: imgStoreDisplayChildTtype) {
-        obj.displayW = imgStore.screenW
-        obj.displayH = imgStore.screenH
+        obj.displayW = imgStore.divFloatW
+        obj.displayH = imgStore.divFloatH
         return obj
     }
 
@@ -61,19 +66,18 @@ class JImgWaterfall implements JImgCommonType {
                         continue
                     }
                     if (displayIndex == child.displayIndex) {
-                        console.log(top)
                         this.displayDiv.scrollTo({ top, behavior: "smooth" })
                         res()
                         return
                     }
-                    console.log(displayIndex, child.displayH, imgStore.domScale, imgStore.margin)
-                    top += child.displayH * imgStore.domScale + imgStore.margin
+                    top += child.displayH * child.scale * imgStore.domScale + imgStore.margin
                 }
                 res()
             }, 500);
         })
-
     }
+
+
 
 }
 

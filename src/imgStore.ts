@@ -27,6 +27,8 @@ export type imgStoreDisplayChildTtype = {
     isLoaded?: boolean
     /** 切割后的第几张 */
     splitNum?: 0 | 1
+    /** 是否可以打开浏览 */
+    isView?: boolean
 
 }
 
@@ -116,6 +118,7 @@ export type imgStoreType = {
     displayArea: boolean
     /** 测试数据 */
     debugMsg: string | number
+    curSplit: 0 | 1
 }
 
 export const imgStore = reactive(<imgStoreType>{
@@ -141,6 +144,7 @@ export const imgStore = reactive(<imgStoreType>{
     zipInFileName: "",
     len: 0,
     msgBottom: 30,
+    curSplit: 0,
     waterfallNextImgCount: 4,
     waterfallPrevImgCount: 4,
     areaTouch: [],

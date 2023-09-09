@@ -8,7 +8,7 @@ import { imgStore } from '../imgStore'
     <div class="bottom_div" :style="{ 'bottom': imgStore.msgBottom + 'px' }">
         <!-- 第几页 -->
         <div class="vintage2" v-if="store.isDisplayImgNum" :style="{ 'color': store.textMsgColor }">
-            {{ store.curNo + 1 }}/{{ imgStore.len }}</div>
+            {{ store.displayIndex + 1 }}/{{ imgStore.len }}</div>
         <!-- 文件信息 -->
         <div class="vintage2" :style="{ 'color': store.textMsgColor }" v-if="store.isDisplayFileName">{{
             store.fileName + (imgStore.zipInFileName ? (' /' + imgStore.zipInFileName) : '')

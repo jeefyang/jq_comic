@@ -58,7 +58,7 @@ const freshImg = async () => {
 
 
 const dispatchTest = () => {
-    console.log(imgStore)
+    console.log(imgCommon.displayDiv.scrollLeft, imgStore.divFloatW, imgStore.divFloatH)
 }
 
 </script>

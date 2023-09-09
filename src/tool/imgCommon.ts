@@ -1,5 +1,5 @@
 import { areaTouchWaterFall } from "../const"
-import { imgStore, imgStoreChildType, imgStoreDisplayChildTtype } from "../imgStore"
+import { imgStore, imgStoreChildType, imgStoreDisplayChildTtype as imgStoreDisplayChildType } from "../imgStore"
 import { store } from "../store"
 import { jFileCache } from "./fileCache"
 import { jImgWaterfall } from "./imgWaterfall"
@@ -7,11 +7,11 @@ import { jImgWaterfall } from "./imgWaterfall"
 export type JImgCommonType = {
     init: () => Promise<boolean>
     /** 预处理 */
-    preprocessChildImg: (obj: imgStoreDisplayChildTtype) => imgStoreDisplayChildTtype
+    preprocessChildImg: (obj: imgStoreDisplayChildType) => imgStoreDisplayChildType
     /** 屏幕尺寸重置 */
     screenResize: () => void
     /** 图片尺寸重置 */
-    imgResize: (obj: imgStoreDisplayChildTtype) => void
+    imgResize: (obj: imgStoreDisplayChildType) => void
     /** 设置当前的信息 */
     setCurMsg: () => void
     /** 定点缩放 */
@@ -22,13 +22,20 @@ export type JImgCommonType = {
 
 export class JImgCommon implements JImgCommonType {
 
+    displayDiv: HTMLDivElement
+
+    setDiv(div: HTMLDivElement) {
+        this.displayDiv = div
+        jImgWaterfall.displayDiv = div
+    }
+
     screenResize() {
         if (store.readMode == "udWaterfall") {
             jImgWaterfall.screenResize()
         }
     }
 
-    imgResize(obj: imgStoreDisplayChildTtype) {
+    imgResize(obj: imgStoreDisplayChildType) {
         if (store.readMode == "udWaterfall") {
             jImgWaterfall.imgResize(obj)
         }
@@ -36,7 +43,7 @@ export class JImgCommon implements JImgCommonType {
 
     async init() {
         this.setAreaTouch()
-        await this.openImg(store.dirUrl, store.fileName, store.curNo)
+        await this.openImg(store.dirUrl, store.fileName, store.displayIndex)
         if (store.readMode == "udWaterfall") {
             await jImgWaterfall.init()
         }
@@ -60,57 +67,74 @@ export class JImgCommon implements JImgCommonType {
         store.dirUrl = dirUrl || store.dirUrl
         store.fileName = fileName || store.fileName
         store.curDirUrl = store.dirUrl
-        let obj = await jFileCache.getFileData(store.dirUrl, store.fileName, index)
-        imgStore.isZip = obj.isZip
-        imgStore.zipInFileName = obj?.zipInFileName || ""
-        let displayIndex = -1
-        if (obj.isZip) {
-            displayIndex = index
-            let zipMsg = await jFileCache.getZipMsg(store.dirUrl, store.fileName)
-            imgStore.len = zipMsg.sortList.length
+        let comicData = await this.openComic(store.dirUrl, store.fileName)
+        imgStore.isZip = comicData.listdata.isZip
+        imgStore.zipInFileName = ""
+        if (imgStore.isZip) {
+            store.displayIndex = index
         }
         else {
-            let dir = await jFileCache.getFolder(store.dirUrl)
-            imgStore.len = dir.sortNoZipFile.length
-            displayIndex = dir.sortNoZipFile.findIndex(c => c.name == fileName)
+            let a = imgStore.children.find(c => {
+                let b = jFileCache.imgCache[c.searchIndex]
+                return b.fileName == fileName
+            })
+            store.displayIndex = a.displayIndex
         }
-        let imgObjA: imgStoreDisplayChildTtype = {
-            searchIndex: obj.childIndex,
-            displayIndex: displayIndex,
-            splitNum: 0,
+        console.log(store.displayIndex)
+        this.jumpImg(store.displayIndex)
+    }
+
+    /** 打开漫画 */
+    async openComic(dirUrl: string, fileName: string) {
+        let listdata = await jFileCache.getFileListData(dirUrl, fileName)
+        imgStore.isZip = listdata.isZip
+        imgStore.children = []
+        imgStore.len = listdata.list.length
+        for (let i = 0; i < listdata.list.length; i++) {
+            let child = listdata.list[i]
+            let imgObjA: imgStoreDisplayChildType = {
+                searchIndex: child.childIndex,
+                displayIndex: i,
+                splitNum: 0,
+            }
+            this.preprocessChildImg(imgObjA)
+            let imgObjB: imgStoreDisplayChildType = {
+                searchIndex: child.childIndex,
+                displayIndex: i,
+                splitNum: 1,
+            }
+            this.preprocessChildImg(imgObjB)
+            imgStore.children.push(imgObjA, imgObjB)
         }
-        this.preprocessChildImg(imgObjA)
-        let imgObjB: imgStoreDisplayChildTtype = {
-            searchIndex: obj.childIndex,
-            displayIndex: displayIndex,
-            splitNum: 1,
-        }
-        this.preprocessChildImg(imgObjB)
-        imgStore.children = [imgObjA, imgObjB]
+        return { listdata }
     }
 
     async jumpImg(displayIndex: number) {
         if (displayIndex == undefined) {
             return
         }
-        let list = await imgCommon.setImgByNum(displayIndex)
-        if (list) {
-            let obj = list[0]
-            let cache = jFileCache.imgCache[obj.searchIndex]
+        for (let i = 0; i < imgStore.children.length; i++) {
+            let child = imgStore.children[i]
+            if (child.displayIndex != displayIndex) {
+                continue
+            }
+            // child.isView = true
+            let cache = jFileCache.imgCache[child.searchIndex]
+            imgStore.zipInFileName = cache.zipInFileName || ""
             store.fileName = cache.fileName
-            imgStore.zipInFileName = cache?.zipInFileName || ""
-            store.curNo = displayIndex
         }
+        store.displayIndex = displayIndex
         if (store.readMode == "udWaterfall") {
             await jImgWaterfall.jumpImg(displayIndex)
         }
-
     }
 
-    preprocessChildImg(obj: imgStoreDisplayChildTtype) {
+
+    preprocessChildImg(obj: imgStoreDisplayChildType) {
         obj.scale = 1
         obj.parentTransX = 0
         obj.parentTransY = 0
+        obj.isView = false
         if (store.readMode == "udWaterfall") {
             return jImgWaterfall.preprocessChildImg(obj)
         }
@@ -123,98 +147,28 @@ export class JImgCommon implements JImgCommonType {
         }
     }
 
-    /** 通过序号获取图片 */
-    async getImgByNum(index: number) {
-        if (index < 0) {
-            return
-        }
-        if (imgStore.len <= index - 1) {
-            return
-        }
-        let obj: imgStoreChildType
-        let filename: string = ""
-        if (imgStore.isZip) {
-            obj = await jFileCache.getFileDataTry(store.dirUrl, store.fileName, index)
-            // store.zipInFileName = obj.zipInFileName
-            filename = store.fileName
-        }
-        else {
-            let dirMsg = await jFileCache.getFolder(store.dirUrl)
-            // store.fileName = dirMsg.sortNoZipFile[index].name
-            filename = dirMsg.sortNoZipFile[index].name
-            obj = await jFileCache.getFileDataTry(store.dirUrl, filename)
-        }
-        let imgObjA: imgStoreDisplayChildTtype = {
-            searchIndex: obj.childIndex,
-            displayIndex: index,
-            splitNum: 0,
-        }
-        this.preprocessChildImg(imgObjA)
-        let imgObjB: imgStoreDisplayChildTtype = {
-            searchIndex: obj.childIndex,
-            displayIndex: index,
-            splitNum: 1,
-        }
-        this.preprocessChildImg(imgObjA)
-        return [imgObjA, imgObjB]
+    isImg(obj: imgStoreDisplayChildType) {
+        return obj.isSplit || obj.splitNum == 0
     }
 
-    /** 通过顺序布置图片 */
-    async setImgByNum(displayIndex: number) {
-        let imgObjList = await this.getImgByNum(displayIndex)
-
-        let isSame = false
-        let searchIndex = imgStore.children.findIndex(c => {
-            if (c.displayIndex > displayIndex) {
-                return true
-            }
-            if (c.displayIndex == displayIndex) {
-                isSame = true
-                return true
-            }
-            return false
-        })
-        if (isSame) {
-            console.warn("同样的图片,不加载")
-            return
-        }
-        if (searchIndex == -1) {
-            imgStore.children.push(imgObjList[0], imgObjList[1])
-        }
-        else {
-            imgStore.children.splice(searchIndex, 0, imgObjList[0], imgObjList[1])
-        }
-        return imgObjList
+    isViewImg(obj: imgStoreDisplayChildType) {
+        return obj.isView && jFileCache.imgCache[obj.searchIndex].type == 'img'
     }
 
-    /** 布置下一张图片 */
-    async setNextImg(overCB?: () => void) {
-        let children = imgStore.children
-        let displayIndex = children[children.length - 1].displayIndex
-        if (displayIndex >= imgStore.len - 1) {
-            overCB && overCB()
-            return
+    isViewVideo(obj: imgStoreDisplayChildType) {
+        return obj.isView && jFileCache.imgCache[obj.searchIndex].type == 'video'
+    }
+
+    isViewLoading(obj: imgStoreDisplayChildType) {
+        return !obj.isView || !obj.isLoaded
+    }
+
+    isviewDisplay(obj: imgStoreDisplayChildType) {
+        if (!obj.isView) {
+            return obj.splitNum == 0
         }
-        await this.setImgByNum(displayIndex + 1)
-        return
+        return this.isImg(obj)
     }
-
-    isImg(obj: imgStoreDisplayChildTtype) {
-        return (obj.isSplit || !obj.splitNum)
-    }
-
-    /** 布置上一张图片 */
-    async setPrevImg(overCB?: () => void) {
-        let children = imgStore.children
-        let displayIndex = children[0].displayIndex
-        if (displayIndex <= 0) {
-            overCB && overCB()
-            return
-        }
-        await this.setImgByNum(displayIndex - 1)
-        return
-    }
-
 
 }
 
