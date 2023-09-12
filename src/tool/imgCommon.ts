@@ -1,5 +1,5 @@
 import { areaTouchWaterFall } from "../const"
-import { imgStore, imgStoreChildType, imgStoreDisplayChildTtype as imgStoreDisplayChildType } from "../imgStore"
+import { imgStore, imgStoreDisplayChildType } from "../imgStore"
 import { store } from "../store"
 import { jFileCache } from "./fileCache"
 import { jImgWaterfall } from "./imgWaterfall"
@@ -18,6 +18,7 @@ export type JImgCommonType = {
     pointScale: (x: number, y: number, scale: number) => void
     /** 跳转图片 */
     jumpImg: (displayIndex: number) => Promise<void>
+    imgUpdateState: (obj: imgStoreDisplayChildType) => void
 }
 
 export class JImgCommon implements JImgCommonType {
@@ -36,8 +37,15 @@ export class JImgCommon implements JImgCommonType {
     }
 
     imgResize(obj: imgStoreDisplayChildType) {
+
         if (store.readMode == "udWaterfall") {
             jImgWaterfall.imgResize(obj)
+        }
+    }
+
+    imgUpdateState(obj: imgStoreDisplayChildType) {
+        if (store.readMode == "udWaterfall") {
+            jImgWaterfall.imgUpdateState(obj)
         }
     }
 
@@ -62,6 +70,7 @@ export class JImgCommon implements JImgCommonType {
         }
     }
 
+
     /** 重新打开图片 */
     async openImg(dirUrl?: string, fileName?: string, index: number = 0) {
         store.dirUrl = dirUrl || store.dirUrl
@@ -80,7 +89,6 @@ export class JImgCommon implements JImgCommonType {
             })
             store.displayIndex = a.displayIndex
         }
-        console.log(store.displayIndex)
         this.jumpImg(store.displayIndex)
     }
 
@@ -147,28 +155,6 @@ export class JImgCommon implements JImgCommonType {
         }
     }
 
-    isImg(obj: imgStoreDisplayChildType) {
-        return obj.isSplit || obj.splitNum == 0
-    }
-
-    isViewImg(obj: imgStoreDisplayChildType) {
-        return obj.isView && jFileCache.imgCache[obj.searchIndex].type == 'img'
-    }
-
-    isViewVideo(obj: imgStoreDisplayChildType) {
-        return obj.isView && jFileCache.imgCache[obj.searchIndex].type == 'video'
-    }
-
-    isViewLoading(obj: imgStoreDisplayChildType) {
-        return !obj.isView || !obj.isLoaded
-    }
-
-    isviewDisplay(obj: imgStoreDisplayChildType) {
-        if (!obj.isView) {
-            return obj.splitNum == 0
-        }
-        return this.isImg(obj)
-    }
 
 }
 

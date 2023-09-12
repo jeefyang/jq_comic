@@ -5,7 +5,7 @@ import { JHammer } from "../tool/util"
 import { imgStore } from "../imgStore";
 import { imgCommon } from "../tool/imgCommon";
 
-let curNo = ref(<number>store.curNo + 1)
+let curNo = ref(<number>store.displayIndex + 1)
 let numInputRef = ref(<HTMLInputElement>null)
 onMounted(() => {
     let numInput = numInputRef.value

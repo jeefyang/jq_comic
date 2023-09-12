@@ -101,6 +101,16 @@ const dispatchTest = () => {
                 <van-dropdown-item v-model="store.directX" :options="directXMap" @change="imgCommon.screenResize()" />
             </van-dropdown-menu>
         </div>
+
+        <!-- 空行 -->
+        <div class="br"></div>
+
+        <!-- 方向 -->
+        <div class="sort">
+            <div class="sort_title">显示间隔:</div>
+            <input type="number" v-model="imgStore.margin">
+        </div>
+
         <!-- 空行 -->
         <div class="br"></div>
 
@@ -140,6 +150,22 @@ const dispatchTest = () => {
                 </template>
             </van-switch>
         </div>
+
+        <!-- 空行 -->
+        <div class="br"></div>
+
+        <!-- 显示名称 -->
+        <div class="sort">
+            <div class="sort_title">显示操作图:</div>
+            <van-switch v-model="imgStore.displayArea">
+                <template #node>
+                    <div class="icon-wrapper">
+                        <van-icon :name="store.isDisplayFileName ? 'success' : 'cross'" />
+                    </div>
+                </template>
+            </van-switch>
+        </div>
+
         <!-- 空行 -->
         <div class="br"></div>
 

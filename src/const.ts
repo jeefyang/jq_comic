@@ -63,10 +63,10 @@ function initAreaTouch(op: JAreaType) {
 
 export const areaTouchWaterFall: JAreaType[] = [
     initAreaTouch({
-        startXPer: 0.42,
-        startYPer: 0.42,
-        endXPer: 0.58,
-        endYPer: 0.58,
+        startXPer: 0.40,
+        startYPer: 0.40,
+        endXPer: 0.60,
+        endYPer: 0.60,
         type: "option"
     }),
     initAreaTouch({

@@ -1,7 +1,7 @@
 import { reactive } from "vue"
 import { JAreaType } from "./const"
 
-export type imgStoreDisplayChildTtype = {
+export type imgStoreDisplayChildType = {
     searchIndex: number
     /** 图片偏移坐标x */
     transX?: number
@@ -29,6 +29,17 @@ export type imgStoreDisplayChildTtype = {
     splitNum?: 0 | 1
     /** 是否可以打开浏览 */
     isView?: boolean
+    // 额外操作
+    /** 图像是否可显 */
+    isViewDisplay?: boolean
+    /** 是否显示加载 */
+    isViewLoading?: boolean
+    /** 是否开始加载图像 */
+    isViewLoaded?: boolean
+    /** 是否显示在视频 */
+    isViewVideo?: boolean
+    /** 是否显示在图片 */
+    isViewImg?: boolean
 
 }
 
@@ -61,7 +72,7 @@ export type imgStoreChildType = {
 
 export type imgStoreType = {
     /** 子节点 */
-    children: imgStoreDisplayChildTtype[]
+    children: imgStoreDisplayChildType[]
     /** 屏幕宽 */
     screenW: number
     /** 屏幕高 */
@@ -145,8 +156,8 @@ export const imgStore = reactive(<imgStoreType>{
     len: 0,
     msgBottom: 30,
     curSplit: 0,
-    waterfallNextImgCount: 4,
-    waterfallPrevImgCount: 4,
+    waterfallNextImgCount: 8,
+    waterfallPrevImgCount: 8,
     areaTouch: [],
     displayArea: false,
     debugMsg: "",

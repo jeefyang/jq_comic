@@ -4,10 +4,10 @@ import { store } from "../store";
 
 class JAction {
 
-    timeList: { t: NodeJS.Timeout, key: string }[] = []
+    timeList: { t?: NodeJS.Timeout, key: string, time?: number, isContinued?: boolean }[] = []
 
-
-    setTimeFunc(func: () => any, key: string, time: number) {
+    /** 防抖 */
+    debounceFunc(func: () => any, key: string, delay: number) {
         let index = this.timeList.findIndex(c => c.key == key)
         if (index != -1) {
             clearTimeout(this.timeList[index].t)
@@ -20,8 +20,57 @@ class JAction {
             if (index != -1) {
                 this.timeList.splice(index, 1)
             }
-        }, time);
+        }, delay);
         this.timeList.push({ key, t })
+    }
+
+    /**节流 */
+    throttleFunc(func: () => any, key: string, delay: number) {
+        let index = this.timeList.findIndex(c => c.key == key)
+        let time = new Date().getMilliseconds()
+        if (index == -1) {
+            func()
+            this.timeList.push({ time, key })
+            return
+        }
+        let child = this.timeList[index]
+        if (time - child.time > delay) {
+            func()
+            child.time = time
+        }
+    }
+
+    /** 持续 */
+    continuedFunc(func: () => any, key: string, delay: number, isInward?: boolean) {
+        let index = this.timeList.findIndex(c => c.key == key)
+        if (index == -1) {
+
+            this.timeList.push({ key })
+            func()
+            setTimeout(() => {
+                this.continuedFunc(func, key, delay, true)
+            }, delay);
+            return
+        }
+        let child = this.timeList[index]
+        // 外部触发
+        if (!isInward) {
+            child.isContinued = true
+        }
+        // 内部触发
+        else {
+            if (child.isContinued) {
+                child.isContinued = false
+                func()
+                this.continuedFunc(func, key, delay, true)
+                return
+            }
+            else {
+                this.timeList.splice(index, 1)
+                return
+            }
+        }
+
     }
 
 

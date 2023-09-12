@@ -1,7 +1,7 @@
 import hammer from "hammerjs"
 import { store } from "../store"
 import { staticData } from "../const"
-import { imgStore, imgStoreChildType, imgStoreDisplayChildTtype } from "../imgStore"
+import { imgStore, imgStoreChildType, imgStoreDisplayChildType } from "../imgStore"
 
 export type hammerEventType =
     "press" |
@@ -101,9 +101,9 @@ export function recoverTransition() {
 
 }
 
-export function cloneImgStoreChild(child: imgStoreDisplayChildTtype) {
+export function cloneImgStoreChild(child: imgStoreDisplayChildType) {
     //@ts-ignore
-    let clone: imgStoreDisplayChildTtype = {}
+    let clone: imgStoreDisplayChildType = {}
     Object.keys(child).forEach(k => {
         clone[k] = child[k]
     })
