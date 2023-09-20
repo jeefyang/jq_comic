@@ -12,11 +12,11 @@ export const store = reactive({
     /** 基础文件夹路径,一般不显示 */
     baseDirUrl: <string>"",
     /** 当前显示第几张图片 */
-    displayIndex: <number>38,
+    displayIndex: <number>0,
     /** 图片观看排列顺序 */
-    imgSortType: <NameSortType>"名称",
+    mediaSortType: <NameSortType>"名称",
     /** 阅读模式 */
-    readMode: <"width" | "none" | "height" | "fit" | "udWaterfall">"fit",
+    readMode: <"width" | "none" | "height" | "fit" | "udWaterfall">"udWaterfall",
     /** 是否打开文件管理 */
     displayFileManager: <boolean>false,
     /** 是否打开底部工具栏 */
@@ -33,8 +33,8 @@ export const store = reactive({
     displayFileIconSize: <number>20,
     /** 显示文件的样式(图标,详细) */
     displayFileStyleType: <"icon" | "detail">"detail",
-    /** 是否二分图片 */
-    splitImg: <"auto" | "none" | "split">"none",
+    /** 是否二分媒体 */
+    splitMedia: <"auto" | "none" | "split">"none",
     /** 方向X,-1为从左到右,1为从右到左 */
     directX: <-1 | 1>1,
     /** 服务器是否连接成功 */
@@ -43,8 +43,8 @@ export const store = reactive({
     isControlDebug: <boolean>false,
     /** 是否显示加载 */
     isDisplayLoading: <boolean>false,
-    /** 是否显示图片数目 */
-    isDisplayImgNum: <boolean>true,
+    /** 是否显示媒体数目 */
+    isDisplayMediaNum: <boolean>true,
     /** 文本信息颜色 */
     textMsgColor: <string>"#ffffff",
     /** 是否显示文件名 */
@@ -56,5 +56,8 @@ export const store = reactive({
     /** 自动保存 */
     isAutoSave: <boolean>false,
     /** 背景色 */
-    background: <string>staticData.defaultBackground
+    background: <string>staticData.defaultBackground,
+    /** 媒体加载时背景色 */
+    mediaLoadingDivColor: <string>staticData.defaultMediaLoadingColor
+
 })

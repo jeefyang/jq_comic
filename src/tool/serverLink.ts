@@ -113,7 +113,6 @@ export class JserverLink {
 
     async postIsFile(url: string) {
         let newUrl = `${this.baseUrl}/${url}`
-        console.log(newUrl)
         let data = await this._client.main.postIsFile.mutate({ url: newUrl })
         return data
     }

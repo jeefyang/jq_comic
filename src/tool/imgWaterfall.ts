@@ -3,12 +3,15 @@ import { imgStore, imgStoreDisplayChildType as imgStoreDisplayChildType } from "
 import { store } from "../store"
 import { jFileCache } from "./fileCache"
 import { JImgCommonType } from "./imgCommon"
+import { JImgCommonChild } from "./imgCommonChild"
 
-class JImgWaterfall implements JImgCommonType {
+class JImgWaterfall extends JImgCommonChild implements JImgCommonType {
     displayDiv: HTMLDivElement
 
-    async init() {
-        for (let i = 0; i < imgStore.waterfallNextImgCount; i++) {
+
+
+    updateViewState() {
+        for (let i = 0; i < imgStore.waterfallNextMediaCount; i++) {
             let displayIndex = i + store.displayIndex
             for (let j = 0; j < imgStore.children.length; j++) {
                 let child = imgStore.children[j]
@@ -17,37 +20,6 @@ class JImgWaterfall implements JImgCommonType {
                 }
                 this.imgUpdateState(child)
             }
-        }
-        return true
-    }
-
-    preprocessChildImg(obj: imgStoreDisplayChildType) {
-        obj.displayW = imgStore.divFloatW
-        obj.displayH = imgStore.divFloatH
-        obj.transX = 0
-        obj.transY = 0
-        obj.scale = 1
-        return obj
-    }
-
-    screenResize() {
-
-    }
-
-    /** 更新图片状态 */
-    imgUpdateState(obj: imgStoreDisplayChildType) {
-        let cache = jFileCache.imgCache[obj.searchIndex]
-        obj.isViewVideo = cache.type == 'video'
-        obj.isViewImg = cache.type == 'img'
-        obj.isViewLoading = !obj.isView || !obj.isLoaded
-        obj.isViewLoaded = obj.isView
-        obj.isSplit = store.splitImg == "split" ? true : store.splitImg == "auto" && cache.originW > cache.originH ? true : false
-        obj.isViewDisplay = !obj.isLoaded || obj.isSplit || obj.splitNum == 0
-        let otherObj = imgStore.children.find(o => {
-            return o.searchIndex == obj.searchIndex && o.splitNum != obj.splitNum && o.splitNum == 1
-        })
-        if (otherObj) {
-            this.imgUpdateState(otherObj)
         }
     }
 
@@ -75,18 +47,7 @@ class JImgWaterfall implements JImgCommonType {
             obj.transX = 0
         }
         obj.displayH = cache.originH
-        if (isNaN(obj.displayH)) {
-            console.log("xx")
-        }
         obj.scale = imgStore.divFloatW / obj.displayW
-
-
-
-
-    }
-
-    setCurMsg() {
-
     }
 
     scrollView(index: number, start: number, checkFunc: (size: number, c: imgStoreDisplayChildType, index: number) => boolean) {
@@ -126,9 +87,6 @@ class JImgWaterfall implements JImgCommonType {
     }
 
 
-    pointScale(x: number, y: number, scale: number) {
-
-    }
 
     async jumpImg(displayIndex: number): Promise<void> {
         return new Promise((res) => {

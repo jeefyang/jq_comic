@@ -16,7 +16,7 @@ const readModeMap: { key: typeof store.readMode, name: string }[] = [
     { key: "udWaterfall", name: "上下瀑布" }
 ]
 
-const splitImgMap: { key: typeof store.splitImg, name: string }[] = [
+const splitImgMap: { key: typeof store.splitMedia, name: string }[] = [
     { key: "auto", name: "自动" },
     { key: "none", name: "无" },
     { key: "split", name: "二分" }
@@ -77,7 +77,7 @@ const dispatchTest = () => {
         <!-- 分割模式 -->
         <div class="sort">
             <div class="sort_title">分割:</div>
-            <van-radio-group v-model="store.splitImg" direction="horizontal" @change="imgCommon.screenResize()">
+            <van-radio-group v-model="store.splitMedia" direction="horizontal" @change="imgCommon.screenResize()">
                 <van-radio v-for="(item, index) in splitImgMap" :key="index" :name="item.key">{{ item.name }}</van-radio>
             </van-radio-group>
         </div>
@@ -88,7 +88,7 @@ const dispatchTest = () => {
         <div class="sort">
             <div class="sort_title">排列:</div>
             <van-dropdown-menu>
-                <van-dropdown-item v-model="store.imgSortType" :options="sortMap" @change="freshImg()" />
+                <van-dropdown-item v-model="store.mediaSortType" :options="sortMap" @change="freshImg()" />
             </van-dropdown-menu>
         </div>
         <!-- 空行 -->
@@ -128,10 +128,10 @@ const dispatchTest = () => {
         <!-- 显示数目 -->
         <div class="sort">
             <div class="sort_title">显示数目:</div>
-            <van-switch v-model="store.isDisplayImgNum">
+            <van-switch v-model="store.isDisplayMediaNum">
                 <template #node>
                     <div class="icon-wrapper">
-                        <van-icon :name="store.isDisplayImgNum ? 'success' : 'cross'" />
+                        <van-icon :name="store.isDisplayMediaNum ? 'success' : 'cross'" />
                     </div>
                 </template>
             </van-switch>

@@ -1,25 +1,25 @@
 <script setup lang="ts">
 import { onMounted } from 'vue';
 
-import FileManager from "./components/FileManager.vue"
-import ComicBottomBar from "./components/ComicBottomBar.vue"
-
-import ComicOPPanel from "./components/ComicOPPanel.vue"
-
 import { store } from './store';
 import { jserver } from './tool/serverLink'
 import { jFileCache } from './tool/fileCache';
 import { JConfigType } from './type';
 import { imgStore } from './imgStore';
-import ComicDisplayWaterfall from './components/ComicDisplayWaterfall.vue'
-import ComicDisplayArea from './components/ComicDisplayArea.vue'
 import { imgCommon } from './tool/imgCommon';
+
+import FileManager from "./components/FileManager.vue"
+import ComicBottomBar from "./components/ComicBottomBar.vue"
+import ComicOPPanel from "./components/ComicOPPanel.vue"
+import ComicDisplayWaterfall from './components/ComicDisplayWaterfall.vue'
+import ComicDisplayStandard from './components/ComicDisplayStandard.vue'
+import ComicDisplayArea from './components/ComicDisplayArea.vue'
+
 
 
 // const imgSrc = ref("")
 
 const resizeFunc = () => {
-  console.log("resizeFunc")
   imgStore.screenW = document.body.clientWidth
   imgStore.screenH = document.body.clientHeight
   imgStore.divFloatLeft = imgStore.screenW * imgStore.divFloatWRatio
@@ -61,10 +61,10 @@ onMounted(async () => {
 
   await jserver.init()
 
-  var v = await jFileCache.init(jserver, config)
-  if (v) {
-    await imgCommon.init()
-  }
+  let v = await jFileCache.init(jserver, config)
+  // if (v) {
+  await imgCommon.init(v)
+  // }
   store.isServerCompleted = true
   window.addEventListener("resize", () => {
     resizeFunc()
@@ -82,7 +82,8 @@ onMounted(async () => {
   <div class="app" :style="{ 'background-color': store.background }">
     <van-config-provider theme="dark">
       <div v-if="store.isServerCompleted">
-        <ComicDisplayWaterfall></ComicDisplayWaterfall>
+        <ComicDisplayWaterfall v-if="store.readMode == 'udWaterfall'"></ComicDisplayWaterfall>
+        <ComicDisplayStandard v-if="store.readMode != 'udWaterfall'"></ComicDisplayStandard>
         <ComicDisplayArea v-if="imgStore.displayArea"></ComicDisplayArea>
         <FileManager v-if="store.displayFileManager"></FileManager>
         <ComicOPPanel v-if="store.displayOPPanel"></ComicOPPanel>

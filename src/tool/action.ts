@@ -27,7 +27,7 @@ class JAction {
     /**节流 */
     throttleFunc(func: () => any, key: string, delay: number) {
         let index = this.timeList.findIndex(c => c.key == key)
-        let time = new Date().getMilliseconds()
+        let time = new Date().getTime()
         if (index == -1) {
             func()
             this.timeList.push({ time, key })

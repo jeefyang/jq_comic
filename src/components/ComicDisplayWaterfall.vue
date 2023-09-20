@@ -7,12 +7,13 @@ import { imgCommon } from '../tool/imgCommon';
 import { jImgWaterfall } from '../tool/imgWaterfall';
 import { store } from '../store';
 import { jaction } from "../tool/action"
+import { JTouch } from '../tool/touch';
 
 
 const divRef = ref(<HTMLDivElement>null)
 
 onMounted(() => {
-    watch([() => store.splitImg, () => imgStore.margin], () => {
+    watch([() => store.splitMedia, () => imgStore.margin], () => {
         for (let i = 0; i < imgStore.children.length; i++) {
             let child = imgStore.children[i]
             child.isLoaded && imgCommon.imgResize(child)
@@ -26,6 +27,15 @@ onMounted(() => {
         }
     })
     imgCommon.setDiv(divRef.value)
+    let touch = new JTouch(divRef.value)
+    touch.setClick((x, y) => {
+        console.log("click")
+        jaction.setClickArea(x, y)
+    })
+    touch.setDblclick((x, y) => {
+        console.log('dblclick')
+        pointScale(x, y)
+    })
 })
 
 const imgOnLoad = (e: Event, item: imgStoreDisplayChildType) => {
@@ -41,14 +51,6 @@ const imgOnLoad = (e: Event, item: imgStoreDisplayChildType) => {
     }
     item.isLoaded = true
 }
-
-let _wheelCache: WheelEvent
-
-const onWheel = (e: WheelEvent) => {
-    _wheelCache = e
-
-}
-
 
 
 const onScroll = (e: Event) => {
@@ -74,7 +76,7 @@ const onScroll = (e: Event) => {
             imgCommon.imgUpdateState(c)
         })
         let start = list[list.length - 1]
-        for (let i = start; i < start + imgStore.waterfallNextImgCount; i++) {
+        for (let i = start; i < start + imgStore.waterfallNextMediaCount; i++) {
             let child = imgStore.children[i]
             if (!child) {
                 break
@@ -84,17 +86,15 @@ const onScroll = (e: Event) => {
             jFileCache.autoSave()
         }
     }, "waterfallScroll", 100)
-} 
+}
 
 
-let isDblclick = false
-const onDblclick = (e: MouseEvent) => {
-    isDblclick = true
-    let clientX = e.clientX - imgStore.divFloatLeft
-    let clientY = e.clientY - imgStore.divFloatTop
+const pointScale = (x: number, y: number) => {
+    let clientX = x - imgStore.divFloatLeft
+    let clientY = y - imgStore.divFloatTop
     let div = divRef.value
     let oldSDomScale = imgStore.domScale
-    imgStore.domScale = imgStore.domScale == 1 ? 2 : 1
+    imgStore.domScale = imgStore.domScale == 1 ? imgStore.scaling : 1
     let left = (div.scrollLeft + clientX) / oldSDomScale * imgStore.domScale - (clientX)
     let top = (div.scrollTop + clientY) / oldSDomScale * imgStore.domScale - (clientY)
     setTimeout(() => {
@@ -102,33 +102,18 @@ const onDblclick = (e: MouseEvent) => {
         div.scrollTo({ left: left, top: top, behavior: 'auto' })
     }, 50);
 
-    // console.log(div.scrollTop + e.clientY, offsetY)
-
-}
-
-let t: NodeJS.Timeout
-const onClick = (e: MouseEvent) => {
-    if (t) {
-        clearTimeout(t)
-    }
-    t = setTimeout(() => {
-        if (!isDblclick) {
-            jaction.setClickArea(e.clientX, e.clientY)
-        }
-        isDblclick = false
-    }, 500);
 }
 
 </script>
 <template>
     <div class="comic_div" ref="divRef"
         :style="{ 'top': imgStore.divFloatTop + 'px', 'left': imgStore.divFloatLeft + 'px', 'width': imgStore.divFloatW + 'px', 'height': imgStore.divFloatH + 'px' }"
-        @scroll="onScroll" @wheel="onWheel" @dblclick="onDblclick" @click="onClick">
+        @scroll="onScroll">
 
         <!-- 移动缩放用 -->
-        <div class="display_trans_box" ref="displayRef"
+        <div class="display_trans_box"
             :style="{ 'width': imgStore.divFloatW + 'px', 'height': imgStore.divFloatH + 'px', 'transform': 'scale(' + imgStore.domScale + ')' }">
-            <!-- 展开列表 -->
+            <!-- 展开列表(for循环) -->
             <div :class="'display_list ' + item.displayIndex + '_' + item.splitNum"
                 v-for="(item, index) in imgStore.children" :key="item.searchIndex">
                 <!-- 分割显示 -->
@@ -139,14 +124,17 @@ const onClick = (e: MouseEvent) => {
                         <!-- 标准状态 -->
                         <div class="display_show"
                             :style="{ 'width': item.displayW + 'px', 'height': item.displayH + 'px', }">
-                            <!-- 加载 -->
-                            <div class="imgLoading" v-if="item.isViewLoading">
+                            <!-- 加载状态 -->
+                            <div class="imgLoading" v-if="item.isViewLoading"
+                                :style="{ 'background-color': store.mediaLoadingDivColor }">
                                 <div class="imgLoading_center">
-                                    <van-loading vertical type="spinner" size="50" text-size="50">{{ item.displayIndex
+                                    <van-loading vertical type="spinner" size="50" text-size="50" text-color="#fff">{{
+                                        item.displayIndex
                                     }}_{{ item.splitNum }}</van-loading>
                                 </div>
                             </div>
-                            <div class="imgLoaded" v-if="item.isViewLoaded">
+                            <!-- 图像 -->
+                            <div class="imgLoaded" v-if="item.isViewMedia">
                                 <!-- 图片 -->
                                 <img v-if="item.isViewImg" class="comic_img" ref="imgRef"
                                     :src="jFileCache.imgCache[item.searchIndex].dataUrl"
@@ -201,7 +189,6 @@ const onClick = (e: MouseEvent) => {
     left: 0px;
     width: 100%;
     height: 100%;
-    background-color: green;
 }
 
 .imgLoaded {
@@ -223,5 +210,10 @@ const onClick = (e: MouseEvent) => {
 
 .display_container {
     transform-origin: left top;
+
+}
+
+.display_list {
+    /* background-color: yellow; */
 }
 </style>

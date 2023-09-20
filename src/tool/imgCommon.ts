@@ -2,10 +2,10 @@ import { areaTouchWaterFall } from "../const"
 import { imgStore, imgStoreDisplayChildType } from "../imgStore"
 import { store } from "../store"
 import { jFileCache } from "./fileCache"
+import { jImgStandard } from "./imgStandard"
 import { jImgWaterfall } from "./imgWaterfall"
 
 export type JImgCommonType = {
-    init: () => Promise<boolean>
     /** 预处理 */
     preprocessChildImg: (obj: imgStoreDisplayChildType) => imgStoreDisplayChildType
     /** 屏幕尺寸重置 */
@@ -19,7 +19,9 @@ export type JImgCommonType = {
     /** 跳转图片 */
     jumpImg: (displayIndex: number) => Promise<void>
     imgUpdateState: (obj: imgStoreDisplayChildType) => void
+    updateViewState: () => void
 }
+
 
 export class JImgCommon implements JImgCommonType {
 
@@ -34,6 +36,9 @@ export class JImgCommon implements JImgCommonType {
         if (store.readMode == "udWaterfall") {
             jImgWaterfall.screenResize()
         }
+        else {
+            jImgStandard.screenResize()
+        }
     }
 
     imgResize(obj: imgStoreDisplayChildType) {
@@ -41,25 +46,32 @@ export class JImgCommon implements JImgCommonType {
         if (store.readMode == "udWaterfall") {
             jImgWaterfall.imgResize(obj)
         }
+        else {
+            jImgStandard.imgResize(obj)
+        }
     }
 
     imgUpdateState(obj: imgStoreDisplayChildType) {
         if (store.readMode == "udWaterfall") {
             jImgWaterfall.imgUpdateState(obj)
         }
+        else {
+            jImgStandard.imgUpdateState(obj)
+        }
     }
 
-    async init() {
+    async init(isLoad: boolean) {
         this.setAreaTouch()
-        await this.openImg(store.dirUrl, store.fileName, store.displayIndex)
-        if (store.readMode == "udWaterfall") {
-            await jImgWaterfall.init()
+        if (isLoad) {
+            await this.openImg(store.dirUrl, store.fileName, store.displayIndex)
         }
-        return true
     }
 
     setAreaTouch() {
         if (store.readMode == "udWaterfall") {
+            imgStore.areaTouch = [...areaTouchWaterFall]
+        }
+        else {
             imgStore.areaTouch = [...areaTouchWaterFall]
         }
     }
@@ -67,6 +79,9 @@ export class JImgCommon implements JImgCommonType {
     setCurMsg() {
         if (store.readMode == "udWaterfall") {
             jImgWaterfall.setCurMsg()
+        }
+        else {
+            jImgStandard.setCurMsg()
         }
     }
 
@@ -76,7 +91,7 @@ export class JImgCommon implements JImgCommonType {
         store.dirUrl = dirUrl || store.dirUrl
         store.fileName = fileName || store.fileName
         store.curDirUrl = store.dirUrl
-        let comicData = await this.openComic(store.dirUrl, store.fileName)
+        let comicData = await this.openComicList(store.dirUrl, store.fileName)
         imgStore.isZip = comicData.listdata.isZip
         imgStore.zipInFileName = ""
         if (imgStore.isZip) {
@@ -89,11 +104,28 @@ export class JImgCommon implements JImgCommonType {
             })
             store.displayIndex = a.displayIndex
         }
-        this.jumpImg(store.displayIndex)
+        this.updateViewState()
+        await new Promise((res) => {
+            setTimeout(() => {
+                this.jumpImg(store.displayIndex)
+                res(undefined)
+            }, 50);
+        })
+
+        return true
     }
 
-    /** 打开漫画 */
-    async openComic(dirUrl: string, fileName: string) {
+    updateViewState() {
+        if (store.readMode == "udWaterfall") {
+            jImgWaterfall.updateViewState()
+        }
+        else {
+            jImgStandard.updateViewState()
+        }
+    }
+
+    /** 打开漫画列表 */
+    async openComicList(dirUrl: string, fileName: string) {
         let listdata = await jFileCache.getFileListData(dirUrl, fileName)
         imgStore.isZip = listdata.isZip
         imgStore.children = []
@@ -135,6 +167,9 @@ export class JImgCommon implements JImgCommonType {
         if (store.readMode == "udWaterfall") {
             await jImgWaterfall.jumpImg(displayIndex)
         }
+        else {
+            await jImgStandard.jumpImg(displayIndex)
+        }
     }
 
 
@@ -146,12 +181,18 @@ export class JImgCommon implements JImgCommonType {
         if (store.readMode == "udWaterfall") {
             return jImgWaterfall.preprocessChildImg(obj)
         }
+        else {
+            return jImgStandard.preprocessChildImg(obj)
+        }
         return obj
     }
 
     pointScale(x: number, y: number, scale: number) {
         if (store.readMode == 'udWaterfall') {
             return jImgWaterfall.pointScale(x, y, scale)
+        }
+        else {
+            return jImgStandard.pointScale(x, y, scale)
         }
     }
 

@@ -31,18 +31,28 @@ app.get("/getZipInFileByName", async (req, res, next) => {
     let urldata = new URL(req.url, `http://${req.headers.host}`)
     let fileUrl = urldata.searchParams.get("url")
     let fileName = urldata.searchParams.get("fileName")
-    console.log(fileName)
-    let data = await (await zipFactory.getChild(fileUrl)).getFileByName(fileName)
-    res.send(data)
+    try {
+        let data = await (await zipFactory.getChild(fileUrl)).getFileByName(fileName)
+        res.send(data)
+    }
+    catch {
+        console.log(`无法找到在压缩包'${fileUrl}'找到文件'${fileName}'`)
+        res.sendStatus(404)
+    }
     next()
 })
 
 app.get("/getFile", async (req, res, next) => {
-    console.log('getFile')
     let url = new URL(req.url, `http://${req.headers.host}`)
     let fileUrl = url.searchParams.get("url")
-    let data = await fs.readFileSync(fileUrl)
-    res.send(data)
+    try {
+        let data = await fs.readFileSync(fileUrl)
+        res.send(data)
+    }
+    catch {
+        console.log(`无法找到文件'${fileUrl}'`)
+        res.sendStatus(404)
+    }
     next()
 })
 

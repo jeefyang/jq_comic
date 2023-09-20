@@ -3,15 +3,15 @@ import { JAreaType } from "./const"
 
 export type imgStoreDisplayChildType = {
     searchIndex: number
-    /** 图片偏移坐标x */
+    /** 媒体偏移坐标x */
     transX?: number
-    /** 图片偏移坐标y */
+    /** 媒体偏移坐标y */
     transY?: number
-    /** 图片缩放 */
+    /** 媒体缩放 */
     scale?: number
-    /** 图片显示的宽度 */
+    /** 媒体显示的宽度 */
     displayW?: number
-    /** 图片显示的高度 */
+    /** 媒体显示的高度 */
     displayH?: number
     /** 是否已经开始播放视频 */
     isPlayedVideo?: boolean
@@ -32,10 +32,12 @@ export type imgStoreDisplayChildType = {
     // 额外操作
     /** 图像是否可显 */
     isViewDisplay?: boolean
+    /** div是否需要加载,用于减少过度 */
+    isViewDivLoad?: boolean
     /** 是否显示加载 */
     isViewLoading?: boolean
     /** 是否开始加载图像 */
-    isViewLoaded?: boolean
+    isViewMedia?: boolean
     /** 是否显示在视频 */
     isViewVideo?: boolean
     /** 是否显示在图片 */
@@ -98,9 +100,9 @@ export type imgStoreType = {
     /** div浮动高度 */
     divFloatH: number
     /** 图片是否正在加载 */
-    isImgLoading: boolean
+    isMediaLoading: boolean
     /** 图片是否准备加载 */
-    isImgPrepareLoading: boolean
+    isMediaPrepareLoading: boolean
     /** 动画时间 */
     transitionMS: number
     /** 是否正在读取下个瀑布,用来限制单线程读取,缓解服务器压力 */
@@ -113,14 +115,18 @@ export type imgStoreType = {
     isZip: boolean
     /** 压缩包里文件名,用于显示 */
     zipInFileName: string
-    /** 图片数量 */
+    /** 媒体数量 */
     len: number
     /** 信息底部位置 */
     msgBottom: number
-    /** 瀑布图片上数量 */
-    waterfallPrevImgCount: number
-    /** 瀑布图片下数量 */
-    waterfallNextImgCount: number
+    /** 瀑布媒体上数量 */
+    waterfallPrevMediaCount: number
+    /** 瀑布媒体下数量 */
+    waterfallNextMediaCount: number
+    /** 标准媒体上数量 */
+    StandardPrevMediaCount: number
+    /** 标准媒体下数量 */
+    StandardNextMediaCount: number
     /** 浏览到子节点第几个 */
     viewChildIndex: number
     /** 触碰区域 */
@@ -129,7 +135,10 @@ export type imgStoreType = {
     displayArea: boolean
     /** 测试数据 */
     debugMsg: string | number
+    /** 当前显示单双页 */
     curSplit: 0 | 1
+    缩放比例
+    scaling: number
 }
 
 export const imgStore = reactive(<imgStoreType>{
@@ -146,8 +155,8 @@ export const imgStore = reactive(<imgStoreType>{
     divFloatW: 0,
     divFloatH: 0,
     margin: 5,
-    isImgLoading: false,
-    isImgPrepareLoading: false,
+    isMediaLoading: false,
+    isMediaPrepareLoading: false,
     transitionMS: 300,
     isNextWaterfall: false,
     isPrevWaterfall: false,
@@ -156,10 +165,13 @@ export const imgStore = reactive(<imgStoreType>{
     len: 0,
     msgBottom: 30,
     curSplit: 0,
-    waterfallNextImgCount: 8,
-    waterfallPrevImgCount: 8,
+    waterfallNextMediaCount: 8,
+    waterfallPrevMediaCount: 8,
+    StandardPrevMediaCount: 3,
+    StandardNextMediaCount: 3,
     areaTouch: [],
     displayArea: false,
+    scaling: 2,
     debugMsg: "",
     domMatrix3d: `matrix3d(
         1,0,0,0,

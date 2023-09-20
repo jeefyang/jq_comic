@@ -1,17 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import { store } from "../store"
-import { JHammer } from "../tool/util"
 import { imgStore } from "../imgStore";
 import { imgCommon } from "../tool/imgCommon";
 
 let curNo = ref(<number>store.displayIndex + 1)
 let numInputRef = ref(<HTMLInputElement>null)
 onMounted(() => {
-    let numInput = numInputRef.value
-    new JHammer(numInput).on("doubletap", () => {
-        numInput.select()
-    })
+
 
     watch(curNo, (e) => {
         if (e < 1) {

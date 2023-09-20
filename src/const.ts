@@ -8,6 +8,8 @@ export const staticData = {
     advanceImgCount: 10,
     /** 默认颜色 */
     defaultBackground: "#1c1c1e",
+    /** 默认媒体加载色 */
+    defaultMediaLoadingColor:"green",
     /** 显示触碰区域透明度 */
     displayAreaOpacity: 0.16
 }

@@ -151,11 +151,11 @@ class JFileCache {
     }
 
     private _setZipInFileSort(data: (typeof this.zipMsgCache)[number]) {
-        if (data.sortType == store.imgSortType) {
+        if (data.sortType == store.mediaSortType) {
             return
         }
         let cloneList = [...data.list]
-        switch (store.imgSortType) {
+        switch (store.mediaSortType) {
             case "名称":
                 data.sortList = cloneList.sort((a, b) => {
                     let alist = a.data.name.split(path.sep)
@@ -231,17 +231,17 @@ class JFileCache {
                 })
                 break
         }
-        data.sortType = store.imgSortType
+        data.sortType = store.mediaSortType
         // console.log(JSON.parse(JSON.stringify(data.sortList)))
     }
 
     private _setFloderSort(data: JFolderDisplayType) {
-        if (data.sortType == store.imgSortType) {
+        if (data.sortType == store.mediaSortType) {
             return
         }
 
         let cloneList = [...data.noZipFiles]
-        switch (store.imgSortType) {
+        switch (store.mediaSortType) {
             case "名称":
                 data.sortNoZipFile = cloneList.sort((a, b) => a.name > b.name ? 1 : -1)
                 break
@@ -270,7 +270,7 @@ class JFileCache {
                 })
                 break
         }
-        data.sortType = store.imgSortType
+        data.sortType = store.mediaSortType
     }
 
     /** 获取文件夹信息 */
@@ -338,7 +338,7 @@ class JFileCache {
         }
         let arr = fileName.split('.')
         let ex = arr[arr.length - 1].toLowerCase()
-        let obj: imgStoreChildType = { isZip: ex == "zip", dirUrl, fileName, dataUrl: data.dataUrl, time: new Date().getMilliseconds(), zipInFileName: data.zipInFileName, exName: data.exName, type: data.type, childIndex: this.imgCache.length }
+        let obj: imgStoreChildType = { isZip: ex == "zip", dirUrl, fileName, dataUrl: data.dataUrl, time: new Date().getTime(), zipInFileName: data.zipInFileName, exName: data.exName, type: data.type, childIndex: this.imgCache.length }
         this.imgCache.push(obj)
         return obj
     }
@@ -402,14 +402,13 @@ class JFileCache {
         }
         for (let i = 0; i < msg.sortNoZipFile.length; i++) {
             let child = msg.sortNoZipFile[i]
-            let cache = this._getImgCache(dirUrl, child[i])
+            let cache = this._getImgCache(dirUrl, child.name)
             if (cache) {
                 list.push(cache)
                 continue
             }
-            let arr = child[i].split('.')
-            let fileEx = arr[arr.length - 1].toLowerCase()
-            let dataUrl = this.server.getFileUrl(`${dirUrl}/${child[i]}`)
+            let fileEx = child.exName.toLowerCase()
+            let dataUrl = this.server.getFileUrl(`${dirUrl}/${child.name}`)
             let type: "img" | "video"
             if (this.imgEXList.includes(<any>fileEx)) {
                 type = "img"
@@ -417,7 +416,7 @@ class JFileCache {
             else if (this.videoEXList.includes(<any>fileEx)) {
                 type = "video"
             }
-            list.push(this._setImgCache({ dataUrl: dataUrl, exName: fileEx, type: type }, dirUrl, child[i]))
+            list.push(this._setImgCache({ dataUrl: dataUrl, exName: fileEx, type: type }, dirUrl, child.name))
         }
         return { list, isZip }
     }
