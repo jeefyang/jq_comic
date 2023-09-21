@@ -16,14 +16,14 @@ onMounted(() => {
     watch([() => store.splitMedia, () => imgStore.margin], () => {
         for (let i = 0; i < imgStore.children.length; i++) {
             let child = imgStore.children[i]
-            child.isLoaded && imgCommon.imgResize(child)
+            child.isLoaded && imgCommon.MediaResize(child)
         }
-        imgCommon.jumpImg(store.displayIndex)
+        imgCommon.jumpMedia(store.displayIndex, 0)
     })
     watch([() => store.directX], () => {
         for (let i = 0; i < imgStore.children.length; i++) {
             let child = imgStore.children[i]
-            child.isLoaded && imgCommon.imgResize(child)
+            child.isLoaded && imgCommon.MediaResize(child)
         }
     })
     imgCommon.setDiv(divRef.value)
@@ -44,12 +44,13 @@ const imgOnLoad = (e: Event, item: imgStoreDisplayChildType) => {
     cache.originW = (<HTMLImageElement>e.target).width
     cache.originH = (<HTMLImageElement>e.target).height
     cache.isComplete = true
-    imgCommon.imgResize(item)
+    imgCommon.MediaResize(item)
     if (item.displayIndex <= store.displayIndex || (item.displayIndex == store.displayIndex && item.splitNum < imgStore.curSplit)) {
 
         divRef.value.scrollTop += item.displayH * item.scale - oldH
     }
     item.isLoaded = true
+    imgCommon.mediaUpdateState(item)
 }
 
 
@@ -73,7 +74,7 @@ const onScroll = (e: Event) => {
         imgStore.curSplit = child.splitNum
         let list = jImgWaterfall.scrollViewList(index, startY, (c) => {
             c.isView = true
-            imgCommon.imgUpdateState(c)
+            imgCommon.mediaUpdateState(c)
         })
         let start = list[list.length - 1]
         for (let i = start; i < start + imgStore.waterfallNextMediaCount; i++) {
@@ -82,7 +83,7 @@ const onScroll = (e: Event) => {
                 break
             }
             child.isView = true
-            imgCommon.imgUpdateState(child)
+            imgCommon.mediaUpdateState(child)
             jFileCache.autoSave()
         }
     }, "waterfallScroll", 100)

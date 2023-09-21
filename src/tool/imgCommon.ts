@@ -7,19 +7,21 @@ import { jImgWaterfall } from "./imgWaterfall"
 
 export type JImgCommonType = {
     /** 预处理 */
-    preprocessChildImg: (obj: imgStoreDisplayChildType) => imgStoreDisplayChildType
+    preprocessChildMedia: (obj: imgStoreDisplayChildType) => imgStoreDisplayChildType
     /** 屏幕尺寸重置 */
     screenResize: () => void
-    /** 图片尺寸重置 */
-    imgResize: (obj: imgStoreDisplayChildType) => void
+    /** 媒体尺寸重置 */
+    MediaResize: (obj: imgStoreDisplayChildType) => void
     /** 设置当前的信息 */
     setCurMsg: () => void
     /** 定点缩放 */
     pointScale: (x: number, y: number, scale: number) => void
-    /** 跳转图片 */
-    jumpImg: (displayIndex: number) => Promise<void>
-    imgUpdateState: (obj: imgStoreDisplayChildType) => void
+    /** 跳转媒体 */
+    jumpMedia: (displayIndex: number, splitNum: 0 | 1) => Promise<void>
+    mediaUpdateState: (obj: imgStoreDisplayChildType, isNoMirro?: boolean) => void
     updateViewState: () => void
+    setNext: () => void
+    setPrev: () => void
 }
 
 
@@ -30,6 +32,7 @@ export class JImgCommon implements JImgCommonType {
     setDiv(div: HTMLDivElement) {
         this.displayDiv = div
         jImgWaterfall.displayDiv = div
+        jImgStandard.displayDiv = div
     }
 
     screenResize() {
@@ -41,29 +44,29 @@ export class JImgCommon implements JImgCommonType {
         }
     }
 
-    imgResize(obj: imgStoreDisplayChildType) {
+    MediaResize(obj: imgStoreDisplayChildType) {
 
         if (store.readMode == "udWaterfall") {
-            jImgWaterfall.imgResize(obj)
+            jImgWaterfall.MediaResize(obj)
         }
         else {
-            jImgStandard.imgResize(obj)
+            jImgStandard.MediaResize(obj)
         }
     }
 
-    imgUpdateState(obj: imgStoreDisplayChildType) {
+    mediaUpdateState(obj: imgStoreDisplayChildType, isNoMirro?: boolean) {
         if (store.readMode == "udWaterfall") {
-            jImgWaterfall.imgUpdateState(obj)
+            jImgWaterfall.mediaUpdateState(obj, isNoMirro)
         }
         else {
-            jImgStandard.imgUpdateState(obj)
+            jImgStandard.mediaUpdateState(obj, isNoMirro)
         }
     }
 
     async init(isLoad: boolean) {
         this.setAreaTouch()
         if (isLoad) {
-            await this.openImg(store.dirUrl, store.fileName, store.displayIndex)
+            await this.openMedia(store.dirUrl, store.fileName, store.displayIndex)
         }
     }
 
@@ -85,9 +88,27 @@ export class JImgCommon implements JImgCommonType {
         }
     }
 
+    setPrev() {
+        if (store.readMode == "udWaterfall") {
+            jImgWaterfall.setPrev()
+        }
+        else {
+            jImgStandard.setPrev()
+        }
+    }
+
+    setNext() {
+        if (store.readMode == "udWaterfall") {
+            jImgWaterfall.setNext()
+        }
+        else {
+            jImgStandard.setNext()
+        }
+    }
+
 
     /** 重新打开图片 */
-    async openImg(dirUrl?: string, fileName?: string, index: number = 0) {
+    async openMedia(dirUrl?: string, fileName?: string, index: number = 0) {
         store.dirUrl = dirUrl || store.dirUrl
         store.fileName = fileName || store.fileName
         store.curDirUrl = store.dirUrl
@@ -107,7 +128,7 @@ export class JImgCommon implements JImgCommonType {
         this.updateViewState()
         await new Promise((res) => {
             setTimeout(() => {
-                this.jumpImg(store.displayIndex)
+                this.jumpMedia(store.displayIndex, 0)
                 res(undefined)
             }, 50);
         })
@@ -137,25 +158,25 @@ export class JImgCommon implements JImgCommonType {
                 displayIndex: i,
                 splitNum: 0,
             }
-            this.preprocessChildImg(imgObjA)
+            this.preprocessChildMedia(imgObjA)
             let imgObjB: imgStoreDisplayChildType = {
                 searchIndex: child.childIndex,
                 displayIndex: i,
                 splitNum: 1,
             }
-            this.preprocessChildImg(imgObjB)
+            this.preprocessChildMedia(imgObjB)
             imgStore.children.push(imgObjA, imgObjB)
         }
         return { listdata }
     }
 
-    async jumpImg(displayIndex: number) {
+    async jumpMedia(displayIndex: number, splitNum: 0 | 1) {
         if (displayIndex == undefined) {
             return
         }
         for (let i = 0; i < imgStore.children.length; i++) {
             let child = imgStore.children[i]
-            if (child.displayIndex != displayIndex) {
+            if (!child.isViewDisplay || child.displayIndex != displayIndex || child.splitNum != splitNum) {
                 continue
             }
             // child.isView = true
@@ -165,24 +186,24 @@ export class JImgCommon implements JImgCommonType {
         }
         store.displayIndex = displayIndex
         if (store.readMode == "udWaterfall") {
-            await jImgWaterfall.jumpImg(displayIndex)
+            await jImgWaterfall.jumpMedia(displayIndex, splitNum)
         }
         else {
-            await jImgStandard.jumpImg(displayIndex)
+            await jImgStandard.jumpMedia(displayIndex, splitNum)
         }
     }
 
 
-    preprocessChildImg(obj: imgStoreDisplayChildType) {
+    preprocessChildMedia(obj: imgStoreDisplayChildType) {
         obj.scale = 1
         obj.parentTransX = 0
         obj.parentTransY = 0
         obj.isView = false
         if (store.readMode == "udWaterfall") {
-            return jImgWaterfall.preprocessChildImg(obj)
+            return jImgWaterfall.preprocessChildMedia(obj)
         }
         else {
-            return jImgStandard.preprocessChildImg(obj)
+            return jImgStandard.preprocessChildMedia(obj)
         }
         return obj
     }

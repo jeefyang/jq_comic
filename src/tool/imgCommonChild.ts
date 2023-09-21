@@ -4,7 +4,7 @@ import { jFileCache } from "./fileCache"
 import { JImgCommonType } from "./imgCommon"
 
 export class JImgCommonChild implements JImgCommonType {
-    preprocessChildImg(obj: imgStoreDisplayChildType) {
+    preprocessChildMedia(obj: imgStoreDisplayChildType) {
         obj.displayW = imgStore.divFloatW
         obj.displayH = imgStore.divFloatH
         obj.transX = 0
@@ -17,13 +17,13 @@ export class JImgCommonChild implements JImgCommonType {
     screenResize() {
         return
     }
-    imgResize(obj: imgStoreDisplayChildType) {
+    MediaResize(obj: imgStoreDisplayChildType) {
         return
     }
     pointScale(x: number, y: number, scale: number) {
         return
     }
-    async jumpImg(displayIndex: number) {
+    async jumpMedia(displayIndex: number, splitNum: 0 | 1) {
         return
     }
     updateViewState() {
@@ -34,20 +34,41 @@ export class JImgCommonChild implements JImgCommonType {
     }
 
     /** 更新图片状态 */
-    imgUpdateState(obj: imgStoreDisplayChildType) {
+    mediaUpdateState(obj: imgStoreDisplayChildType, isNoMirro?: boolean) {
         let cache = jFileCache.imgCache[obj.searchIndex]
         obj.isViewVideo = cache.type == 'video'
         obj.isViewImg = cache.type == 'img'
         obj.isViewDivLoad = obj.isView
         obj.isViewLoading = !obj.isLoaded
         obj.isViewMedia = obj.isView
-        obj.isSplit = store.splitMedia == "split" ? true : store.splitMedia == "auto" && cache.originW > cache.originH ? true : false
-        obj.isViewDisplay = !obj.isLoaded || obj.isSplit || obj.splitNum == 0
-        let otherObj = imgStore.children.find(o => {
-            return o.searchIndex == obj.searchIndex && o.splitNum != obj.splitNum && o.splitNum == 1
-        })
-        if (otherObj) {
-            this.imgUpdateState(otherObj)
+        if (store.splitMedia == "none") {
+            obj.isSplit = false
+            obj.isViewDisplay = obj.splitNum == 0
         }
+        else if (store.splitMedia == "split") {
+            obj.isSplit = true
+            obj.isViewDisplay = true
+        }
+        else if (store.splitMedia == "auto") {
+            obj.isSplit = cache.originW > cache.originH
+            obj.isViewDisplay = !obj.isLoaded || obj.isSplit || obj.splitNum == 0
+        }
+        if (!isNoMirro) {
+            let otherObj = imgStore.children.find(o => {
+                return o.searchIndex == obj.searchIndex && o.splitNum != obj.splitNum
+            })
+            if (otherObj) {
+                this.mediaUpdateState(otherObj, true)
+            }
+        }
+
+    }
+
+    setPrev() {
+
+    }
+
+    setNext() {
+
     }
 }

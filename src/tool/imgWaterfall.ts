@@ -18,15 +18,15 @@ class JImgWaterfall extends JImgCommonChild implements JImgCommonType {
                 if (child.displayIndex == displayIndex) {
                     child.isView = true
                 }
-                this.imgUpdateState(child)
+                this.mediaUpdateState(child)
             }
         }
     }
 
-    imgResize(obj: imgStoreDisplayChildType) {
+    MediaResize(obj: imgStoreDisplayChildType) {
         let cache = jFileCache.imgCache[obj.searchIndex]
 
-        this.imgUpdateState(obj)
+        this.mediaUpdateState(obj)
         if (!obj.isViewDisplay) {
             return
         }
@@ -88,7 +88,7 @@ class JImgWaterfall extends JImgCommonChild implements JImgCommonType {
 
 
 
-    async jumpImg(displayIndex: number): Promise<void> {
+    async jumpMedia(displayIndex: number, splitNum: 0 | 1): Promise<void> {
         return new Promise((res) => {
             setTimeout(() => {
                 let top = 0
@@ -98,7 +98,7 @@ class JImgWaterfall extends JImgCommonChild implements JImgCommonType {
                     if (!child.isViewDisplay) {
                         continue
                     }
-                    if (displayIndex == child.displayIndex) {
+                    if (displayIndex == child.displayIndex && splitNum == child.splitNum) {
                         this.displayDiv.scrollTo({ top, behavior: "smooth" })
                         res()
                         return

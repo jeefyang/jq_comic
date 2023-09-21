@@ -81,8 +81,6 @@ export type imgStoreType = {
     screenH: number
     /** dom元素缩放比例 */
     domScale: number
-    /** dom元素矩阵 */
-    domMatrix3d: string
     /** 当前包裹元素位置X */
     domTransX: number
     /** 当前包裹元素 位置Y */
@@ -137,8 +135,10 @@ export type imgStoreType = {
     debugMsg: string | number
     /** 当前显示单双页 */
     curSplit: 0 | 1
-    缩放比例
+    /** 缩放比例 */
     scaling: number
+    /** 标准移动比例(相对于屏幕) */
+    standardMoveRatio: number
 }
 
 export const imgStore = reactive(<imgStoreType>{
@@ -172,11 +172,7 @@ export const imgStore = reactive(<imgStoreType>{
     areaTouch: [],
     displayArea: false,
     scaling: 2,
+    standardMoveRatio: 1,
     debugMsg: "",
-    domMatrix3d: `matrix3d(
-        1,0,0,0,
-        0,1,0,0,
-        0,0,1,0,
-        0,0,0,1
-        )`
+
 })

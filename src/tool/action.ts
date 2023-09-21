@@ -1,6 +1,7 @@
 import { JAreaType } from "../const";
 import { imgStore } from "../imgStore";
 import { store } from "../store";
+import { imgCommon } from "./imgCommon";
 
 class JAction {
 
@@ -122,6 +123,12 @@ class JAction {
         }
         else if (area.type == "progressBar") {
             store.displayBottomBar = true
+        }
+        else if (area.type == "next") {
+            imgCommon.setNext()
+        }
+        else if (area.type == "prev") {
+            imgCommon.setPrev()
         }
     }
 

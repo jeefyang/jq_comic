@@ -182,7 +182,7 @@ const selectFileFunc = async (item: (typeof fileList.value)[number]) => {
     }
     else if (item.type == "file") {
         store.isDisplayLoading = true
-        let check = await imgCommon.openImg(store.curDirUrl, item.originName, 0)
+        let check = await imgCommon.openMedia(store.curDirUrl, item.originName, 0)
         if (!check) {
             loadding.close()
             showToast({ message: "没有可观看的文件", duration: 1000, forbidClick: true })

@@ -24,7 +24,7 @@ let setCloseFunc = () => {
 }
 
 let setCurNoFunc = () => {
-    imgCommon.jumpImg(curNo.value - 1)
+    imgCommon.jumpMedia(curNo.value - 1,0)
 }
 
 </script>
