@@ -9,10 +9,12 @@ import { fileURLToPath } from "url"
 import { JConfigType } from "../type"
 import { zipFactory } from "./zipFactory";
 import { URL } from 'node:url';
+import { SqliteFactory } from "./sqliteFactory";
 
-console.log("start!")
+console.log("start!!!")
 const app = express()
 app.use(cors())
+let mydb: SqliteFactory
 
 // readZip("./server_data/1.zip")
 
@@ -56,12 +58,18 @@ app.get("/getFile", async (req, res, next) => {
     next()
 })
 
+
+
 if (import.meta.env.PROD) {
     const josnUrl = path.join(path.dirname(fileURLToPath(import.meta.url)), "config.jsonc")
     const jsonStr = fs.readFileSync(josnUrl, "utf-8")
     const configjson: JConfigType = eval(`(${jsonStr})`)
     app.listen(configjson.node_build_post)
     console.log("正在监听:", configjson.node_build_post)
+    mydb = new SqliteFactory("./base")
+}
+else if (import.meta.env.DEV) {
+    mydb = new SqliteFactory("./base")
 }
 
 
