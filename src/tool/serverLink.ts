@@ -1,34 +1,24 @@
 
 import { createTRPCProxyClient, httpBatchLink } from '@trpc/client';
 import type { AppRouter } from '../server/router';
+import { store } from '../store';
 
 
 export class JserverLink {
 
     private _client: ReturnType<typeof createTRPCProxyClient<AppRouter>>
-    baseUrl: string
-    /** 域名 */
-    domain = "localhost"
-    /** 端口 */
-    port: number
-    /** 包含端口,比domain和port更高优先级 */
-    host: string
-    localhost: string
+
 
     constructor() {
 
     }
 
     init() {
-        if (!this.host) {
-            this.host = `http://${this.domain}:${this.port}`
-        }
-        let url = `${this.host}/trpc`
-        this.localhost = url
+
         this._client = createTRPCProxyClient<AppRouter>({
             links: [
                 httpBatchLink({
-                    url: url,
+                    url: "/trpc",
                 })
             ],
             transformer: undefined
@@ -45,75 +35,68 @@ export class JserverLink {
 
     /** 获取文件夹里文件列表 */
     async postFolder(url: string) {
-        let obj = await this._client.main.postFolder.mutate({ baseUrl: this.baseUrl, url })
+        let obj = await this._client.main.postFolder.mutate({ key: store.urlkey, url })
         return obj
     }
 
     /** 获取压缩包其他信息 */
     async postZipMsg(url: string) {
-        let newUrl = `${this.baseUrl}/${url}`
-        let data = await this._client.main.postZipMsg.mutate({ url: newUrl })
+
+        let data = await this._client.main.postZipMsg.mutate({ key: store.urlkey, url })
         return data
     }
     /** 通过名称获取压缩包里文件 */
     async postZipInFileByName(url: string, fileName: string) {
-        let newUrl = `${this.baseUrl}/${url}`
-        let data = await this._client.main.postZipInFileByName.mutate({ url: newUrl, fileName })
+        let data = await this._client.main.postZipInFileByName.mutate({ key: store.urlkey, url, fileName })
         return data
     }
 
     /** 通过名称获取压缩包里文件b64 */
     async postZipInFileB64ByName(url: string, fileName: string) {
-        let newUrl = `${this.baseUrl}/${url}`
-        let data = await this._client.main.postZipInFileBase64ByName.mutate({ url: newUrl, fileName })
+        let data = await this._client.main.postZipInFileBase64ByName.mutate({ key: store.urlkey, url, fileName })
         return data
     }
 
     /** 通过名称获取压缩包里文件b64 */
     async getZipInFileB64ByName(url: string, fileName: string) {
-        let newUrl = `${this.baseUrl}/${url}`
-        let data = await this._client.main.getZipInFileBase64ByName.query({ url: newUrl, fileName })
+        let data = await this._client.main.getZipInFileBase64ByName.query({ key: store.urlkey, url, fileName })
         return data
     }
 
     /** 通过名称获取压缩包里文件Url */
     getZipInFileUrlByName(url: string, fileName: string) {
-        let newUrl = `${this.baseUrl}/${url}`
-        return `${this.host}/getZipInFileByName?url=${encodeURIComponent(newUrl)}&fileName=${encodeURIComponent(fileName)}`
+        return `/getZipInFileByName?key=${store.urlkey}&url=${encodeURIComponent(url)}&fileName=${encodeURIComponent(fileName)}`
     }
 
 
     /** 获取文件内容 */
     async postFile(url: string) {
-        let newUrl = `${this.baseUrl}/${url}`
-        let data = await this._client.main.postFile.mutate({ url: newUrl })
+
+        let data = await this._client.main.postFile.mutate({ key: store.urlkey, url })
         return data
     }
 
     /** 获取文件内容 */
     async getFile(url: string) {
-        let newUrl = `${this.baseUrl}/${url}`
-        let data = await this._client.main.getFile.query({ url: newUrl })
+        let data = await this._client.main.getFile.query({ key: store.urlkey, url })
         return data
     }
 
     /** 获取文件内容Url */
     getFileUrl(url: string) {
-        let newUrl = `${this.baseUrl}/${url}`
-        return `${this.host}/getFile?url=${encodeURIComponent(newUrl)}`
+        return `/getFile?key=${store.urlkey}&url=${encodeURIComponent(url)}`
     }
 
     /** 获取文件内容b64 */
     async postFileB64(url: string) {
-        let newUrl = `${this.baseUrl}/${url}`
-        let data = await this._client.main.postFileBase64.mutate({ url: newUrl })
+
+        let data = await this._client.main.postFileBase64.mutate({ key: store.urlkey, url })
         return data
     }
 
 
     async postIsFile(url: string) {
-        let newUrl = `${this.baseUrl}/${url}`
-        let data = await this._client.main.postIsFile.mutate({ url: newUrl })
+        let data = await this._client.main.postIsFile.mutate({ key: store.urlkey, url })
         return data
     }
 }

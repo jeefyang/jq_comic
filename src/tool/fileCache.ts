@@ -1,7 +1,7 @@
 import { JFolderDisplayType, JFileFormatType } from "../type";
 import { JserverLink } from "../tool/serverLink"
 import { store } from "../store"
-import { JConfigType, LocalSaveDataType } from "../type"
+import { LocalSaveDataType } from "../type"
 import StreamZip from "node-stream-zip";
 import path from "path-browserify"
 import { imgStoreChildType } from "../imgStore"
@@ -35,7 +35,6 @@ class JFileCache {
     preloadIndex: number = -1
     imgEXList: JFileFormatType[] = ["gif", "bmp", "jpg", "jpeg", "png", "apng", "webp"]
     videoEXList: JFileFormatType[] = ["avi", "mp4", "mkv", "webm", "wmv"]
-    config: JConfigType
     localStorageKey: string = "localSaveDataType"
     private _isControlDebug = false
 
@@ -45,16 +44,7 @@ class JFileCache {
 
     private _initSwitchKey() {
         let url = new URL(document.location.href)
-        let switchKey = url.searchParams.get("switch")
-        let index = this.config.switchUrlList.findIndex(o => o.key == switchKey)
-        if (index == -1) {
-            switchKey = this.config.switchUrlList[0].key
-        }
         this._isControlDebug = !!url.searchParams.get("isControlDebug")
-        index = this.config.switchUrlList.findIndex(o => o.key == switchKey)
-        store.switchKey = this.config.switchUrlList[index].key
-        this.server.baseUrl = store.baseDirUrl = this.config.switchUrlList[index].url
-
     }
 
     private _initStore() {
@@ -73,9 +63,9 @@ class JFileCache {
         this._isControlDebug = store.isControlDebug
     }
 
-    async init(server: JserverLink, config: JConfigType) {
+    async init(server: JserverLink) {
         this.server = server
-        this.config = config
+
         this._initSwitchKey()
         this._initStore()
         let url = `${store.dirUrl}/${store.fileName}`

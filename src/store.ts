@@ -58,6 +58,8 @@ export const store = reactive({
     /** 背景色 */
     background: <string>staticData.defaultBackground,
     /** 媒体加载时背景色 */
-    mediaLoadingDivColor: <string>staticData.defaultMediaLoadingColor
+    mediaLoadingDivColor: <string>staticData.defaultMediaLoadingColor,
+    /** 路径的key */
+    urlkey: <string>""
 
 })

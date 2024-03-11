@@ -24,6 +24,7 @@ export function decodeFolder(baseUrl: string, url: string) {
         }
     }
     catch (e) {
+        console.log(e)
         return
     }
     let files = fs.readdirSync(newUrl)
@@ -34,10 +35,21 @@ export function decodeFolder(baseUrl: string, url: string) {
         url: url,
         name: newUrl.split(path.sep).reverse()[0]
     }
+    console.log("文件总数", files.length)
     for (let i = 0; i < files.length; i++) {
         let file = files[i]
         let fileUrl = path.join(newUrl, file)
-        let stat = fs.statSync(fileUrl)
+        // console.log(fileUrl)
+        // console.log(/\p{Emoji}/u.test(fileUrl))
+        let stat: fs.Stats
+        try {
+            stat = fs.statSync(fileUrl)
+        }
+        catch (e) {
+            console.log(e)
+            continue
+        }
+
         if (stat.isDirectory()) {
             let child: JFolderDisplayType = {
                 name: file, url: path.join(url, file), mtime: stat.mtimeMs, atime: stat.atimeMs, btime: stat.birthtimeMs, ctime: stat.ctimeMs, size: stat.size
@@ -45,7 +57,6 @@ export function decodeFolder(baseUrl: string, url: string) {
             obj.folders.push(child)
             continue
         }
-
         let exName = path.extname(file)
         exName = exName.replace(".", "")
         exName = exName.toLocaleLowerCase()

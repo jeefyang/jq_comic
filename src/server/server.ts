@@ -4,17 +4,19 @@ import { appRouter } from './router';
 import cors from "cors"
 import fs from "fs"
 import path from "path"
-import { fileURLToPath } from "url"
 
-import { JConfigType } from "../type"
+
 import { zipFactory } from "./zipFactory";
 import { URL } from 'node:url';
 import { SqliteFactory } from "./sqliteFactory";
+import mime from "mime"
+import { configjson } from "./data"
 
 console.log("start!!!")
 const app = express()
 app.use(cors())
 let mydb: SqliteFactory
+
 
 // readZip("./server_data/1.zip")
 
@@ -27,50 +29,100 @@ app.get('/test', async (_req, res, next) => {
     next()
 })
 
-app.get("/getZipInFileByName", async (req, res, next) => {
+app.get("/getZipInFileByName", async (req, res) => {
     // req.url
-    // console.log('getZipInFileByName', req.originalUrl + '/' + req.url)
     let urldata = new URL(req.url, `http://${req.headers.host}`)
+    let key = urldata.searchParams.get("key")
+    let base = configjson.switchUrlList.find(c => c.key == key)?.url
+    if (base == undefined) {
+        console.warn(`无法找到对应key值 '${key}' 所在的目录`)
+        res.sendStatus(404)
+
+        return
+    }
+
     let fileUrl = urldata.searchParams.get("url")
     let fileName = urldata.searchParams.get("fileName")
+    let completeUrl = path.join(base, fileUrl)
     try {
-        let data = await (await zipFactory.getChild(fileUrl)).getFileByName(fileName)
+        let data = await (await zipFactory.getChild(completeUrl)).getFileByName(fileName)
         res.send(data)
     }
     catch {
-        console.log(`无法找到在压缩包'${fileUrl}'找到文件'${fileName}'`)
+        console.warn(`无法找到在压缩包'${completeUrl}'找到文件'${fileName}'`)
         res.sendStatus(404)
     }
-    next()
+    return
 })
 
-app.get("/getFile", async (req, res, next) => {
-    let url = new URL(req.url, `http://${req.headers.host}`)
-    let fileUrl = url.searchParams.get("url")
+app.get("/getFile", async (req, res) => {
+    let urldata = new URL(req.url, `http://${req.headers.host}`)
+    let key = urldata.searchParams.get("key")
+    let base = configjson.switchUrlList.find(c => c.key == key)?.url
+    if (base == undefined) {
+        console.warn(`无法找到对应key值 '${key}' 所在的目录`)
+        res.sendStatus(404)
+        return
+
+    }
+    let fileUrl = urldata.searchParams.get("url")
+    let completeUrl = path.join(base, fileUrl)
     try {
-        let data = await fs.readFileSync(fileUrl)
+        let data = await fs.readFileSync(completeUrl)
         res.send(data)
     }
     catch {
-        console.log(`无法找到文件'${fileUrl}'`)
+        console.warn(`无法找到文件'${completeUrl}'`)
         res.sendStatus(404)
     }
-    next()
+    return
 })
 
 
+app.get("*", async (req, res) => {
 
-if (import.meta.env.PROD) {
-    const josnUrl = path.join(path.dirname(fileURLToPath(import.meta.url)), "config.jsonc")
-    const jsonStr = fs.readFileSync(josnUrl, "utf-8")
-    const configjson: JConfigType = eval(`(${jsonStr})`)
-    app.listen(configjson.node_build_post)
-    console.log("正在监听:", configjson.node_build_post)
-    mydb = new SqliteFactory("./base")
+    let url = ""
+    if (import.meta.env.MODE == "development") {
+        url = `./.dev_vue${req.path}`
+    }
+    else if (import.meta.env.MODE == "production") {
+        url = `./build_vue${req.path}`
+    }
+    console.log(`加载文件:${url}`)
+    if (fs.existsSync(url)) {
+        res.setHeader("Content-Type", mime.getType(url))
+        res.send(fs.readFileSync(url))
+        return
+    }
+    console.log(`无法加载文件:${url}`)
+    if (import.meta.env.MODE == "development") {
+        url = `./.dev_vue${req.url}`
+    }
+    else if (import.meta.env.MODE == "production") {
+        url = `./build_vue${req.url}`
+    }
+
+    console.log(`尝试加载文件:${url}`)
+    if (fs.existsSync(url)) {
+        res.setHeader("Content-Type", mime.getType(url))
+        res.send(fs.readFileSync(url))
+        return
+    }
+    console.log(url, 404)
+    res.sendStatus(404)
+    return
+})
+
+if (import.meta.env.MODE == "development") {
+
 }
-else if (import.meta.env.DEV) {
-    mydb = new SqliteFactory("./base")
+else {
+
 }
+
+app.listen(configjson.listen)
+console.log("正在监听:", configjson.listen)
+mydb = new SqliteFactory("./base")
 
 
 
