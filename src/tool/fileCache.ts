@@ -2,49 +2,27 @@ import { JFolderDisplayType, JFileFormatType } from "../type";
 import { JserverLink } from "../tool/serverLink"
 import { store } from "../store"
 import { LocalSaveDataType } from "../type"
-import StreamZip from "node-stream-zip";
 import path from "path-browserify"
-import { imgStoreChildType } from "../imgStore"
+import { MediaContentChildType, MediaZipMsgType } from "../media"
 
 
 class JFileCache {
     /** 文件夹缓存 */
     dirCache: { [propName: string]: JFolderDisplayType } = {}
-    /** 图片缓存,会限制个数 */
-    imgCache: imgStoreChildType[] = []
+    /** 媒体缓存,会限制个数 */
+    mediaCache: MediaContentChildType[] = []
     /** 压缩包信息,为了减少服务器读取 */
-    zipMsgCache: {
-        dirUrl: string,
-        fileName: string,
-        /** 数量 */
-        count: number,
-        /** 原始文件排列 */
-        list: {
-            key: string;
-            data: StreamZip.ZipEntry;
-        }[],
-        /** 后期排列 */
-        sortList?: {
-            key: string;
-            data: StreamZip.ZipEntry;
-        }[]
-        sortType?: string
-    }[] = []
+    zipMsgCache: MediaZipMsgType[] = []
+    /** 服务 */
     server: JserverLink
-    preloadCount: number = 0
-    preloadIndex: number = -1
+
     imgEXList: JFileFormatType[] = ["gif", "bmp", "jpg", "jpeg", "png", "apng", "webp"]
-    videoEXList: JFileFormatType[] = ["avi", "mp4", "mkv", "webm", "wmv"]
+    videoEXList: JFileFormatType[] = ["avi", "mp4", "mkv", "webm"]
     localStorageKey: string = "localSaveDataType"
     private _isControlDebug = false
 
     constructor() {
 
-    }
-
-    private _initSwitchKey() {
-        let url = new URL(document.location.href)
-        this._isControlDebug = !!url.searchParams.get("isControlDebug")
     }
 
     private _initStore() {
@@ -65,8 +43,6 @@ class JFileCache {
 
     async init(server: JserverLink) {
         this.server = server
-
-        this._initSwitchKey()
         this._initStore()
         let url = `${store.dirUrl}/${store.fileName}`
         let v = await this.server.postIsFile(url)
@@ -288,7 +264,7 @@ class JFileCache {
 
         dirUrl = dirUrl || store.dirUrl
         fileName = fileName || store.fileName
-        let index = this.zipMsgCache.findIndex(c => c.dirUrl == dirUrl && c.fileName == fileName)
+        let index = this.zipMsgCache.findIndex(c => c.dirUrl == dirUrl && c.fileName == fileName && c.key == store.urlkey)
         if (index != -1) {
             this._setZipInFileSort(this.zipMsgCache[index])
             return this.zipMsgCache[index]
@@ -296,7 +272,8 @@ class JFileCache {
         let url = `${dirUrl}/${fileName}`
         let zipData = await this.server.postZipMsg(url)
         index = this.zipMsgCache.push({
-            dirUrl, fileName, count: zipData.list.length, list: zipData.list
+            dirUrl, fileName, count: zipData.list.length, list: zipData.list,
+            key: store.urlkey
         })
         this._setZipInFileSort(this.zipMsgCache[index - 1])
         return this.zipMsgCache[index - 1]
@@ -310,12 +287,12 @@ class JFileCache {
         let ex = arr[arr.length - 1].toLowerCase()
         let index = -1
         if (ex == "zip") {
-            index = this.imgCache.findIndex(c => c.isZip && c.dirUrl == dirUrl && c.fileName == fileName && c.zipInFileName == zipInFileName)
+            index = this.mediaCache.findIndex(c => c.isZip && c.dirUrl == dirUrl && c.fileName == fileName && c.zipInFileName == zipInFileName && store.urlkey == c.key)
         }
         else {
-            index = this.imgCache.findIndex(c => !c.isZip && c.dirUrl == dirUrl && c.fileName == fileName)
+            index = this.mediaCache.findIndex(c => !c.isZip && c.dirUrl == dirUrl && c.fileName == fileName && store.urlkey == c.key)
         }
-        return this.imgCache[index]
+        return this.mediaCache[index]
     }
 
     /** 设置图片缓存 */
@@ -328,13 +305,13 @@ class JFileCache {
         }
         let arr = fileName.split('.')
         let ex = arr[arr.length - 1].toLowerCase()
-        let obj: imgStoreChildType = { isZip: ex == "zip", dirUrl, fileName, dataUrl: data.dataUrl, time: new Date().getTime(), zipInFileName: data.zipInFileName, exName: data.exName, type: data.type, childIndex: this.imgCache.length }
-        this.imgCache.push(obj)
+        let obj: MediaContentChildType = { isZip: ex == "zip", dirUrl, fileName, dataUrl: data.dataUrl, time: new Date().getTime(), zipInFileName: data.zipInFileName, exName: data.exName, type: data.type, childIndex: this.mediaCache.length, key: store.urlkey }
+        this.mediaCache.push(obj)
         return obj
     }
 
     /** 获取文件数据(尝试版) */
-    async getFileDataTry(dirUrl: string, fileName: string, index: number = 0, reboot: number = 3): Promise<imgStoreChildType> {
+    async getFileDataTry(dirUrl: string, fileName: string, index: number = 0, reboot: number = 3): Promise<MediaContentChildType> {
         try {
             let data = await this.getFileData(dirUrl, fileName, index)
             if (!data) {
@@ -357,7 +334,7 @@ class JFileCache {
         let arr = fileName.split('.')
         let ex = arr[arr.length - 1].toLowerCase()
         let url = `${dirUrl}/${fileName}`
-        let list: imgStoreChildType[] = []
+        let list: MediaContentChildType[] = []
         let isZip = false
         if (ex == "zip") {
             isZip = true
@@ -454,11 +431,6 @@ class JFileCache {
 
         return this._setImgCache({ dataUrl: dataUrl, zipInFileName, exName: fileEx, type: type }, dirUrl, fileName)
     }
-
-
-
-
-
 
 
 }

@@ -8,7 +8,7 @@
     "dev:vue": "vite build -w -c vite.config.vue.ts --mode development --outDir ./.dev_vue",
     "dev:node": "vite build -w -c vite.config.node.ts --mode development --outDir ./.dev_node",
     "dev:run":"node ./.dev_node/server.js",
-    "dev:watch:run": "nodemon --watch ./.dev_node/server.js --exec \"npm run dev:run\"",
+    "dev:watch:run": "nodemon --watch ./.dev_node/server.js --watch ./.dev_node/config.jsonc --exec \"npm run dev:run\"",
     "dev:server": "ts-node --project tsconfig.server.json  ./server.ts",
     "build": "vue-tsc && vite build",
     "build:all": "vue-tsc && vite build -c vite.config.node.ts --outDir build_node && vite build -c vite.config.vue.ts --outDir build_vue",

@@ -1,5 +1,6 @@
 
-import { imgStore, imgStoreDisplayChildType as imgStoreDisplayChildType } from "../imgStore"
+import { mediaMiddleData, mediaStore } from "../mediaStore"
+import { MediaViewChildType } from "../media"
 import { store } from "../store"
 import { jFileCache } from "./fileCache"
 import { JImgCommonType } from "./imgCommon"
@@ -10,10 +11,10 @@ class JImgStandard extends JImgCommonChild implements JImgCommonType {
     displayDiv: HTMLDivElement
 
     updateViewState() {
-        for (let i = 0; i < imgStore.StandardNextMediaCount; i++) {
+        for (let i = 0; i < mediaStore.StandardNextMediaCount; i++) {
             let displayIndex = i + store.displayIndex
-            for (let j = 0; j < imgStore.children.length; j++) {
-                let child = imgStore.children[j]
+            for (let j = 0; j < mediaMiddleData.list.length; j++) {
+                let child = mediaMiddleData.list[j]
                 if (child.displayIndex == displayIndex) {
                     child.isView = true
                 }
@@ -22,8 +23,8 @@ class JImgStandard extends JImgCommonChild implements JImgCommonType {
         }
     }
 
-    MediaResize(obj: imgStoreDisplayChildType) {
-        let cache = jFileCache.imgCache[obj.searchIndex]
+    MediaResize(obj: MediaViewChildType) {
+        let cache = jFileCache.mediaCache[obj.searchIndex]
 
         this.mediaUpdateState(obj)
         if (!obj.isViewDisplay) {
@@ -52,19 +53,19 @@ class JImgStandard extends JImgCommonChild implements JImgCommonType {
             obj.parentTransY = 0
         }
         else {
-            let divFloatR = imgStore.divFloatW / imgStore.divFloatH
+            let divFloatR = mediaStore.divFloatW / mediaStore.divFloatH
             let displayR = obj.displayW / obj.displayH
             if (store.readMode == "width" || (store.readMode == "fit" && divFloatR <= displayR)) {
-                obj.scale = imgStore.divFloatW / obj.displayW
+                obj.scale = mediaStore.divFloatW / obj.displayW
 
             }
             else if (store.readMode == "height" || (store.readMode == "fit" && divFloatR > displayR)) {
-                obj.scale = imgStore.divFloatH / obj.displayH
+                obj.scale = mediaStore.divFloatH / obj.displayH
             }
-            let w = obj.displayW * obj.scale * imgStore.domScale
-            let h = obj.displayH * obj.scale * imgStore.domScale
-            obj.parentTransX = w >= imgStore.divFloatW ? 0 : (imgStore.divFloatW - w) / 2
-            obj.parentTransY = h >= imgStore.divFloatH ? 0 : (imgStore.divFloatH - h) / 2
+            let w = obj.displayW * obj.scale * mediaStore.domScale
+            let h = obj.displayH * obj.scale * mediaStore.domScale
+            obj.parentTransX = w >= mediaStore.divFloatW ? 0 : (mediaStore.divFloatW - w) / 2
+            obj.parentTransY = h >= mediaStore.divFloatH ? 0 : (mediaStore.divFloatH - h) / 2
         }
     }
 
@@ -87,7 +88,7 @@ class JImgStandard extends JImgCommonChild implements JImgCommonType {
             return
         }
         else {
-            let left = overflowDiv.scrollLeft - imgStore.divFloatW * imgStore.standardMoveRatio
+            let left = overflowDiv.scrollLeft - mediaStore.divFloatW * mediaStore.standardMoveRatio
             overflowDiv.scrollTo({ left: left, behavior: "smooth" })
         }
     }
@@ -111,19 +112,19 @@ class JImgStandard extends JImgCommonChild implements JImgCommonType {
             return
         }
         else {
-            let left = overflowDiv.scrollLeft + imgStore.divFloatW * imgStore.standardMoveRatio
+            let left = overflowDiv.scrollLeft + mediaStore.divFloatW * mediaStore.standardMoveRatio
             overflowDiv.scrollTo({ left: left, behavior: "smooth" })
         }
     }
 
     preloadMedia(displayIndex: number, splitNum: 0 | 1, add: 1 | -1) {
-        let index = imgStore.children.findIndex(c => c.displayIndex == displayIndex && c.splitNum == splitNum)
-        let count = add == 1 ? imgStore.StandardNextMediaCount : imgStore.StandardPrevMediaCount
-        for (let i = 1; i < imgStore.children.length; i++) {
+        let index = mediaMiddleData.list.findIndex(c => c.displayIndex == displayIndex && c.splitNum == splitNum)
+        let count = add == 1 ? mediaStore.StandardNextMediaCount : mediaStore.StandardPrevMediaCount
+        for (let i = 1; i < mediaMiddleData.list.length; i++) {
             if (count < 0) {
                 return
             }
-            let c = imgStore.children[i + index]
+            let c = mediaMiddleData.list[i + index]
             if (!c) {
                 return
             }
@@ -135,9 +136,9 @@ class JImgStandard extends JImgCommonChild implements JImgCommonType {
 
 
     getStepMedia(index: number, add: -1 | 1) {
-        for (let i = 1; i < imgStore.children.length; i++) {
+        for (let i = 1; i < mediaMiddleData.list.length; i++) {
             let newIndex = index + i * add
-            let child = imgStore.children[newIndex]
+            let child = mediaMiddleData.list[newIndex]
             if (!child) {
                 return
             }
@@ -151,31 +152,31 @@ class JImgStandard extends JImgCommonChild implements JImgCommonType {
 
     jumpMedia(displayIndex: number, splitNum: 0 | 1): Promise<void> {
 
-        let index = imgStore.children.findIndex(c => c.isViewDisplay && c.displayIndex == displayIndex && c.splitNum == splitNum)
+        let index = mediaMiddleData.list.findIndex(c => c.isViewDisplay && c.displayIndex == displayIndex && c.splitNum == splitNum)
         if (index == -1) {
             return
         }
-        let child = imgStore.children[index]
+        let child = mediaMiddleData.list[index]
         child.isView = true
         this.mediaUpdateState(child)
         let overflowDiv = this.getOverFlowDiv()
-        imgStore.domScale = 1
+        mediaStore.domScale = 1
         overflowDiv.scrollTop = 0
         overflowDiv.scrollLeft = 0
 
         store.displayIndex = child.displayIndex
-        imgStore.curSplit = child.splitNum
+        mediaStore.curSplit = child.splitNum
         // let count = imgStore.children.reduce((prev, c, i) => {
         //     return prev + (!c.isViewDisplay || i > index ? 0 : 1)
         // }, -1)
-        imgStore.domTransX = - index * imgStore.divFloatW
+        mediaStore.domTransX = - index * mediaStore.divFloatW
         return
     }
 
 
 
     getOverFlowDiv() {
-        let listDiv: HTMLElement = <any>this.displayDiv.getElementsByClassName(`display_list ${store.displayIndex}_${imgStore.curSplit}`)?.[0]
+        let listDiv: HTMLElement = <any>this.displayDiv.getElementsByClassName(`display_list ${store.displayIndex}_${mediaStore.curSplit}`)?.[0]
         if (!listDiv) {
             return
         }
@@ -187,8 +188,8 @@ class JImgStandard extends JImgCommonChild implements JImgCommonType {
     }
 
     getCurChild() {
-        let index = imgStore.children.findIndex(c => c.displayIndex == store.displayIndex && c.splitNum == imgStore.curSplit)
-        let o = imgStore.children[index]
+        let index = mediaMiddleData.list.findIndex(c => c.displayIndex == store.displayIndex && c.splitNum == mediaStore.curSplit)
+        let o = mediaMiddleData.list[index]
         return {
             index, o
         }

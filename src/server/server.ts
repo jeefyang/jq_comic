@@ -89,7 +89,7 @@ app.get("*", async (req, res) => {
         url = `./build_vue${req.path}`
     }
     console.log(`加载文件:${url}`)
-    if (fs.existsSync(url)) {
+    if (fs.existsSync(url) && fs.statSync(url).isFile()) {
         res.setHeader("Content-Type", mime.getType(url))
         res.send(fs.readFileSync(url))
         return
@@ -103,7 +103,7 @@ app.get("*", async (req, res) => {
     }
 
     console.log(`尝试加载文件:${url}`)
-    if (fs.existsSync(url)) {
+    if (fs.existsSync(url) && fs.statSync(url).isFile()) {
         res.setHeader("Content-Type", mime.getType(url))
         res.send(fs.readFileSync(url))
         return

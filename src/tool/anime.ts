@@ -1,5 +1,5 @@
 import anime from "animejs"
-import { imgStore } from "../imgStore"
+import { mediaStore } from "../mediaStore"
 
 class JDisplayAnime {
 

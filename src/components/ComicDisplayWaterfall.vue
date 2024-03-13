@@ -1,150 +1,195 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
-import { imgStore, imgStoreDisplayChildType } from '../imgStore'
+import { mediaMiddleData, mediaStore } from '../mediaStore'
 import { jFileCache } from "../tool/fileCache"
 import ComicDisplayBottom from './ComicDisplayBottom.vue'
-import { imgCommon } from '../tool/imgCommon';
-import { jImgWaterfall } from '../tool/imgWaterfall';
+// import { mainMediaCtrl } from '../tool/imgCommon';
+// import { jImgWaterfall } from '../tool/imgWaterfall';
 import { store } from '../store';
-import { jaction } from "../tool/action"
-import { JTouch } from '../tool/touch';
+// import { jaction } from "../tool/action"
+// import { JTouch } from '../tool/touch';
+import { MediaViewChildType } from '../media';
+import { cloneAssign, everyBetween } from '../tool/util';
+import { ComicDisplayWaterfall } from "./ComicDisplayWaterfall"
 
 
 const divRef = ref(<HTMLDivElement>null)
+const viewList = ref(<MediaViewChildType[]>[])
+const target = new ComicDisplayWaterfall()
 
 onMounted(() => {
-    watch([() => store.splitMedia, () => imgStore.margin], () => {
-        for (let i = 0; i < imgStore.children.length; i++) {
-            let child = imgStore.children[i]
-            child.isLoaded && imgCommon.MediaResize(child)
+    watch([() => store.splitMedia, () => mediaStore.margin], () => {
+        for (let i = 0; i < viewList.value.length; i++) {
+            let child = viewList.value[i]
+            if (child.isLoaded) {
+                target.resizeChild(child)
+                target.updateChild(child)
+            }
         }
-        imgCommon.jumpMedia(store.displayIndex, 0)
+        target.jumpMedia(divRef.value, store.displayIndex, 0, viewList.value, 500)
     })
     watch([() => store.directX], () => {
-        for (let i = 0; i < imgStore.children.length; i++) {
-            let child = imgStore.children[i]
-            child.isLoaded && imgCommon.MediaResize(child)
+        for (let i = 0; i < viewList.value.length; i++) {
+            let child = viewList.value[i]
+            if (child.isLoaded) {
+                target.resizeChild(child)
+                target.updateChild(child)
+            }
         }
     })
-    imgCommon.setDiv(divRef.value)
-    let touch = new JTouch(divRef.value)
-    touch.setClick((x, y) => {
-        console.log("click")
-        jaction.setClickArea(x, y)
-    })
-    touch.setDblclick((x, y) => {
-        console.log('dblclick')
-        pointScale(x, y)
-    })
-})
-
-const imgOnLoad = (e: Event, item: imgStoreDisplayChildType) => {
-    let cache = jFileCache.imgCache[item.searchIndex]
-    let oldH = item.displayH * item.scale * imgStore.domScale
-    cache.originW = (<HTMLImageElement>e.target).width
-    cache.originH = (<HTMLImageElement>e.target).height
-    cache.isComplete = true
-    imgCommon.MediaResize(item)
-    if (item.displayIndex <= store.displayIndex || (item.displayIndex == store.displayIndex && item.splitNum < imgStore.curSplit)) {
-
-        divRef.value.scrollTop += item.displayH * item.scale - oldH
-    }
-    item.isLoaded = true
-    imgCommon.mediaUpdateState(item)
-}
-
-
-const onScroll = (e: Event) => {
-    jaction.continuedFunc(() => {
-        let div = <HTMLDivElement>e.target
-        let data = jImgWaterfall.scrollView(0, 0, (h) => {
-            return h >= div.scrollTop
-        })
-        let index = data.index
-        let startY = data.start
-        if (index == -1) {
+    watch([() => store.isRefresh], () => {
+        if (!store.isRefresh) {
             return
         }
-        let child = imgStore.children[index]
-        let cache = jFileCache.imgCache[child.searchIndex]
-        store.displayIndex = child.displayIndex
-        store.fileName = cache.fileName
-        imgStore.viewChildIndex = index
-        imgStore.zipInFileName = cache.zipInFileName
-        imgStore.curSplit = child.splitNum
-        let list = jImgWaterfall.scrollViewList(index, startY, (c) => {
-            c.isView = true
-            imgCommon.mediaUpdateState(c)
-        })
-        let start = list[list.length - 1]
-        for (let i = start; i < start + imgStore.waterfallNextMediaCount; i++) {
-            let child = imgStore.children[i]
-            if (!child) {
-                break
+        console.log('refresh')
+        viewList.value = []
+        viewList.value = [...mediaMiddleData.list.map(c => {
+            let cc = cloneAssign(c)
+            cc.isViewDisplay = true
+            return cc
+        })]
+        for (let i = 0; i < viewList.value.length; i++) {
+            let c = viewList.value[i]
+            let cache = target.getCache(c)
+            if (cache.isComplete) {
+                imgOnLoad(c)
             }
-            child.isView = true
-            imgCommon.mediaUpdateState(child)
-            jFileCache.autoSave()
         }
-    }, "waterfallScroll", 100)
+        store.isRefresh = false
+    })
+
+    target.eventInit(divRef.value)
+    startLoopFunc()
+
+    setTimeout(() => {
+        window.addEventListener("resize", () => {
+            console.log("resize")
+            for (let i = 0; i < viewList.value.length; i++) {
+                let child = viewList.value[i]
+                child.isLoaded && target.resizeChild(child)
+            }
+            target.jumpMedia(divRef.value, store.displayIndex, 0, viewList.value, 500)
+        })
+    }, 1000);
+})
+
+const looptime = 100
+
+let curLoopTag = 0
+
+/** 显示div数量 */
+let displayDivCount = [5, 6]
+/** 加载图片数量 */
+let loadingImgCount = [4, 5]
+
+const startLoopFunc = () => {
+    curLoopTag++
+    loopFunc(curLoopTag)
 }
 
 
-const pointScale = (x: number, y: number) => {
-    let clientX = x - imgStore.divFloatLeft
-    let clientY = y - imgStore.divFloatTop
-    let div = divRef.value
-    let oldSDomScale = imgStore.domScale
-    imgStore.domScale = imgStore.domScale == 1 ? imgStore.scaling : 1
-    let left = (div.scrollLeft + clientX) / oldSDomScale * imgStore.domScale - (clientX)
-    let top = (div.scrollTop + clientY) / oldSDomScale * imgStore.domScale - (clientY)
-    setTimeout(() => {
+const loopFunc = async (loopTag: number) => {
+    return new Promise((res, _rej) => {
+        if (loopTag != curLoopTag) {
+            return res(undefined)
+        }
+        delayLoadDivFunc()
+        delayLoadImgFunc()
+        delayScrollFunc()
+        setTimeout(() => {
+            loopFunc(loopTag)
+            res(undefined)
+        }, looptime);
+    })
+}
 
-        div.scrollTo({ left: left, top: top, behavior: 'auto' })
-    }, 50);
+const delayLoadDivFunc = async () => {
+    everyBetween(viewList.value, store.displayIndex * 2, displayDivCount, (c) => {
+        c.isViewDiv = true
+    })
+}
 
+const delayLoadImgFunc = async () => {
+
+    everyBetween(viewList.value, store.displayIndex * 2, loadingImgCount, (c) => {
+        let cache = target.getCache(c)
+        c.isViewImg = cache.type == "img"
+        c.isViewVideo = cache.type == "video"
+    })
+}
+
+const delayScrollFunc = async () => {
+    let top = 0
+    for (let i = 0; i < viewList.value.length; i++) {
+        let c = viewList.value[i]
+        if (!c.isViewDisplay || !c.isViewDiv) {
+            continue
+        }
+        if (top >= divRef.value.scrollTop) {
+            store.displayIndex = c.displayIndex
+            break
+        }
+        top += (c.scale || 0) * (c.displayH || 0) + mediaStore.margin
+    }
+}
+
+const imgOnLoad = (item: MediaViewChildType, e?: Event) => {
+    let cache = jFileCache.mediaCache[item.searchIndex]
+    let oldH = item.displayH * item.scale * mediaStore.domScale
+    if (!cache.isComplete) {
+        cache.originW = (<HTMLImageElement>e.target).width
+        cache.originH = (<HTMLImageElement>e.target).height
+        cache.isComplete = true
+    }
+    target.resizeChild(item)
+    if (item.displayIndex <= store.displayIndex || (item.displayIndex == store.displayIndex && item.splitNum < mediaStore.curSplit)) {
+
+        divRef.value.scrollTop += item.displayH * item.scale - oldH
+        // divRef.value.scrollTop += item.displayH * item.scale
+    }
+    item.isLoaded = true
+    target.updateChild(item)
 }
 
 </script>
 <template>
     <div class="comic_div" ref="divRef"
-        :style="{ 'top': imgStore.divFloatTop + 'px', 'left': imgStore.divFloatLeft + 'px', 'width': imgStore.divFloatW + 'px', 'height': imgStore.divFloatH + 'px' }"
-        @scroll="onScroll">
+        :style="{ 'top': mediaStore.divFloatTop + 'px', 'left': mediaStore.divFloatLeft + 'px', 'width': mediaStore.divFloatW + 'px', 'height': mediaStore.divFloatH + 'px' }">
 
         <!-- 移动缩放用 -->
         <div class="display_trans_box"
-            :style="{ 'width': imgStore.divFloatW + 'px', 'height': imgStore.divFloatH + 'px', 'transform': 'scale(' + imgStore.domScale + ')' }">
+            :style="{ 'width': mediaStore.divFloatW + 'px', 'height': mediaStore.divFloatH + 'px', 'transform': 'scale(' + mediaStore.domScale + ')' }">
             <!-- 展开列表(for循环) -->
-            <div :class="'display_list ' + item.displayIndex + '_' + item.splitNum"
-                v-for="(item, index) in imgStore.children" :key="item.searchIndex">
+            <template v-for="(item, index) in viewList" :key="item.searchIndex">
                 <!-- 分割显示 -->
-                <div v-if="item.isViewDisplay"
-                    :style="{ 'width': (item.scale * item.displayW) + 'px', 'height': (item.scale * item.displayH) + 'px', 'margin': '0px 0px ' + ((index + 1 < imgStore.children.length) ? imgStore.margin : 0) + 'px 0px' }">
+                <div v-if="item.isViewDiv && item.isViewDisplay"
+                    :class="'display_list ' + item.displayIndex + '_' + item.splitNum"
+                    :style="{ 'width': (item.scale * item.displayW) + 'px', 'height': (item.scale * item.displayH) + 'px', 'margin': '0px 0px ' + ((index + 1 < viewList.length) ? mediaStore.margin : 0) + 'px 0px' }">
                     <!-- 包裹可视部分 -->
                     <div class="display_container" :style="{ 'transform': 'scale(' + item.scale + ')' }">
                         <!-- 标准状态 -->
                         <div class="display_show"
                             :style="{ 'width': item.displayW + 'px', 'height': item.displayH + 'px', }">
                             <!-- 加载状态 -->
-                            <div class="imgLoading" v-if="item.isViewLoading"
+                            <div class="imgLoading" v-if="!item.isLoaded"
                                 :style="{ 'background-color': store.mediaLoadingDivColor }">
                                 <div class="imgLoading_center">
                                     <van-loading vertical type="spinner" size="50" text-size="50" text-color="#fff">{{
-                                        item.displayIndex
-                                    }}_{{ item.splitNum }}</van-loading>
+            item.displayIndex
+        }}_{{ item.splitNum }}</van-loading>
                                 </div>
                             </div>
                             <!-- 图像 -->
-                            <div class="imgLoaded" v-if="item.isViewMedia">
+                            <div class="imgLoaded">
                                 <!-- 图片 -->
                                 <img v-if="item.isViewImg" class="comic_img" ref="imgRef"
-                                    :src="jFileCache.imgCache[item.searchIndex].dataUrl"
-                                    @load="(e) => { imgOnLoad(e, item) }"
+                                    :src="jFileCache.mediaCache[item.searchIndex].dataUrl"
+                                    @load="(e) => { imgOnLoad(item, e) }"
                                     :style="{ 'transform': 'translate(' + (item.transX) + 'px,' + (item.transY) + 'px)' }"
                                     draggable="false" ondragstart="return false;">
                                 <!-- 视频 -->
                                 <video v-if="item.isViewVideo" class="comic_img"
-                                    :src="jFileCache.imgCache[item.searchIndex].dataUrl" autoplay loop prevload
+                                    :src="jFileCache.mediaCache[item.searchIndex].dataUrl" autoplay loop prevload
                                     :style="{ 'transform': 'translate(' + (item.transX) + 'px,' + (item.transY) + 'px)' }">
                                 </video>
                             </div>
@@ -152,7 +197,7 @@ const pointScale = (x: number, y: number) => {
                         </div>
                     </div>
                 </div>
-            </div>
+            </template>
         </div>
     </div>
     <ComicDisplayBottom></ComicDisplayBottom>
@@ -204,8 +249,8 @@ const pointScale = (x: number, y: number) => {
 .display_trans_box {
 
     transform-origin: left top;
-    display: flex;
-    flex-direction: column;
+    /* display: flex;
+    flex-direction: column; */
     /* position: absolute; */
 }
 
@@ -213,8 +258,4 @@ const pointScale = (x: number, y: number) => {
     transform-origin: left top;
 
 }
-
-.display_list {
-    /* background-color: yellow; */
-}
-</style>
+</style>../mediaStore./ComicDisplayWaterfall

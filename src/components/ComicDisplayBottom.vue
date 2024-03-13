@@ -1,21 +1,21 @@
 <script setup lang="ts">
 
 import { store } from '../store'
-import { imgStore } from '../imgStore'
+import { mediaStore } from '../mediaStore'
 
 </script>
 <template>
-    <div class="bottom_div none_Touch" :style="{ 'bottom': imgStore.msgBottom + 'px' }">
+    <div class="bottom_div none_Touch" :style="{ 'bottom': mediaStore.msgBottom + 'px' }">
         <!-- 第几页 -->
         <div class="vintage2 none_Touch" v-if="store.isDisplayMediaNum" :style="{ 'color': store.textMsgColor }">
-            {{ store.displayIndex + 1 }}/{{ imgStore.len }}</div>
+            {{ store.displayIndex + 1 }}/{{ mediaStore.len }}</div>
         <!-- 文件信息 -->
         <div class="vintage2 none_Touch" :style="{ 'color': store.textMsgColor }" v-if="store.isDisplayFileName">{{
-            store.fileName + (imgStore.zipInFileName ? (' /' + imgStore.zipInFileName) : '')
+            store.fileName + (mediaStore.zipInFileName ? (' /' + mediaStore.zipInFileName) : '')
         }}</div>
         <!-- 测试用的 -->
         <div class="vintage2 none_Touch" :style="{ 'color': store.textMsgColor }"
-            v-if="store.isDisplayDebugMsg && store.isControlDebug">{{ imgStore.debugMsg }}</div>
+            v-if="store.isDisplayDebugMsg && store.isControlDebug">{{ mediaStore.debugMsg }}</div>
 
     </div>
 </template>
@@ -31,4 +31,4 @@ import { imgStore } from '../imgStore'
     width: 100%;
 
 }
-</style>
+</style>../mediaStore

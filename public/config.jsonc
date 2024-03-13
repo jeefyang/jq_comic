@@ -11,7 +11,7 @@
         },
         {
             "key": "test",
-            "url": "D:/trans/heshi/webm"
+            "url": "./test"
         }
     ],
     "listen": 3006

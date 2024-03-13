@@ -1,5 +1,6 @@
 
-import { imgStore, imgStoreDisplayChildType as imgStoreDisplayChildType } from "../imgStore"
+import { mediaMiddleData, mediaStore } from "../mediaStore"
+import { MediaViewChildType } from "../media"
 import { store } from "../store"
 import { jFileCache } from "./fileCache"
 import { JImgCommonType } from "./imgCommon"
@@ -11,10 +12,10 @@ class JImgWaterfall extends JImgCommonChild implements JImgCommonType {
 
 
     updateViewState() {
-        for (let i = 0; i < imgStore.waterfallNextMediaCount; i++) {
+        for (let i = 0; i < mediaStore.waterfallNextMediaCount; i++) {
             let displayIndex = i + store.displayIndex
-            for (let j = 0; j < imgStore.children.length; j++) {
-                let child = imgStore.children[j]
+            for (let j = 0; j < mediaMiddleData.list.length; j++) {
+                let child = mediaMiddleData.list[j]
                 if (child.displayIndex == displayIndex) {
                     child.isView = true
                 }
@@ -23,8 +24,8 @@ class JImgWaterfall extends JImgCommonChild implements JImgCommonType {
         }
     }
 
-    MediaResize(obj: imgStoreDisplayChildType) {
-        let cache = jFileCache.imgCache[obj.searchIndex]
+    MediaResize(obj: MediaViewChildType) {
+        let cache = jFileCache.mediaCache[obj.searchIndex]
 
         this.mediaUpdateState(obj)
         if (!obj.isViewDisplay) {
@@ -47,31 +48,31 @@ class JImgWaterfall extends JImgCommonChild implements JImgCommonType {
             obj.transX = 0
         }
         obj.displayH = cache.originH
-        obj.scale = imgStore.divFloatW / obj.displayW
+        obj.scale = mediaStore.divFloatW / obj.displayW
     }
 
-    scrollView(index: number, start: number, checkFunc: (size: number, c: imgStoreDisplayChildType, index: number) => boolean) {
+    scrollView(index: number, start: number, checkFunc: (size: number, c: MediaViewChildType, index: number) => boolean) {
         let findIndex = -1
-        for (let i = index; i < imgStore.children.length; i++) {
-            let c = imgStore.children[i]
+        for (let i = index; i < mediaMiddleData.list.length; i++) {
+            let c = mediaMiddleData.list[i]
             if (!c.isViewDisplay) {
                 continue
             }
-            let h = start + c.displayH * c.scale * imgStore.domScale
+            let h = start + c.displayH * c.scale * mediaStore.domScale
             if (checkFunc(h, c, i)) {
                 findIndex = i
                 break
             }
-            start = h + imgStore.margin
+            start = h + mediaStore.margin
         }
         index = findIndex
         return { index, start }
     }
 
-    scrollViewList(index: number, start: number, cb?: (c: imgStoreDisplayChildType) => void) {
+    scrollViewList(index: number, start: number, cb?: (c: MediaViewChildType) => void) {
         let list: number[] = []
         let screensh = this.displayDiv.scrollTop
-        let srceeneh = this.displayDiv.scrollTop + imgStore.divFloatH
+        let srceeneh = this.displayDiv.scrollTop + mediaStore.divFloatH
         this.scrollView(index, start, (h, c, i) => {
             if ((screensh <= start && srceeneh >= start) ||
                 (screensh <= h && srceeneh >= h) ||
@@ -93,8 +94,8 @@ class JImgWaterfall extends JImgCommonChild implements JImgCommonType {
             setTimeout(() => {
                 let top = 0
 
-                for (let i = 0; i < imgStore.children.length; i++) {
-                    let child = imgStore.children[i]
+                for (let i = 0; i < mediaMiddleData.list.length; i++) {
+                    let child = mediaMiddleData.list[i]
                     if (!child.isViewDisplay) {
                         continue
                     }
@@ -103,7 +104,7 @@ class JImgWaterfall extends JImgCommonChild implements JImgCommonType {
                         res()
                         return
                     }
-                    top += child.displayH * child.scale * imgStore.domScale + imgStore.margin
+                    top += child.displayH * child.scale * mediaStore.domScale + mediaStore.margin
                 }
                 res()
             }, 500);

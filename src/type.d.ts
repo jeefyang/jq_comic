@@ -38,3 +38,4 @@ export type JConfigType = {
 }
 
 export type NameSortType = "名称" | "日期" | "大小" | "数字"
+

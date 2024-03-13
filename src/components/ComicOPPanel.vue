@@ -6,11 +6,11 @@ import { jFileCache } from '../tool/fileCache';
 import { NameSortType } from '../type';
 import { showToast } from 'vant';
 import { staticData } from '../const';
-import { imgStore } from '../imgStore';
-import { imgCommon } from '../tool/imgCommon';
+import { mediaStore } from '../mediaStore';
+import { mainMediaCtrl } from '../tool/imgCommon';
 const readModeMap: { key: typeof store.readMode, name: string }[] = [
-    { key: "fit", name: "适应屏幕" },
     { key: "none", name: "原始" },
+    { key: "fit", name: "适应屏幕" },
     { key: "width", name: "适应宽度" },
     { key: "height", name: "适应高度" },
     { key: "udWaterfall", name: "上下瀑布" }
@@ -56,9 +56,16 @@ const freshImg = async () => {
     // return
 }
 
-
+/** 测试操作 */
 const dispatchTest = () => {
-    console.log(imgCommon.displayDiv.scrollLeft, imgStore.divFloatW, imgStore.divFloatH)
+    console.time("test")
+    let img = new Image()
+    img.onload = () => {
+        console.log(img.src, img.width, img.height)
+        console.timeEnd("test")
+    }
+    img.src = "http://localhost:3006/getZipInFileByName?key=normal&url=comic%2FY-%E5%8C%BBl%E9%BE%99%2F%5BMox.moe%5D%5B%E9%86%AB%E9%BE%8D%5D%E5%8D%B724.zip&fileName=createby.png"
+    // console.log(imgCommon.displayDiv.scrollLeft, imgStore.divFloatW, imgStore.divFloatH)
 }
 
 </script>
@@ -68,7 +75,8 @@ const dispatchTest = () => {
         <div class="sort">
             <div class="sort_title">观看:</div>
             <van-radio-group v-model="store.readMode" direction="horizontal">
-                <van-radio v-for="(item, index) in readModeMap" :key="index" :name="item.key">{{ item.name }}</van-radio>
+                <van-radio v-for="(item, index) in readModeMap" :key="index" :name="item.key">{{ item.name
+                    }}</van-radio>
             </van-radio-group>
         </div>
         <!-- 空行 -->
@@ -77,8 +85,9 @@ const dispatchTest = () => {
         <!-- 分割模式 -->
         <div class="sort">
             <div class="sort_title">分割:</div>
-            <van-radio-group v-model="store.splitMedia" direction="horizontal" @change="imgCommon.screenResize()">
-                <van-radio v-for="(item, index) in splitImgMap" :key="index" :name="item.key">{{ item.name }}</van-radio>
+            <van-radio-group v-model="store.splitMedia" direction="horizontal" @change="mainMediaCtrl.screenResize()">
+                <van-radio v-for="(item, index) in splitImgMap" :key="index" :name="item.key">{{ item.name
+                    }}</van-radio>
             </van-radio-group>
         </div>
         <!-- 空行 -->
@@ -98,7 +107,8 @@ const dispatchTest = () => {
         <div class="sort">
             <div class="sort_title">方向:</div>
             <van-dropdown-menu>
-                <van-dropdown-item v-model="store.directX" :options="directXMap" @change="imgCommon.screenResize()" />
+                <van-dropdown-item v-model="store.directX" :options="directXMap"
+                    @change="mainMediaCtrl.screenResize()" />
             </van-dropdown-menu>
         </div>
 
@@ -108,7 +118,7 @@ const dispatchTest = () => {
         <!-- 方向 -->
         <div class="sort">
             <div class="sort_title">显示间隔:</div>
-            <input type="number" v-model="imgStore.margin">
+            <input type="number" v-model="mediaStore.margin">
         </div>
 
         <!-- 空行 -->
@@ -157,7 +167,7 @@ const dispatchTest = () => {
         <!-- 显示名称 -->
         <div class="sort">
             <div class="sort_title">显示操作图:</div>
-            <van-switch v-model="imgStore.displayArea">
+            <van-switch v-model="mediaStore.displayArea">
                 <template #node>
                     <div class="icon-wrapper">
                         <van-icon :name="store.isDisplayFileName ? 'success' : 'cross'" />
@@ -237,8 +247,8 @@ const dispatchTest = () => {
         <!-- 常规按钮功能 -->
         <div class="sort">
             <van-button type="default" @click="setRefresh">刷新</van-button>
-            <van-button type="default" :disabled="!store.isAutoSave" @click="dispatchTest">测试</van-button>
-            <van-button type="default" :disabled="!store.isAutoSave" @click="setAutoSave(true)">保存</van-button>
+            <van-button type="default" :disabled="!store.isControlDebug" @click="dispatchTest">测试</van-button>
+            <van-button type="default" @click="setAutoSave(true)">保存</van-button>
         </div>
         <!-- 空行 -->
         <div class="br"></div>
@@ -307,4 +317,4 @@ const dispatchTest = () => {
     line-height: 32px;
     color: var(--van-gray-5);
 }
-</style>
+</style>../mediaStore

@@ -1,51 +1,6 @@
-import { reactive } from "vue"
-import { JAreaType } from "./const"
+import StreamZip from "node-stream-zip";
 
-export type imgStoreDisplayChildType = {
-    searchIndex: number
-    /** 媒体偏移坐标x */
-    transX?: number
-    /** 媒体偏移坐标y */
-    transY?: number
-    /** 媒体缩放 */
-    scale?: number
-    /** 媒体显示的宽度 */
-    displayW?: number
-    /** 媒体显示的高度 */
-    displayH?: number
-    /** 是否已经开始播放视频 */
-    isPlayedVideo?: boolean
-    /** 包裹元素的位移x */
-    parentTransX?: number
-    /** 包裹元素的位移y */
-    parentTransY?: number
-    /** 展示用的顺序 */
-    displayIndex: number
-    /** 是否切割 */
-    isSplit?: boolean
-    /** 是否完全加载好 */
-    isLoaded?: boolean
-    /** 切割后的第几张 */
-    splitNum?: 0 | 1
-    /** 是否可以打开浏览 */
-    isView?: boolean
-    // 额外操作
-    /** 图像是否可显 */
-    isViewDisplay?: boolean
-    /** div是否需要加载,用于减少过度 */
-    isViewDivLoad?: boolean
-    /** 是否显示加载 */
-    isViewLoading?: boolean
-    /** 是否开始加载图像 */
-    isViewMedia?: boolean
-    /** 是否显示在视频 */
-    isViewVideo?: boolean
-    /** 是否显示在图片 */
-    isViewImg?: boolean
-
-}
-
-export type imgStoreChildType = {
+export type MediaContentChildType = {
     /** 画布数据,必须存在 */
     dataUrl: string
     /** 图片原始宽,后期获取 */
@@ -70,11 +25,77 @@ export type imgStoreChildType = {
     isComplete?: boolean
     /** 子节点排序 */
     childIndex: number
+    /** 关键key */
+    key: string
 }
 
-export type imgStoreType = {
+export type MediaZipMsgType = {
+    /** 关键key */
+    key: string
+    /** 文件夹路径 */
+    dirUrl: string
+    /** 文件名 */
+    fileName: string
+    /** 子文件数量 */
+    count: number,
+    /** 原始文件排列 */
+    list: {
+        key: string
+        data: StreamZip.ZipEntry;
+    }[]
+    /** 后期排列 */
+    sortList?: {
+        key: string;
+        data: StreamZip.ZipEntry;
+    }[]
+    /** 排列类型 */
+    sortType?: string
+}
+
+export type MediaViewChildType = {
+    /** 索引值 */
+    searchIndex: number
+    /** 偏移坐标x */
+    transX?: number
+    /** 偏移坐标y */
+    transY?: number
+    /** 缩放 */
+    scale?: number
+    /** 媒体显示的宽度 */
+    displayW?: number
+    /** 媒体显示的高度 */
+    displayH?: number
+    /** 是否已经开始播放视频 */
+    isPlayedVideo?: boolean
+    /** 包裹元素的位移x */
+    parentTransX?: number
+    /** 包裹元素的位移y */
+    parentTransY?: number
+    /** 展示用的顺序 */
+    displayIndex: number
+    /** 是否切割 */
+    isSplit?: boolean
+    /** 是否完全加载好 */
+    isLoaded?: boolean
+    /** 切割后的第几张 */
+    splitNum?: 0 | 1
+    /** 是否可以打开浏览 */
+    isView?: boolean
+
+    // 额外操作
+    /** div是否需要加载,用于减少过度 */
+    isViewDiv?: boolean
+    /** 是否显示在视频 */
+    isViewVideo?: boolean
+    /** 是否显示在图片 */
+    isViewImg?: boolean
+    /** 是否显示,跟分割有关 */
+    isViewDisplay?: boolean
+}
+
+export type MediaStoreType = {
     /** 子节点 */
-    children: imgStoreDisplayChildType[]
+    // children: MediaViewChildType[]
     /** 屏幕宽 */
     screenW: number
     /** 屏幕高 */
@@ -140,39 +161,3 @@ export type imgStoreType = {
     /** 标准移动比例(相对于屏幕) */
     standardMoveRatio: number
 }
-
-export const imgStore = reactive(<imgStoreType>{
-    children: [],
-    screenW: 0,
-    screenH: 0,
-    domScale: 1,
-    domTransX: 0,
-    domTransY: 0,
-    divFloatWRatio: 0.01,
-    divFloatHRatio: 0.01,
-    divFloatTop: 0,
-    divFloatLeft: 0,
-    divFloatW: 0,
-    divFloatH: 0,
-    margin: 5,
-    isMediaLoading: false,
-    isMediaPrepareLoading: false,
-    transitionMS: 300,
-    isNextWaterfall: false,
-    isPrevWaterfall: false,
-    isZip: false,
-    zipInFileName: "",
-    len: 0,
-    msgBottom: 30,
-    curSplit: 0,
-    waterfallNextMediaCount: 8,
-    waterfallPrevMediaCount: 8,
-    StandardPrevMediaCount: 3,
-    StandardNextMediaCount: 3,
-    areaTouch: [],
-    displayArea: false,
-    scaling: 2,
-    standardMoveRatio: 1,
-    debugMsg: "",
-
-})

@@ -1,7 +1,7 @@
 import { JAreaType } from "../const";
-import { imgStore } from "../imgStore";
+import { mediaStore } from "../mediaStore";
 import { store } from "../store";
-import { imgCommon } from "./imgCommon";
+import { mainMediaCtrl } from "./imgCommon";
 
 class JAction {
 
@@ -88,16 +88,16 @@ class JAction {
     }
 
     getAreaPos(obj: JAreaType) {
-        let startX = imgStore.divFloatW * obj.startXPer + obj.startX
-        let startY = imgStore.divFloatH * obj.startYPer + obj.startY
-        let endX = imgStore.divFloatW * obj.endXPer + obj.endX
-        let endY = imgStore.divFloatH * obj.endYPer + obj.endY
+        let startX = mediaStore.divFloatW * obj.startXPer + obj.startX
+        let startY = mediaStore.divFloatH * obj.startYPer + obj.startY
+        let endX = mediaStore.divFloatW * obj.endXPer + obj.endX
+        let endY = mediaStore.divFloatH * obj.endYPer + obj.endY
         return { startX, startY, endX, endY }
     }
 
     getClockArea(x: number, y: number) {
-        for (let i = 0; i < imgStore.areaTouch.length; i++) {
-            let child = imgStore.areaTouch[i]
+        for (let i = 0; i < mediaStore.areaTouch.length; i++) {
+            let child = mediaStore.areaTouch[i]
             let p = this.getAreaPos(child)
             if (x < p.startX || y < p.startY) {
                 continue
@@ -110,7 +110,10 @@ class JAction {
         return undefined
     }
 
-    setClickArea(x: number, y: number) {
+    setClickArea(x: number, y: number, otherFuns?: {
+        setNext?: () => void
+        setPrev?: () => void
+    }) {
         let area = this.getClockArea(x, y)
         if (!area) {
             return
@@ -124,11 +127,11 @@ class JAction {
         else if (area.type == "progressBar") {
             store.displayBottomBar = true
         }
-        else if (area.type == "next") {
-            imgCommon.setNext()
+        else if (area.type == "next" && otherFuns?.setNext) {
+            otherFuns.setNext()
         }
-        else if (area.type == "prev") {
-            imgCommon.setPrev()
+        else if (area.type == "prev" && otherFuns?.setPrev) {
+            otherFuns.setPrev()
         }
     }
 

@@ -35,7 +35,6 @@ export function decodeFolder(baseUrl: string, url: string) {
         url: url,
         name: newUrl.split(path.sep).reverse()[0]
     }
-    console.log("文件总数", files.length)
     for (let i = 0; i < files.length; i++) {
         let file = files[i]
         let fileUrl = path.join(newUrl, file)

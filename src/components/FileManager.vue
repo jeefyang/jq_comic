@@ -5,8 +5,8 @@ import { onMounted, ref } from "vue";
 import { showLoadingToast, showToast, type ConfigProviderThemeVars } from 'vant';
 import { JFileFormatType, JFolderDisplayType, NameSortType } from "../type";
 import path from "path-browserify"
-import { imgStore } from "../imgStore"
-import { imgCommon } from "../tool/imgCommon";
+import { mediaStore } from "../mediaStore"
+import { mainMediaCtrl } from "../tool/imgCommon";
 
 
 const themeVars: ConfigProviderThemeVars = {
@@ -182,7 +182,7 @@ const selectFileFunc = async (item: (typeof fileList.value)[number]) => {
     }
     else if (item.type == "file") {
         store.isDisplayLoading = true
-        let check = await imgCommon.openMedia(store.curDirUrl, item.originName, 0)
+        let check = await mainMediaCtrl.openMedia(store.curDirUrl, item.originName, 0)
         if (!check) {
             loadding.close()
             showToast({ message: "没有可观看的文件", duration: 1000, forbidClick: true })
@@ -286,7 +286,7 @@ const scrollLazyLoad = async (num: number) => {
 
 <template>
     <div class="file_big_div"
-        :style="{ 'top': '0px', 'left': '0px', 'width': imgStore.screenW + 'px', 'height': imgStore.screenH + 'px' }"
+        :style="{ 'top': '0px', 'left': '0px', 'width': mediaStore.screenW + 'px', 'height': mediaStore.screenH + 'px' }"
         draggable="false" ondragstart="return false;">
         <div class='file_back_div'></div>
         <!-- 浮动层 -->
@@ -457,3 +457,4 @@ const scrollLazyLoad = async (num: number) => {
     justify-content: space-between;
 }
 </style>
+../mediaStore

@@ -1,5 +1,6 @@
 import { areaTouchWaterFall } from "../const"
-import { imgStore, imgStoreDisplayChildType } from "../imgStore"
+import { mediaMiddleData, mediaStore } from "../mediaStore"
+import { MediaViewChildType } from "../media"
 import { store } from "../store"
 import { jFileCache } from "./fileCache"
 import { jImgStandard } from "./imgStandard"
@@ -7,18 +8,18 @@ import { jImgWaterfall } from "./imgWaterfall"
 
 export type JImgCommonType = {
     /** 预处理 */
-    preprocessChildMedia: (obj: imgStoreDisplayChildType) => imgStoreDisplayChildType
+    preprocessChildMedia: (obj: MediaViewChildType) => MediaViewChildType
     /** 屏幕尺寸重置 */
     screenResize: () => void
     /** 媒体尺寸重置 */
-    MediaResize: (obj: imgStoreDisplayChildType) => void
+    MediaResize: (obj: MediaViewChildType) => void
     /** 设置当前的信息 */
     setCurMsg: () => void
     /** 定点缩放 */
     pointScale: (x: number, y: number, scale: number) => void
     /** 跳转媒体 */
     jumpMedia: (displayIndex: number, splitNum: 0 | 1) => Promise<void>
-    mediaUpdateState: (obj: imgStoreDisplayChildType, isNoMirro?: boolean) => void
+    mediaUpdateState: (obj: MediaViewChildType, isNoMirro?: boolean) => void
     updateViewState: () => void
     setNext: () => void
     setPrev: () => void
@@ -44,7 +45,7 @@ export class JImgCommon implements JImgCommonType {
         }
     }
 
-    MediaResize(obj: imgStoreDisplayChildType) {
+    MediaResize(obj: MediaViewChildType) {
 
         if (store.readMode == "udWaterfall") {
             jImgWaterfall.MediaResize(obj)
@@ -54,7 +55,7 @@ export class JImgCommon implements JImgCommonType {
         }
     }
 
-    mediaUpdateState(obj: imgStoreDisplayChildType, isNoMirro?: boolean) {
+    mediaUpdateState(obj: MediaViewChildType, isNoMirro?: boolean) {
         if (store.readMode == "udWaterfall") {
             jImgWaterfall.mediaUpdateState(obj, isNoMirro)
         }
@@ -72,10 +73,10 @@ export class JImgCommon implements JImgCommonType {
 
     setAreaTouch() {
         if (store.readMode == "udWaterfall") {
-            imgStore.areaTouch = [...areaTouchWaterFall]
+            mediaStore.areaTouch = [...areaTouchWaterFall]
         }
         else {
-            imgStore.areaTouch = [...areaTouchWaterFall]
+            mediaStore.areaTouch = [...areaTouchWaterFall]
         }
     }
 
@@ -113,19 +114,20 @@ export class JImgCommon implements JImgCommonType {
         store.fileName = fileName || store.fileName
         store.curDirUrl = store.dirUrl
         let comicData = await this.openComicList(store.dirUrl, store.fileName)
-        imgStore.isZip = comicData.listdata.isZip
-        imgStore.zipInFileName = ""
-        if (imgStore.isZip) {
+        mediaStore.isZip = comicData.listdata.isZip
+        mediaStore.zipInFileName = ""
+        if (mediaStore.isZip) {
             store.displayIndex = index
         }
         else {
-            let a = imgStore.children.find(c => {
-                let b = jFileCache.imgCache[c.searchIndex]
+            let a = mediaMiddleData.list.find(c => {
+                let b = jFileCache.mediaCache[c.searchIndex]
                 return b.fileName == fileName
             })
             store.displayIndex = a.displayIndex
         }
         this.updateViewState()
+        store.isRefresh = true
         await new Promise((res) => {
             setTimeout(() => {
                 this.jumpMedia(store.displayIndex, 0)
@@ -148,24 +150,25 @@ export class JImgCommon implements JImgCommonType {
     /** 打开漫画列表 */
     async openComicList(dirUrl: string, fileName: string) {
         let listdata = await jFileCache.getFileListData(dirUrl, fileName)
-        imgStore.isZip = listdata.isZip
-        imgStore.children = []
-        imgStore.len = listdata.list.length
+        mediaStore.isZip = listdata.isZip
+        // mediaStore.children = []
+        mediaMiddleData.list = []
+        mediaStore.len = listdata.list.length
         for (let i = 0; i < listdata.list.length; i++) {
             let child = listdata.list[i]
-            let imgObjA: imgStoreDisplayChildType = {
+            let imgObjA: MediaViewChildType = {
                 searchIndex: child.childIndex,
                 displayIndex: i,
                 splitNum: 0,
             }
             this.preprocessChildMedia(imgObjA)
-            let imgObjB: imgStoreDisplayChildType = {
+            let imgObjB: MediaViewChildType = {
                 searchIndex: child.childIndex,
                 displayIndex: i,
                 splitNum: 1,
             }
             this.preprocessChildMedia(imgObjB)
-            imgStore.children.push(imgObjA, imgObjB)
+            mediaMiddleData.list.push(imgObjA, imgObjB)
         }
         return { listdata }
     }
@@ -174,14 +177,14 @@ export class JImgCommon implements JImgCommonType {
         if (displayIndex == undefined) {
             return
         }
-        for (let i = 0; i < imgStore.children.length; i++) {
-            let child = imgStore.children[i]
+        for (let i = 0; i < mediaMiddleData.list.length; i++) {
+            let child = mediaMiddleData.list[i]
             if (!child.isViewDisplay || child.displayIndex != displayIndex || child.splitNum != splitNum) {
                 continue
             }
             // child.isView = true
-            let cache = jFileCache.imgCache[child.searchIndex]
-            imgStore.zipInFileName = cache.zipInFileName || ""
+            let cache = jFileCache.mediaCache[child.searchIndex]
+            mediaStore.zipInFileName = cache.zipInFileName || ""
             store.fileName = cache.fileName
         }
         store.displayIndex = displayIndex
@@ -194,7 +197,7 @@ export class JImgCommon implements JImgCommonType {
     }
 
 
-    preprocessChildMedia(obj: imgStoreDisplayChildType) {
+    preprocessChildMedia(obj: MediaViewChildType) {
         obj.scale = 1
         obj.parentTransX = 0
         obj.parentTransY = 0
@@ -220,4 +223,4 @@ export class JImgCommon implements JImgCommonType {
 
 }
 
-export const imgCommon = new JImgCommon()
+export const mainMediaCtrl = new JImgCommon()

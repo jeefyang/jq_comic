@@ -30,3 +30,5 @@ build_*
 server_data/comic
 
 base
+
+test

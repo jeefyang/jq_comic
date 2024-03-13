@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import { store } from "../store"
-import { imgStore } from "../imgStore";
-import { imgCommon } from "../tool/imgCommon";
+import { mediaStore } from "../mediaStore";
+import { mainMediaCtrl } from "../tool/imgCommon";
 
 let curNo = ref(<number>store.displayIndex + 1)
 let numInputRef = ref(<HTMLInputElement>null)
@@ -13,8 +13,8 @@ onMounted(() => {
         if (e < 1) {
             curNo.value = 1
         }
-        if (e > imgStore.len) {
-            curNo.value = imgStore.len
+        if (e > mediaStore.len) {
+            curNo.value = mediaStore.len
         }
     })
 })
@@ -24,7 +24,7 @@ let setCloseFunc = () => {
 }
 
 let setCurNoFunc = () => {
-    imgCommon.jumpMedia(curNo.value - 1,0)
+    mainMediaCtrl.jumpMedia(curNo.value - 1, 0)
 }
 
 </script>
@@ -35,12 +35,12 @@ let setCurNoFunc = () => {
         <div class="bottom_bar_div">
             <!-- 占位 -->
             <div class="site_div"></div>
-            <input type="number" class="bottom_num_input" v-model="curNo" @change="setCurNoFunc" :max="imgStore.len" min="1"
-                ref="numInputRef">
+            <input type="number" class="bottom_num_input" v-model="curNo" @change="setCurNoFunc" :max="mediaStore.len"
+                min="1" ref="numInputRef">
             <!-- 占位 -->
             <div class="site_div"></div>
             <div class="slider_div">
-                <van-slider v-model="curNo" :min="1" :max="imgStore.len" @change="setCurNoFunc" bar-height="10px">
+                <van-slider v-model="curNo" :min="1" :max="mediaStore.len" @change="setCurNoFunc" bar-height="10px">
                     <template #button>
                         <div class="custom-button" draggable="false" ondragstart="return false;">{{ curNo }}</div>
                     </template>
@@ -48,7 +48,7 @@ let setCurNoFunc = () => {
             </div>
             <!-- 占位 -->
             <div class="site_div"></div>
-            <div>{{ imgStore.len }}</div>
+            <div>{{ mediaStore.len }}</div>
             <!-- 占位 -->
             <div class="site_div"></div>
         </div>
@@ -119,3 +119,4 @@ let setCurNoFunc = () => {
     user-select: none;
 }
 </style>
+../mediaStore

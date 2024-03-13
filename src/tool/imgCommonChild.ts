@@ -1,12 +1,13 @@
-import { imgStore, imgStoreDisplayChildType } from "../imgStore"
+import { mediaMiddleData, mediaStore } from "../mediaStore"
+import { MediaViewChildType } from "../media"
 import { store } from "../store"
 import { jFileCache } from "./fileCache"
 import { JImgCommonType } from "./imgCommon"
 
 export class JImgCommonChild implements JImgCommonType {
-    preprocessChildMedia(obj: imgStoreDisplayChildType) {
-        obj.displayW = imgStore.divFloatW
-        obj.displayH = imgStore.divFloatH
+    preprocessChildMedia(obj: MediaViewChildType) {
+        obj.displayW = mediaStore.divFloatW
+        obj.displayH = mediaStore.divFloatH
         obj.transX = 0
         obj.transY = 0
         obj.scale = 1
@@ -17,7 +18,7 @@ export class JImgCommonChild implements JImgCommonType {
     screenResize() {
         return
     }
-    MediaResize(obj: imgStoreDisplayChildType) {
+    MediaResize(obj: MediaViewChildType) {
         return
     }
     pointScale(x: number, y: number, scale: number) {
@@ -34,11 +35,11 @@ export class JImgCommonChild implements JImgCommonType {
     }
 
     /** 更新图片状态 */
-    mediaUpdateState(obj: imgStoreDisplayChildType, isNoMirro?: boolean) {
-        let cache = jFileCache.imgCache[obj.searchIndex]
+    mediaUpdateState(obj: MediaViewChildType, isNoMirro?: boolean) {
+        let cache = jFileCache.mediaCache[obj.searchIndex]
         obj.isViewVideo = cache.type == 'video'
         obj.isViewImg = cache.type == 'img'
-        obj.isViewDivLoad = obj.isView
+        obj.isViewDiv = obj.isView
         obj.isViewLoading = !obj.isLoaded
         obj.isViewMedia = obj.isView
         if (store.splitMedia == "none") {
@@ -54,7 +55,7 @@ export class JImgCommonChild implements JImgCommonType {
             obj.isViewDisplay = !obj.isLoaded || obj.isSplit || obj.splitNum == 0
         }
         if (!isNoMirro) {
-            let otherObj = imgStore.children.find(o => {
+            let otherObj = mediaMiddleData.list.find(o => {
                 return o.searchIndex == obj.searchIndex && o.splitNum != obj.splitNum
             })
             if (otherObj) {

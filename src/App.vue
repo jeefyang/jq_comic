@@ -4,8 +4,8 @@ import { onMounted } from 'vue';
 import { store } from './store';
 import { jserver } from './tool/serverLink'
 import { jFileCache } from './tool/fileCache';
-import { imgStore } from './imgStore';
-import { imgCommon } from './tool/imgCommon';
+import { mediaStore } from './mediaStore';
+import { mainMediaCtrl } from './tool/imgCommon';
 
 import FileManager from "./components/FileManager.vue"
 import ComicBottomBar from "./components/ComicBottomBar.vue"
@@ -19,20 +19,25 @@ import ComicDisplayArea from './components/ComicDisplayArea.vue'
 // const imgSrc = ref("")
 
 const resizeFunc = () => {
-  imgStore.screenW = document.body.clientWidth
-  imgStore.screenH = document.body.clientHeight
-  imgStore.divFloatLeft = imgStore.screenW * imgStore.divFloatWRatio
-  imgStore.divFloatW = imgStore.screenW - (imgStore.divFloatLeft * 2)
-  imgStore.divFloatTop = imgStore.screenH * imgStore.divFloatHRatio
-  imgStore.divFloatH = imgStore.screenH - (imgStore.divFloatTop * 2)
-  store.displayFileCol = Math.floor(imgStore.screenW / 150) + 2
-  store.displayFileIconSize = Math.floor(imgStore.screenW / 25) + 20
-  store.displayFileTextCount = Math.floor(imgStore.screenW / 100) + 5
+  mediaStore.screenW = document.body.clientWidth
+  mediaStore.screenH = document.body.clientHeight
+  mediaStore.divFloatLeft = mediaStore.screenW * mediaStore.divFloatWRatio
+  mediaStore.divFloatW = mediaStore.screenW - (mediaStore.divFloatLeft * 2)
+  mediaStore.divFloatTop = mediaStore.screenH * mediaStore.divFloatHRatio
+  mediaStore.divFloatH = mediaStore.screenH - (mediaStore.divFloatTop * 2)
+  store.displayFileCol = Math.floor(mediaStore.screenW / 150) + 2
+  store.displayFileIconSize = Math.floor(mediaStore.screenW / 25) + 20
+  store.displayFileTextCount = Math.floor(mediaStore.screenW / 100) + 5
 
 }
 
 onMounted(async () => {
 
+
+  // 禁止浏览器前进后退 另一部本在router的index.js中
+  window.addEventListener('popstate', function () {
+    history.pushState(null, null, document.URL)
+  })
 
   if (import.meta.env.MODE == "development") {
 
@@ -43,6 +48,7 @@ onMounted(async () => {
 
   let url = new URL(document.location.href)
   store.urlkey = url.searchParams.get("key") || ""
+  store.isControlDebug = url.searchParams.get("isControlDebug") == "1" ? true : false
 
   resizeFunc()
 
@@ -50,12 +56,17 @@ onMounted(async () => {
 
   let v = await jFileCache.init(jserver)
   // if (v) {
-  await imgCommon.init(v)
+  await mainMediaCtrl.init(v)
   // }
   store.isServerCompleted = true
   window.addEventListener("resize", () => {
     resizeFunc()
   })
+
+
+  //测试
+
+
 
 
   // watch(()=>[store.readMode],()=>{
@@ -71,7 +82,7 @@ onMounted(async () => {
       <div v-if="store.isServerCompleted">
         <ComicDisplayWaterfall v-if="store.readMode == 'udWaterfall'"></ComicDisplayWaterfall>
         <ComicDisplayStandard v-if="store.readMode != 'udWaterfall'"></ComicDisplayStandard>
-        <ComicDisplayArea v-if="imgStore.displayArea"></ComicDisplayArea>
+        <ComicDisplayArea v-if="mediaStore.displayArea"></ComicDisplayArea>
         <FileManager v-if="store.displayFileManager"></FileManager>
         <ComicOPPanel v-if="store.displayOPPanel"></ComicOPPanel>
         <ComicBottomBar v-if="store.displayBottomBar"></ComicBottomBar>
@@ -107,4 +118,4 @@ onMounted(async () => {
 .trpc {
   color: red;
 }
-</style>
+</style>./mediaStore

@@ -1,140 +1,138 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
-import { imgStore, imgStoreDisplayChildType } from '../imgStore'
+import { mediaMiddleData, mediaStore } from '../mediaStore'
+import { MediaViewChildType } from "../media"
 import { jFileCache } from "../tool/fileCache"
 import ComicDisplayBottom from './ComicDisplayBottom.vue'
-import { imgCommon } from '../tool/imgCommon';
+import { mainMediaCtrl } from '../tool/imgCommon';
 import { store } from '../store';
-import { jaction } from "../tool/action"
-import { JTouch } from '../tool/touch';
-import { jImgStandard } from '../tool/imgStandard';
+import { ComicDisplayStandard } from "./ComicDisplayStandard"
+import { cloneAssign } from '../tool/util';
 
 
 const divRef = ref(<HTMLDivElement>null)
+const target = new ComicDisplayStandard()
+let curChild = ref(<MediaViewChildType>null)
+let viewList: MediaViewChildType[] = []
+
 
 onMounted(() => {
     watch([() => store.splitMedia, () => store.readMode], () => {
-        imgStore.domScale = 1
-        for (let i = 0; i < imgStore.children.length; i++) {
-            let child = imgStore.children[i]
-            child.isLoaded && imgCommon.MediaResize(child)
+        mediaStore.domScale = 1
+        for (let i = 0; i < viewList.length; i++) {
+            let child = viewList[i]
+            if (child.isLoaded) {
+                target.resizeChild(child)
+                target.updateChild(child)
+            }
         }
-        imgCommon.jumpMedia(store.displayIndex, 0)
+        target.jumpMedia(divRef.value, store.displayIndex, 0, viewList, 500)
     })
     watch([() => store.directX], () => {
-        imgStore.domScale = 1
-        for (let i = 0; i < imgStore.children.length; i++) {
-            let child = imgStore.children[i]
-            child.isLoaded && imgCommon.MediaResize(child)
+        mediaStore.domScale = 1
+        for (let i = 0; i < viewList.length; i++) {
+            let child = viewList[i]
+            if (child.isLoaded) {
+                target.resizeChild(child)
+                target.updateChild(child)
+            }
         }
     })
-    imgCommon.setDiv(divRef.value)
-    let touch = new JTouch(divRef.value)
-    touch.swipeTouchDelta = 100
-    touch.setClick((x, y) => {
-        console.log("click")
-        jaction.setClickArea(x, y)
-    })
-    touch.setDblclick((x, y) => {
-        console.log('dblclick')
-        pointScale(x, y)
+
+    watch([() => store.isRefresh], () => {
+        if (!store.isRefresh) {
+            return
+        }
+        viewList = []
+        viewList = [...mediaMiddleData.list.map(c => {
+            let cc = cloneAssign(c)
+            cc.isViewDisplay = true
+            return cc
+        })]
+        for (let i = 0; i < viewList.length; i++) {
+            let c = viewList[i]
+            let cache = target.getCache(c)
+            if (cache.isComplete) {
+                // imgOnLoad(c)
+            }
+        }
+        curChild.value = cloneAssign(viewList.find(c => c.displayIndex == store.displayIndex))
+        store.isRefresh = false
     })
 
-    touch.setSiwpe(() => {
-        console.log("swipe")
-    })
+    target.eventInit(divRef.value)
 })
 
-const imgOnLoad = (e: Event, item: imgStoreDisplayChildType) => {
-    let cache = jFileCache.imgCache[item.searchIndex]
-    let oldH = item.displayH * item.scale * imgStore.domScale
-    cache.originW = (<HTMLImageElement>e.target).width
-    cache.originH = (<HTMLImageElement>e.target).height
-    cache.isComplete = true
-    imgCommon.MediaResize(item)
-    if (item.displayIndex <= store.displayIndex || (item.displayIndex == store.displayIndex && item.splitNum < imgStore.curSplit)) {
+const imgOnLoad = (item: MediaViewChildType, e?: Event) => {
+    let cache = jFileCache.mediaCache[item.searchIndex]
+    let oldH = item.displayH * item.scale * mediaStore.domScale
+    if (!cache.isComplete) {
+        cache.originW = (<HTMLImageElement>e.target).width
+        cache.originH = (<HTMLImageElement>e.target).height
+        cache.isComplete = true
+    }
+    mainMediaCtrl.MediaResize(item)
+    if (item.displayIndex <= store.displayIndex || (item.displayIndex == store.displayIndex && item.splitNum < mediaStore.curSplit)) {
 
         divRef.value && (divRef.value.scrollTop += item.displayH * item.scale - oldH)
     }
     item.isLoaded = true
-    imgCommon.mediaUpdateState(item)
-    if (item.displayIndex == store.displayIndex && imgStore.curSplit == item.splitNum && !item.isViewDisplay && item.splitNum == 1) {
-        imgCommon.jumpMedia(item.displayIndex, 0)
+    mainMediaCtrl.mediaUpdateState(item)
+    if (item.displayIndex == store.displayIndex && mediaStore.curSplit == item.splitNum && !item.isViewDisplay && item.splitNum == 1) {
+        mainMediaCtrl.jumpMedia(item.displayIndex, 0)
     }
 }
 
 
-const pointScale = (x: number, y: number) => {
-    let overflowDiv = jImgStandard.getOverFlowDiv()
-    let clientX = x - imgStore.divFloatLeft
-    let clientY = y - imgStore.divFloatTop
-    let child = jImgStandard.getCurChild().o
-    let rectX = -overflowDiv.scrollLeft + child.parentTransX
-    let rectY = -overflowDiv.scrollTop + child.parentTransY
-    if (clientX < rectX || clientX > rectX + (child.scale * child.displayW * imgStore.domScale) || clientY < rectY || clientY > rectY + (child.scale * child.displayH * imgStore.domScale)) {
-        return
-    }
-    let oldSDomScale = imgStore.domScale
-    imgStore.domScale = imgStore.domScale == 1 ? imgStore.scaling : 1
-    imgCommon.MediaResize(child)
-    let left = (overflowDiv.scrollLeft + clientX) / oldSDomScale * imgStore.domScale * child.scale - (clientX)
-    let top = (overflowDiv.scrollTop + clientY) / oldSDomScale * imgStore.domScale * child.scale - (clientY)
-
-    setTimeout(() => {
-        console.log(overflowDiv)
-        overflowDiv.scrollTo({ left: left, top: top, behavior: 'auto' })
-    }, 50);
-
-}
 
 </script>
 <template>
     <!-- 定位 -->
     <div class="comic_div" ref="divRef"
-        :style="{ 'top': imgStore.divFloatTop + 'px', 'left': imgStore.divFloatLeft + 'px', 'width': imgStore.divFloatW + 'px', 'height': imgStore.divFloatH + 'px' }">
-        <!-- 显示用的框(撑满固定不动,禁用滚动轴) -->
-        <div class="display_trans_box">
-            <!-- 整体偏移,用于切换图片 -->
-            <div class="diplay_big_trans" :style="{ 'left': imgStore.domTransX + 'px', 'top': imgStore.domTransY + 'px' }"
-                onscroll="return false">
-                <!-- 展开列表(for循环) -->
-                <div :class="'display_list ' + item.displayIndex + '_' + item.splitNum" v-for="(item) in imgStore.children"
-                    :key="item.searchIndex">
+        :style="{ 'top': mediaStore.divFloatTop + 'px', 'left': mediaStore.divFloatLeft + 'px', 'width': mediaStore.divFloatW + 'px', 'height': mediaStore.divFloatH + 'px' }">
+        <template v-if="curChild">
+            <!-- 显示用的框(撑满固定不动,禁用滚动轴) -->
+            <div class="display_trans_box">
+                <!-- 整体偏移,用于切换图片 -->
+                <div class="diplay_big_trans"
+                    :style="{ 'left': mediaStore.domTransX + 'px', 'top': mediaStore.domTransY + 'px' }"
+                    onscroll="return false">
 
                     <!-- 单页显示用的框(撑满固定不动,会有滚动轴) -->
                     <div class="display_overflow"
-                        :style="{ 'width': imgStore.divFloatW + 'px', 'height': imgStore.divFloatH + 'px' }">
+                        :style="{ 'width': mediaStore.divFloatW + 'px', 'height': mediaStore.divFloatH + 'px' }">
                         <!-- 移动位置,影响滚动轴 -->
                         <div class="display_trans"
-                            :style="{ 'top': item.parentTransY + 'px', 'left': item.parentTransX + 'px', 'width': (item.scale * item.displayW * imgStore.domScale) + 'px', 'height': (item.scale * item.displayH * imgStore.domScale) + 'px' }">
+                            :style="{ 'top': (mediaStore.divFloatH > curChild.scale * mediaStore.domScale * curChild.displayH ? curChild.parentTransY : 0) + 'px', 'left': (mediaStore.divFloatW > curChild.scale * mediaStore.domScale * curChild.displayW ? curChild.parentTransX : 0) + 'px', 'width': (curChild.scale * curChild.displayW * mediaStore.domScale) + 'px', 'height': (curChild.scale * curChild.displayH * mediaStore.domScale) + 'px' }">
                             <!-- 缩放视图 -->
                             <div class="display_container"
-                                :style="{ 'transform': 'scale(' + item.scale * imgStore.domScale + ')' }">
+                                :style="{ 'transform': 'scale(' + curChild.scale * mediaStore.domScale + ')' }">
                                 <!-- 标准状态 -->
                                 <div class="display_show"
-                                    :style="{ 'width': item.displayW + 'px', 'height': item.displayH + 'px', }">
+                                    :style="{ 'width': curChild.displayW + 'px', 'height': curChild.displayH + 'px', }">
                                     <!-- 加载状态 -->
-                                    <div class="imgLoading" v-if="item.isViewLoading"
+                                    <div class="imgLoading" v-if="!curChild.isLoaded"
                                         :style="{ 'background-color': store.mediaLoadingDivColor }">
                                         <div class="imgLoading_center">
                                             <van-loading vertical type="spinner" size="50" text-size="50"
                                                 text-color="#fff">{{
-                                                    item.displayIndex
-                                                }}_{{ item.splitNum }}</van-loading>
+            curChild.displayIndex
+        }}_{{ curChild.splitNum }}</van-loading>
                                         </div>
                                     </div>
                                     <!-- 图像 -->
-                                    <div class="imgLoaded" v-if="item.isViewMedia">
+                                    <div class="imgLoaded">
                                         <!-- 图片 -->
-                                        <img v-if="item.isViewImg" class="comic_img" ref="imgRef"
-                                            :src="jFileCache.imgCache[item.searchIndex].dataUrl"
-                                            @load="(e) => { imgOnLoad(e, item) }"
-                                            :style="{ 'transform': 'translate(' + (item.transX) + 'px,' + (item.transY) + 'px)' }"
+                                        <img v-if="curChild.isViewImg" class="comic_img" ref="imgRef"
+                                            :src="jFileCache.mediaCache[curChild.searchIndex].dataUrl"
+                                            @load="(e) => { imgOnLoad(curChild, e) }"
+                                            :style="{ 'transform': 'translate(' + (curChild.transX) + 'px,' + (curChild.transY) + 'px)' }"
                                             draggable="false" ondragstart="return false;">
                                         <!-- 视频 -->
-                                        <video v-if="item.isViewVideo" class="comic_img"
-                                            :src="jFileCache.imgCache[item.searchIndex].dataUrl" autoplay loop prevload
-                                            :style="{ 'transform': 'translate(' + (item.transX) + 'px,' + (item.transY) + 'px)' }">
+                                        <video v-if="curChild.isViewVideo" class="comic_img"
+                                            :src="jFileCache.mediaCache[curChild.searchIndex].dataUrl" autoplay loop
+                                            prevload
+                                            :style="{ 'transform': 'translate(' + (curChild.transX) + 'px,' + (curChild.transY) + 'px)' }">
                                         </video>
                                     </div>
 
@@ -143,10 +141,11 @@ const pointScale = (x: number, y: number) => {
                         </div>
 
                     </div>
-                </div>
-            </div>
 
-        </div>
+                </div>
+
+            </div>
+        </template>
     </div>
     <ComicDisplayBottom></ComicDisplayBottom>
 </template>
@@ -228,4 +227,4 @@ const pointScale = (x: number, y: number) => {
 .display_overflow {
     overflow: auto;
 }
-</style>
+</style>../mediaStore
