@@ -1,3 +1,5 @@
+import { JAreaType } from "./type"
+
 /** 静态数据,不需要监听的 */
 export const staticData = {
     /** 图片加载预备时间 */
@@ -9,25 +11,12 @@ export const staticData = {
     /** 默认颜色 */
     defaultBackground: "#1c1c1e",
     /** 默认媒体加载色 */
-    defaultMediaLoadingColor:"green",
+    defaultMediaLoadingColor: "green",
     /** 显示触碰区域透明度 */
     displayAreaOpacity: 0.16
 }
 
-export type JAreaKeyType = "option" | "fileManager" | "progressBar" | "next" | "prev"
 
-export type JAreaType = {
-    startX?: number
-    startXPer?: number
-    startY?: number
-    startYPer?: number
-    endX?: number
-    endXPer?: number
-    endY?: number
-    endYPer?: number
-    color?: string
-    type: JAreaKeyType
-}
 
 function initAreaTouch(op: JAreaType) {
     if (!op.startX) {

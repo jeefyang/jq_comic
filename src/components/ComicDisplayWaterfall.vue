@@ -11,6 +11,8 @@ import { store } from '../store';
 import { MediaViewChildType } from '../media';
 import { cloneAssign, everyBetween } from '../tool/util';
 import { ComicDisplayWaterfall } from "./ComicDisplayWaterfall"
+import { areaTouchWaterFall } from '../const';
+import { mainMediaCtrl } from '../tool/mainMediaCtrl';
 
 
 const divRef = ref(<HTMLDivElement>null)
@@ -18,6 +20,8 @@ const viewList = ref(<MediaViewChildType[]>[])
 const target = new ComicDisplayWaterfall()
 
 onMounted(() => {
+    mediaStore.areaTouch = [...areaTouchWaterFall]
+
     watch([() => store.splitMedia, () => mediaStore.margin], () => {
         for (let i = 0; i < viewList.value.length; i++) {
             let child = viewList.value[i]
@@ -26,7 +30,13 @@ onMounted(() => {
                 target.updateChild(child)
             }
         }
-        target.jumpMedia(divRef.value, store.displayIndex, 0, viewList.value, 500)
+        mediaStore.jumpPage = `${store.displayIndex},0`
+        mainMediaCtrl.autoSave()
+    })
+    watch([() => mediaStore.jumpPage, () => mediaStore.forceJumpPage], () => {
+        let arr = mediaStore.jumpPage.split(",")
+        target.jumpMedia(divRef.value, parseInt(arr[0]), parseInt(arr[1] || "0") ? 1 : 0, viewList.value, 500)
+        mainMediaCtrl.autoSave()
     })
     watch([() => store.directX], () => {
         for (let i = 0; i < viewList.value.length; i++) {
@@ -36,26 +46,15 @@ onMounted(() => {
                 target.updateChild(child)
             }
         }
+        mainMediaCtrl.autoSave()
     })
     watch([() => store.isRefresh], () => {
         if (!store.isRefresh) {
             return
         }
         console.log('refresh')
-        viewList.value = []
-        viewList.value = [...mediaMiddleData.list.map(c => {
-            let cc = cloneAssign(c)
-            cc.isViewDisplay = true
-            return cc
-        })]
-        for (let i = 0; i < viewList.value.length; i++) {
-            let c = viewList.value[i]
-            let cache = target.getCache(c)
-            if (cache.isComplete) {
-                imgOnLoad(c)
-            }
-        }
-        store.isRefresh = false
+        setRefresh()
+        mainMediaCtrl.autoSave()
     })
 
     target.eventInit(divRef.value)
@@ -68,8 +67,14 @@ onMounted(() => {
                 let child = viewList.value[i]
                 child.isLoaded && target.resizeChild(child)
             }
-            target.jumpMedia(divRef.value, store.displayIndex, 0, viewList.value, 500)
+            mediaStore.jumpPage = `${store.displayIndex},0`
         })
+        if (mediaMiddleData.list && mediaMiddleData.list.length > 0) {
+            setRefresh()
+            mediaStore.jumpPage = `${store.displayIndex},0`
+            mediaStore.forceJumpPage++
+        }
+        mainMediaCtrl.autoSave()
     }, 1000);
 })
 
@@ -90,7 +95,7 @@ const startLoopFunc = () => {
 
 const loopFunc = async (loopTag: number) => {
     return new Promise((res, _rej) => {
-        if (loopTag != curLoopTag) {
+        if (loopTag != curLoopTag || !divRef.value) {
             return res(undefined)
         }
         delayLoadDivFunc()
@@ -126,11 +131,35 @@ const delayScrollFunc = async () => {
             continue
         }
         if (top >= divRef.value.scrollTop) {
+            if (store.displayIndex != c.displayIndex) {
+                mainMediaCtrl.autoSave()
+            }
             store.displayIndex = c.displayIndex
             break
         }
         top += (c.scale || 0) * (c.displayH || 0) + mediaStore.margin
     }
+}
+
+const setRefresh = () => {
+    let list: MediaViewChildType[] = []
+    mediaMiddleData.list.forEach(c => {
+        let cc = cloneAssign(c)
+        cc.isViewDisplay = true
+        list.push(cc)
+        let ccc = cloneAssign(cc)
+        ccc.splitNum = 1
+        list.push(ccc)
+    })
+    viewList.value = list
+    for (let i = 0; i < viewList.value.length; i++) {
+        let c = viewList.value[i]
+        let cache = target.getCache(c)
+        if (cache.isComplete) {
+            imgOnLoad(c)
+        }
+    }
+    store.isRefresh = false
 }
 
 const imgOnLoad = (item: MediaViewChildType, e?: Event) => {
@@ -144,7 +173,7 @@ const imgOnLoad = (item: MediaViewChildType, e?: Event) => {
     target.resizeChild(item)
     if (item.displayIndex <= store.displayIndex || (item.displayIndex == store.displayIndex && item.splitNum < mediaStore.curSplit)) {
 
-        divRef.value.scrollTop += item.displayH * item.scale - oldH
+        // divRef.value.scrollTop += item.displayH * item.scale - oldH
         // divRef.value.scrollTop += item.displayH * item.scale
     }
     item.isLoaded = true

@@ -49,7 +49,7 @@ export class ComicDisplayWaterfall {
         let left = (div.scrollLeft + clientX) / oldSDomScale * mediaStore.domScale - (clientX)
         let top = (div.scrollTop + clientY) / oldSDomScale * mediaStore.domScale - (clientY)
         setTimeout(() => {
-           
+
             div.scrollTo({ left: left, top: top, behavior: 'auto' })
         }, 50);
     }
@@ -102,6 +102,14 @@ export class ComicDisplayWaterfall {
         store.displayIndex = displayIndex
         return new Promise((res) => {
             setTimeout(() => {
+
+                let childDiv = <HTMLDivElement>(div.getElementsByClassName(`display_list ${displayIndex}_${splitNum}`)?.[0])
+                if (childDiv) {
+                    childDiv.scrollIntoView({ behavior: "smooth" })
+                    res(undefined)
+                    return
+                }
+
                 let top = 0
 
                 for (let i = 0; i < list.length; i++) {
@@ -116,7 +124,7 @@ export class ComicDisplayWaterfall {
                     }
                     top += child.displayH * child.scale * mediaStore.domScale + mediaStore.margin
                 }
-                res(undefined)
+
             }, time);
         })
     }

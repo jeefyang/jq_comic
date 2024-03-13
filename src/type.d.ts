@@ -39,3 +39,17 @@ export type JConfigType = {
 
 export type NameSortType = "名称" | "日期" | "大小" | "数字"
 
+export type JAreaKeyType = "option" | "fileManager" | "progressBar" | "next" | "prev"
+
+export type JAreaType = {
+    startX?: number
+    startXPer?: number
+    startY?: number
+    startYPer?: number
+    endX?: number
+    endXPer?: number
+    endY?: number
+    endYPer?: number
+    color?: string
+    type: JAreaKeyType
+}

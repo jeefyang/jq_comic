@@ -4,10 +4,11 @@ import { mediaMiddleData, mediaStore } from '../mediaStore'
 import { MediaViewChildType } from "../media"
 import { jFileCache } from "../tool/fileCache"
 import ComicDisplayBottom from './ComicDisplayBottom.vue'
-import { mainMediaCtrl } from '../tool/imgCommon';
 import { store } from '../store';
 import { ComicDisplayStandard } from "./ComicDisplayStandard"
 import { cloneAssign } from '../tool/util';
+import { areaTouchWaterFall } from '../const';
+import { mainMediaCtrl } from '../tool/mainMediaCtrl';
 
 
 const divRef = ref(<HTMLDivElement>null)
@@ -15,53 +16,177 @@ const target = new ComicDisplayStandard()
 let curChild = ref(<MediaViewChildType>null)
 let viewList: MediaViewChildType[] = []
 
+/** 加载图片数量 */
+let loadingImgCount = [4, 5]
 
 onMounted(() => {
+
+    mediaStore.areaTouch = [...areaTouchWaterFall]
     watch([() => store.splitMedia, () => store.readMode], () => {
         mediaStore.domScale = 1
-        for (let i = 0; i < viewList.length; i++) {
-            let child = viewList[i]
-            if (child.isLoaded) {
-                target.resizeChild(child)
-                target.updateChild(child)
-            }
-        }
+        target.resizeChild(curChild.value)
+        target.updateChild(curChild.value)
         target.jumpMedia(divRef.value, store.displayIndex, 0, viewList, 500)
+        mainMediaCtrl.autoSave()
     })
     watch([() => store.directX], () => {
         mediaStore.domScale = 1
-        for (let i = 0; i < viewList.length; i++) {
-            let child = viewList[i]
-            if (child.isLoaded) {
-                target.resizeChild(child)
-                target.updateChild(child)
-            }
+        target.resizeChild(curChild.value)
+        target.updateChild(curChild.value)
+        mainMediaCtrl.autoSave()
+    })
+
+    watch([() => mediaStore.setNext], () => {
+        let index = viewList.findIndex(c => c.displayIndex == curChild.value.displayIndex)
+        if (index == -1) {
+            return
         }
+        let c = viewList[index]
+        if (!c) {
+            return
+        }
+        if (curChild.value.isSplit && curChild.value.splitNum == 0) {
+            mediaStore.jumpPage = `${c.displayIndex},1`
+            preloadMedia(1, loadingImgCount[1], c.displayIndex)
+            return
+        }
+        if (c.displayIndex + 1 >= viewList.length) {
+            mediaStore.overEnd++
+            return
+        }
+        mediaStore.domScale = 1
+        mediaStore.jumpPage = `${c.displayIndex + 1},0`
+        preloadMedia(1, loadingImgCount[1], c.displayIndex + 1)
+        mainMediaCtrl.autoSave()
+
+    })
+
+    watch([() => mediaStore.setPrev], () => {
+        let index = viewList.findIndex(c => c.displayIndex == curChild.value.displayIndex)
+        if (index == -1) {
+            return
+        }
+        let c = viewList[index]
+        if (!c) {
+            return
+        }
+        if (curChild.value.isSplit && curChild.value.splitNum == 1) {
+            mediaStore.jumpPage = `${c.displayIndex},1`
+            preloadMedia(-1, loadingImgCount[0], c.displayIndex)
+            return
+        }
+        if (c.displayIndex - 1 < 0) {
+            mediaStore.overHead++
+            return
+        }
+        mediaStore.domScale = 1
+        mediaStore.jumpPage = `${c.displayIndex - 1},1`
+        preloadMedia(-1, loadingImgCount[0], c.displayIndex - 1)
+        mainMediaCtrl.autoSave()
+    })
+
+    watch([() => mediaStore.jumpPage, () => mediaStore.forceJumpPage], () => {
+        let arr = mediaStore.jumpPage.split(",")
+        let o = viewList.find(c => c.displayIndex == parseInt(arr[0]))
+        if (!o) {
+            return
+        }
+        curChild.value = cloneAssign(o)
+        curChild.value.splitNum = parseInt(arr[1]) ? 1 : 0
+        target.updateChild(curChild.value)
+        let searchIndex = curChild.value.searchIndex
+        let cache = target.getCache(curChild.value)
+        if (cache.type == "img") {
+            let img = new Image()
+            img.onload = () => {
+
+                if (curChild.value.searchIndex != searchIndex) {
+                    return
+                }
+                curChild.value.isLoaded = false
+                curChild.value.isViewImg = true
+            }
+            img.src = cache.dataUrl
+        }
+        else if (cache.type == "video") {
+
+        }
+        store.displayIndex = curChild.value.displayIndex
     })
 
     watch([() => store.isRefresh], () => {
         if (!store.isRefresh) {
             return
         }
-        viewList = []
-        viewList = [...mediaMiddleData.list.map(c => {
-            let cc = cloneAssign(c)
-            cc.isViewDisplay = true
-            return cc
-        })]
-        for (let i = 0; i < viewList.length; i++) {
-            let c = viewList[i]
-            let cache = target.getCache(c)
-            if (cache.isComplete) {
-                // imgOnLoad(c)
-            }
-        }
-        curChild.value = cloneAssign(viewList.find(c => c.displayIndex == store.displayIndex))
-        store.isRefresh = false
+        setRefresh()
+        mainMediaCtrl.autoSave()
     })
 
     target.eventInit(divRef.value)
+
+    setTimeout(() => {
+        window.addEventListener("resize", () => {
+            console.log("resize")
+            mediaStore.jumpPage = `${store.displayIndex},0`
+            mediaStore.forceJumpPage++
+        })
+        setRefresh()
+        mediaStore.jumpPage = `${store.displayIndex},0`
+        mediaStore.forceJumpPage++
+        mainMediaCtrl.autoSave()
+    }, 1000);
 })
+
+const setRefresh = () => {
+    viewList = []
+    viewList = [...mediaMiddleData.list.map(c => {
+        let cc = cloneAssign(c)
+        cc.isViewDisplay = true
+        return cc
+    })]
+    for (let i = 0; i < viewList.length; i++) {
+        let c = viewList[i]
+        let cache = target.getCache(c)
+        if (cache.isComplete) {
+            // imgOnLoad(c)
+        }
+    }
+    mediaStore.jumpPage = `${store.displayIndex},0`
+    mediaStore.forceJumpPage++
+    // curChild.value = cloneAssign(viewList.find(c => c.displayIndex == store.displayIndex))
+    store.isRefresh = false
+    preloadMedia(1, loadingImgCount[1], store.displayIndex)
+}
+
+const preloadMedia = (add: -1 | 1, count: number, index: number = -1) => {
+    if (!viewList || !curChild) {
+        return
+    }
+    if (index == -1) {
+        index = viewList.findIndex(c => c.displayIndex == curChild.value.displayIndex)
+    }
+    if (index == -1) {
+        return
+    }
+    for (let i = 1; i <= count; i++) {
+
+        let ii = index + (i * add)
+        if (ii < 0 || i >= viewList.length) {
+            return
+        }
+
+        let c = viewList[ii]
+        let cache = target.getCache(c)
+        if (cache.type == "img") {
+            let img = new Image()
+            img.src = cache.dataUrl
+        }
+        else if (cache.type == "video") {
+
+        }
+
+    }
+}
 
 const imgOnLoad = (item: MediaViewChildType, e?: Event) => {
     let cache = jFileCache.mediaCache[item.searchIndex]
@@ -71,18 +196,17 @@ const imgOnLoad = (item: MediaViewChildType, e?: Event) => {
         cache.originH = (<HTMLImageElement>e.target).height
         cache.isComplete = true
     }
-    mainMediaCtrl.MediaResize(item)
+    target.resizeChild(item)
     if (item.displayIndex <= store.displayIndex || (item.displayIndex == store.displayIndex && item.splitNum < mediaStore.curSplit)) {
 
         divRef.value && (divRef.value.scrollTop += item.displayH * item.scale - oldH)
     }
     item.isLoaded = true
-    mainMediaCtrl.mediaUpdateState(item)
+    target.updateChild(item)
     if (item.displayIndex == store.displayIndex && mediaStore.curSplit == item.splitNum && !item.isViewDisplay && item.splitNum == 1) {
-        mainMediaCtrl.jumpMedia(item.displayIndex, 0)
+        mediaStore.jumpPage = `${item.displayIndex},0`
     }
 }
-
 
 
 </script>
@@ -227,4 +351,4 @@ const imgOnLoad = (item: MediaViewChildType, e?: Event) => {
 .display_overflow {
     overflow: auto;
 }
-</style>../mediaStore
+</style>

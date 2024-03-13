@@ -55,10 +55,18 @@ export class ComicDisplayStandard {
 
     eventInit(div: HTMLElement) {
         let touch = new JTouch(div)
-        touch.swipeTouchDelta = 100
+        touch.swipeTouchDelta = 200
+        touch.dblInterval = 500
         touch.setClick((x, y) => {
             console.log("click")
-            jaction.setClickArea(x, y)
+            jaction.setClickArea(x, y, {
+                setNext: () => {
+                    mediaStore.setNext++
+                },
+                setPrev: () => {
+                    mediaStore.setPrev++
+                }
+            })
         })
         touch.setDblclick((x, y) => {
             console.log('dblclick')
@@ -79,18 +87,14 @@ export class ComicDisplayStandard {
         let clientX = x - mediaStore.divFloatLeft
         let clientY = y - mediaStore.divFloatTop
         mediaStore.domScale = mediaStore.domScale == 1 ? mediaStore.scaling : 1
-        console.log(transDiv.style.top)
-        clientX -= parseFloat(transDiv.style.left)*mediaStore.domScale
-        clientY -= parseFloat(transDiv.style.top)*mediaStore.domScale
+        clientX -= parseFloat(transDiv.style.left) * mediaStore.domScale
+        clientY -= parseFloat(transDiv.style.top) * mediaStore.domScale
         let left = (selectDiv.scrollLeft + clientX) / oldSDomScale * mediaStore.domScale - (clientX)
         let top = (selectDiv.scrollTop + clientY) / oldSDomScale * mediaStore.domScale - (clientY)
         setTimeout(() => {
-            console.log(top, left)
             selectDiv.scrollTo({ left: left, top: top, behavior: 'auto' })
         }, 50);
-
     }
-
 
     resizeChild(child: MediaViewChildType) {
         let cache = this.getCache(child)
@@ -148,6 +152,9 @@ export class ComicDisplayStandard {
         else if (store.splitMedia == "auto") {
             child.isSplit = cache.originW > cache.originH
             child.isViewDisplay = !child.isLoaded || child.isSplit || child.splitNum == 0
+        }
+        if (!child.isSplit) {
+            child.splitNum = 0
         }
     }
 

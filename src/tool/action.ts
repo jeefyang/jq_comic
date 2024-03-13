@@ -1,7 +1,7 @@
 import { JAreaType } from "../const";
 import { mediaStore } from "../mediaStore";
 import { store } from "../store";
-import { mainMediaCtrl } from "./imgCommon";
+import { mainMediaCtrl } from "./mainMediaCtrl";
 
 class JAction {
 

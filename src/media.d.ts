@@ -1,4 +1,5 @@
 import StreamZip from "node-stream-zip";
+import { JAreaType } from "./type"
 
 export type MediaContentChildType = {
     /** 画布数据,必须存在 */
@@ -81,7 +82,6 @@ export type MediaViewChildType = {
     splitNum?: 0 | 1
     /** 是否可以打开浏览 */
     isView?: boolean
-
     // 额外操作
     /** div是否需要加载,用于减少过度 */
     isViewDiv?: boolean
@@ -160,4 +160,18 @@ export type MediaStoreType = {
     scaling: number
     /** 标准移动比例(相对于屏幕) */
     standardMoveRatio: number
+    /** 设置下一页 */
+    setNext: number
+    /** 设置上一页 */
+    setPrev: number
+    /** 跳转页数,写法"页码,分割页"或者"页码" */
+    jumpPage: string
+    /** 强制跳转页数 */
+    forceJumpPage: number
+    /** 已经是页首 */
+    overHead: number
+    /** 已经是页尾 */
+    overEnd: number
+    /** 设置更改尺寸 */
+    setResize: number
 }

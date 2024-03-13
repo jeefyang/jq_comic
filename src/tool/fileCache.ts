@@ -1,7 +1,6 @@
 import { JFolderDisplayType, JFileFormatType } from "../type";
 import { JserverLink } from "../tool/serverLink"
 import { store } from "../store"
-import { LocalSaveDataType } from "../type"
 import path from "path-browserify"
 import { MediaContentChildType, MediaZipMsgType } from "../media"
 
@@ -18,103 +17,19 @@ class JFileCache {
 
     imgEXList: JFileFormatType[] = ["gif", "bmp", "jpg", "jpeg", "png", "apng", "webp"]
     videoEXList: JFileFormatType[] = ["avi", "mp4", "mkv", "webm"]
-    localStorageKey: string = "localSaveDataType"
-    private _isControlDebug = false
 
     constructor() {
 
     }
 
-    private _initStore() {
-        let newStore = this.getLocalStorage()
-        if (!newStore) {
-            return
-        }
-        else {
-            for (let key in newStore) {
-                if (store[key] != null) {
-                    store[key] = newStore[key]
-                }
-            }
-        }
-        store.isControlDebug = store.isControlDebug || this._isControlDebug
-        this._isControlDebug = store.isControlDebug
-    }
+
 
     async init(server: JserverLink) {
         this.server = server
-        this._initStore()
-        let url = `${store.dirUrl}/${store.fileName}`
-        let v = await this.server.postIsFile(url)
-        return v
-    }
-
-    getLocalStorage() {
-        let txt = localStorage.getItem(this.localStorageKey)
-        if (!txt) {
-            return
-        }
-        let json: LocalSaveDataType = JSON.parse(txt)
-        let index = json?.storeList ? json.storeList.findIndex(c => c.key == store.switchKey) : -1
-        if (index == -1) {
-            return
-        }
-        return json.storeList[index].data
-    }
-
-    setLocalStorage() {
-        let json: LocalSaveDataType
-        let txt = localStorage.getItem(this.localStorageKey)
-        if (!txt) {
-            json = { storeList: [] }
-        }
-        else {
-            json = JSON.parse(txt)
-        }
-        let cloneStore: typeof store = <any>{}
-        for (let key in store) {
-            if (['canvasB64'].includes(key)) {
-                continue
-            }
-            cloneStore[key] = store[key]
-        }
-        let index = json?.storeList ? json.storeList.findIndex(c => c.key == store.switchKey) : -1
-        if (index == -1) {
-
-            json.storeList.push({ key: store.switchKey, data: cloneStore })
-        }
-        else {
-            json.storeList[index] = { key: store.switchKey, data: cloneStore }
-        }
-        let newTxt = JSON.stringify(json)
-        localStorage.setItem(this.localStorageKey, newTxt)
-    }
-
-    /** 自动保存 */
-    autoSave() {
-        if (!store.isAutoSave) {
-            return
-        }
-        this.setLocalStorage()
-    }
-
-    /** 清空保存 */
-    clearSave() {
-        let txt = localStorage.getItem(this.localStorageKey)
-        if (!txt) {
-            return
-        }
-        let json: LocalSaveDataType = JSON.parse(txt)
-        let index = json?.storeList ? json.storeList.findIndex(c => c.key == store.switchKey) : -1
-        if (index == -1) {
-            return
-        }
-        // console.log(index)
-        json.storeList.splice(index, 1)
-        let newTxt = JSON.stringify(json)
-        localStorage.setItem(this.localStorageKey, newTxt)
         return
     }
+
+
 
     private _setZipInFileSort(data: (typeof this.zipMsgCache)[number]) {
         if (data.sortType == store.mediaSortType) {

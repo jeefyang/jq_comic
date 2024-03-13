@@ -3,8 +3,6 @@ import { NameSortType } from "./type"
 import { staticData } from "./const"
 
 export const store = reactive({
-    /** 选中关键字 */
-    switchKey: <string>"",
     /** 当前文件路径,不能带文件夹 */
     fileName: <string>"",
     /** 当前文件夹路径 */
@@ -62,6 +60,6 @@ export const store = reactive({
     /** 路径的key */
     urlkey: <string>"",
     /** 是否刷新 */
-    isRefresh: <boolean>false
+    isRefresh: <boolean>false,
 
 })

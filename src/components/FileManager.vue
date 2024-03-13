@@ -6,7 +6,7 @@ import { showLoadingToast, showToast, type ConfigProviderThemeVars } from 'vant'
 import { JFileFormatType, JFolderDisplayType, NameSortType } from "../type";
 import path from "path-browserify"
 import { mediaStore } from "../mediaStore"
-import { mainMediaCtrl } from "../tool/imgCommon";
+import { mainMediaCtrl } from "../tool/mainMediaCtrl";
 
 
 const themeVars: ConfigProviderThemeVars = {
@@ -297,7 +297,7 @@ const scrollLazyLoad = async (num: number) => {
                 <div class="file_path_div">
                     <input placeholder="搜索" class="file_search_input" @change="setSortFunc" v-model="searchKey" />
                     <button v-for="(item, index) in urlList" :title="item" @click="rebackFolderFuncByIndex(index)">{{
-                        item }} </button>
+            item }} </button>
                 </div>
             </div>
             <!-- 功能键 -->
@@ -338,7 +338,8 @@ const scrollLazyLoad = async (num: number) => {
                                         <!-- 为了让ui对齐 -->
                                         <div v-if="item.type == 'folder'" class="file_display_icon_detail_op_size_div">
                                         </div>
-                                        <div class="file_display_icon_detail_op_date_div">{{ getDateStrFunc(item.time) }}
+                                        <div class="file_display_icon_detail_op_date_div">{{ getDateStrFunc(item.time)
+                                            }}
                                         </div>
                                     </div>
 
@@ -457,4 +458,4 @@ const scrollLazyLoad = async (num: number) => {
     justify-content: space-between;
 }
 </style>
-../mediaStore
+../mediaStore../tool/mainMediaCtrl

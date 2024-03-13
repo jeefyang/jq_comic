@@ -5,7 +5,6 @@ import { store } from './store';
 import { jserver } from './tool/serverLink'
 import { jFileCache } from './tool/fileCache';
 import { mediaStore } from './mediaStore';
-import { mainMediaCtrl } from './tool/imgCommon';
 
 import FileManager from "./components/FileManager.vue"
 import ComicBottomBar from "./components/ComicBottomBar.vue"
@@ -13,6 +12,7 @@ import ComicOPPanel from "./components/ComicOPPanel.vue"
 import ComicDisplayWaterfall from './components/ComicDisplayWaterfall.vue'
 import ComicDisplayStandard from './components/ComicDisplayStandard.vue'
 import ComicDisplayArea from './components/ComicDisplayArea.vue'
+import { mainMediaCtrl } from './tool/mainMediaCtrl';
 
 
 
@@ -54,15 +54,25 @@ onMounted(async () => {
 
   await jserver.init()
 
-  let v = await jFileCache.init(jserver)
+  await jFileCache.init(jserver)
+
+  mainMediaCtrl.initStore()
+  // let fileUrl = `${store.dirUrl}/${store.fileName}`
+  // let v = await jserver.postIsFile(fileUrl)
   // if (v) {
-  await mainMediaCtrl.init(v)
   // }
+
   store.isServerCompleted = true
   window.addEventListener("resize", () => {
     resizeFunc()
   })
 
+  setTimeout(() => {
+    if (store.fileName) {
+      console.log("xx")
+      mainMediaCtrl.openMedia(store.dirUrl, store.fileName, store.displayIndex)
+    }
+  }, 1000);
 
   //测试
 
@@ -119,3 +129,4 @@ onMounted(async () => {
   color: red;
 }
 </style>./mediaStore
+./tool/mainMediaCtrl

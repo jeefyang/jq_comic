@@ -35,12 +35,18 @@ export const mediaStore = reactive(<MediaStoreType>{
     scaling: 2,
     standardMoveRatio: 1,
     debugMsg: "",
+    setNext: 0,
+    setPrev: 0,
+    jumpPage: "0,0",
+    forceJumpPage: 0,
+    setResize: 0
 })
 
 export type mediaMiddleDataType = {
     list: MediaViewChildType[]
 }
 
+/** 媒体中间数据,一般不用于计算,只用于传递 */
 export const mediaMiddleData: mediaMiddleDataType = {
     list: []
 }

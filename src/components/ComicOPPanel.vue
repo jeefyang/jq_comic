@@ -7,7 +7,7 @@ import { NameSortType } from '../type';
 import { showToast } from 'vant';
 import { staticData } from '../const';
 import { mediaStore } from '../mediaStore';
-import { mainMediaCtrl } from '../tool/imgCommon';
+import { mainMediaCtrl } from '../tool/mainMediaCtrl';
 const readModeMap: { key: typeof store.readMode, name: string }[] = [
     { key: "none", name: "原始" },
     { key: "fit", name: "适应屏幕" },
@@ -36,11 +36,12 @@ onMounted(() => {
 
 const setAutoSave = (v: boolean) => {
     if (v) {
-        jFileCache.autoSave()
-        showToast({ message: "保存成功", forbidClick: false, duration: 500 })
+        mainMediaCtrl.autoSave()
+        showToast({ message: "自动保存启动", forbidClick: false, duration: 500 })
     }
     else {
-        jFileCache.clearSave()
+        showToast({ message: "取消自动保存", forbidClick: false, duration: 500 })
+        mainMediaCtrl.clearSave()
     }
 }
 
@@ -85,7 +86,7 @@ const dispatchTest = () => {
         <!-- 分割模式 -->
         <div class="sort">
             <div class="sort_title">分割:</div>
-            <van-radio-group v-model="store.splitMedia" direction="horizontal" @change="mainMediaCtrl.screenResize()">
+            <van-radio-group v-model="store.splitMedia" direction="horizontal" @change="mediaStore.setResize++">
                 <van-radio v-for="(item, index) in splitImgMap" :key="index" :name="item.key">{{ item.name
                     }}</van-radio>
             </van-radio-group>
@@ -93,7 +94,7 @@ const dispatchTest = () => {
         <!-- 空行 -->
         <div class="br"></div>
 
-        <!-- 方向 -->
+        <!-- 排列 -->
         <div class="sort">
             <div class="sort_title">排列:</div>
             <van-dropdown-menu>
@@ -107,8 +108,7 @@ const dispatchTest = () => {
         <div class="sort">
             <div class="sort_title">方向:</div>
             <van-dropdown-menu>
-                <van-dropdown-item v-model="store.directX" :options="directXMap"
-                    @change="mainMediaCtrl.screenResize()" />
+                <van-dropdown-item v-model="store.directX" :options="directXMap" @change="mediaStore.setResize++" />
             </van-dropdown-menu>
         </div>
 
@@ -248,7 +248,8 @@ const dispatchTest = () => {
         <div class="sort">
             <van-button type="default" @click="setRefresh">刷新</van-button>
             <van-button type="default" :disabled="!store.isControlDebug" @click="dispatchTest">测试</van-button>
-            <van-button type="default" @click="setAutoSave(true)">保存</van-button>
+            <van-button type="default" @click="mainMediaCtrl.saveStoreByLocalStorage()">手动保存</van-button>
+            <van-button type="default" @click="mainMediaCtrl.clearSave()">清除缓存</van-button>
         </div>
         <!-- 空行 -->
         <div class="br"></div>
@@ -317,4 +318,4 @@ const dispatchTest = () => {
     line-height: 32px;
     color: var(--van-gray-5);
 }
-</style>../mediaStore
+</style>../mediaStore../tool/mainMediaCtrl

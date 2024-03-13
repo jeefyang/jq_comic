@@ -2,7 +2,7 @@
 import { onMounted, ref, watch } from "vue";
 import { store } from "../store"
 import { mediaStore } from "../mediaStore";
-import { mainMediaCtrl } from "../tool/imgCommon";
+
 
 let curNo = ref(<number>store.displayIndex + 1)
 let numInputRef = ref(<HTMLInputElement>null)
@@ -24,7 +24,7 @@ let setCloseFunc = () => {
 }
 
 let setCurNoFunc = () => {
-    mainMediaCtrl.jumpMedia(curNo.value - 1, 0)
+    mediaStore.jumpPage = `${curNo.value - 1},0`
 }
 
 </script>
@@ -119,4 +119,4 @@ let setCurNoFunc = () => {
     user-select: none;
 }
 </style>
-../mediaStore
+../mediaStore../tool/mainMediaCtrl
