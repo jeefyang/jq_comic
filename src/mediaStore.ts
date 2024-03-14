@@ -39,7 +39,8 @@ export const mediaStore = reactive(<MediaStoreType>{
     setPrev: 0,
     jumpPage: "0,0",
     forceJumpPage: 0,
-    setResize: 0
+    setResize: 0,
+    isRefresh: false
 })
 
 export type mediaMiddleDataType = {

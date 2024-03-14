@@ -95,7 +95,7 @@ onMounted(() => {
         curChild.value.splitNum = parseInt(arr[1]) ? 1 : 0
         target.updateChild(curChild.value)
         let searchIndex = curChild.value.searchIndex
-        let cache = target.getCache(curChild.value)
+        let cache = jFileCache.getMediaCache(curChild.value)
         if (cache.type == "img") {
             let img = new Image()
             img.onload = () => {
@@ -114,8 +114,8 @@ onMounted(() => {
         store.displayIndex = curChild.value.displayIndex
     })
 
-    watch([() => store.isRefresh], () => {
-        if (!store.isRefresh) {
+    watch([() => mediaStore.isRefresh], () => {
+        if (!mediaStore.isRefresh) {
             return
         }
         setRefresh()
@@ -146,7 +146,7 @@ const setRefresh = () => {
     })]
     for (let i = 0; i < viewList.length; i++) {
         let c = viewList[i]
-        let cache = target.getCache(c)
+        let cache = jFileCache.getMediaCache(c)
         if (cache.isComplete) {
             // imgOnLoad(c)
         }
@@ -154,7 +154,7 @@ const setRefresh = () => {
     mediaStore.jumpPage = `${store.displayIndex},0`
     mediaStore.forceJumpPage++
     // curChild.value = cloneAssign(viewList.find(c => c.displayIndex == store.displayIndex))
-    store.isRefresh = false
+    mediaStore.isRefresh = false
     preloadMedia(1, loadingImgCount[1], store.displayIndex)
 }
 
@@ -176,7 +176,7 @@ const preloadMedia = (add: -1 | 1, count: number, index: number = -1) => {
         }
 
         let c = viewList[ii]
-        let cache = target.getCache(c)
+        let cache = jFileCache.getMediaCache(c)
         if (cache.type == "img") {
             let img = new Image()
             img.src = cache.dataUrl

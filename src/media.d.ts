@@ -30,6 +30,19 @@ export type MediaContentChildType = {
     key: string
 }
 
+
+export type MiddleFileType = {
+    className: string
+    title: string
+    type: "folder" | "file"
+    index: number
+    originName: string
+    exname?: string
+    name: string
+    time: number
+    size?: number
+}
+
 export type MediaZipMsgType = {
     /** 关键key */
     key: string
@@ -174,4 +187,6 @@ export type MediaStoreType = {
     overEnd: number
     /** 设置更改尺寸 */
     setResize: number
+    /** 是否刷新 */
+    isRefresh: boolean
 }

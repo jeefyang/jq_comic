@@ -15,12 +15,8 @@ export class ComicDisplayWaterfall {
 
     }
 
-    getCache(child: MediaViewChildType) {
-        return jFileCache.mediaCache[child.searchIndex]
-    }
-
     resizeChild(child: MediaViewChildType) {
-        let cache = this.getCache(child)
+        let cache = jFileCache.getMediaCache(child)
         // if (!child.isViewDiv) {
         //     return
         // }
@@ -57,7 +53,7 @@ export class ComicDisplayWaterfall {
     }
 
     updateChild(child: MediaViewChildType) {
-        let cache = this.getCache(child)
+        let cache = jFileCache.getMediaCache(child)
         // child.isViewVideo = cache.type == 'video'
         // child.isViewImg = cache.type == 'img'
         // child.isViewDiv = child.isView
@@ -117,7 +113,7 @@ export class ComicDisplayWaterfall {
                 continue
             }
             // child.isView = true
-            let cache = jFileCache.mediaCache[child.searchIndex]
+            let cache = jFileCache.getMediaCache(child)
             mediaStore.zipInFileName = cache.zipInFileName || ""
             store.fileName = cache.fileName
         }

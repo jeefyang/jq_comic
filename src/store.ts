@@ -12,9 +12,9 @@ export const store = reactive({
     /** 当前显示第几张图片 */
     displayIndex: <number>0,
     /** 图片观看排列顺序 */
-    mediaSortType: <NameSortType>"名称",
+    mediaSortType: <NameSortType>"数字",
     /** 阅读模式 */
-    readMode: <"width" | "none" | "height" | "fit" | "udWaterfall">"width",
+    readMode: <"width" | "none" | "height" | "fit" | "udWaterfall">"fit",
     /** 是否打开文件管理 */
     displayFileManager: <boolean>false,
     /** 是否打开底部工具栏 */
@@ -59,7 +59,5 @@ export const store = reactive({
     mediaLoadingDivColor: <string>staticData.defaultMediaLoadingColor,
     /** 路径的key */
     urlkey: <string>"",
-    /** 是否刷新 */
-    isRefresh: <boolean>false,
 
 })

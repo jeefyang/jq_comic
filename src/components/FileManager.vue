@@ -7,6 +7,7 @@ import { JFileFormatType, JFolderDisplayType, NameSortType } from "../type";
 import path from "path-browserify"
 import { mediaStore } from "../mediaStore"
 import { mainMediaCtrl } from "../tool/mainMediaCtrl";
+import { MiddleFileType } from "../media";
 
 
 const themeVars: ConfigProviderThemeVars = {
@@ -17,7 +18,7 @@ const themeVars: ConfigProviderThemeVars = {
 const fileBoxDivRef = ref(<HTMLDivElement>null)
 const urlList = ref(<string[]>["."])
 // urlList.value = [...urlList.value, ...store.curDirUrl.split('/')]
-const fileList = ref(<{ className: string, name: string, title: string, type: "folder" | "file", index: number, originName: string, time: number, size?: number, exname?: string }[]>[])
+const fileList = ref(<MiddleFileType[]>[])
 let folderObj: JFolderDisplayType = null
 let folderObjList: typeof fileList.value = []
 let fileObjList: typeof fileList.value = []
@@ -46,31 +47,16 @@ let setSortFunc = async () => {
     [folderObjList, fileObjList].forEach(child => {
         switch (sortType.value) {
             case "名称":
-                child.sort((a, b) => a.name > b.name ? 1 : -1)
+                child.sort((a, b) => jFileCache.sortABByName(undefined, undefined, undefined, undefined, a, b))
                 break
             case "大小":
-                child.sort((a, b) => {
-                    if (!a.size || !b.size) {
-                        return a.name > b.name ? 1 : -1
-                    }
-                    return a.size > b.size ? 1 : -1
-                })
+                child.sort((a, b) => jFileCache.sortABBySize(undefined, undefined, undefined, undefined, a, b))
                 break
             case "日期":
-                child.sort((a, b) => a.time > b.time ? 1 : -1)
+                child.sort((a, b) => jFileCache.sortABByDate(undefined, undefined, undefined, undefined, a, b))
                 break
             case "数字":
-                child.sort((a, b) => {
-                    let an = a.name.match(/\d+/)?.[0]
-                    let bn = b.name.match(/\d+/)?.[0]
-                    if (an == null) {
-                        an = "0"
-                    }
-                    if (bn == null) {
-                        bn = "0"
-                    }
-                    return Number(an) - Number(bn)
-                })
+                child.sort((a, b) => jFileCache.sortABByNum(undefined, undefined, undefined, undefined, a, b))
                 break
         }
         if (isReverse) {
@@ -282,9 +268,9 @@ const scrollLazyLoad = async (num: number) => {
     return
 }
 
-const setReverse=()=>{
+const setReverse = () => {
     isReverse = !isReverse;
-     setSortFunc()
+    setSortFunc()
 }
 
 </script>

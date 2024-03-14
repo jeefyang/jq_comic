@@ -13,10 +13,6 @@ export class ComicDisplayStandard {
     }
 
 
-    getCache(child: MediaViewChildType) {
-        return jFileCache.mediaCache[child.searchIndex]
-    }
-
     async jumpMedia(div: HTMLElement, displayIndex: number, splitNum: 0 | 1, list: MediaViewChildType[], time: number) {
         if (displayIndex == undefined) {
             return
@@ -27,7 +23,7 @@ export class ComicDisplayStandard {
                 continue
             }
             // child.isView = true
-            let cache = jFileCache.mediaCache[child.searchIndex]
+            let cache = jFileCache.getMediaCache(child)
             mediaStore.zipInFileName = cache.zipInFileName || ""
             store.fileName = cache.fileName
         }
@@ -97,7 +93,7 @@ export class ComicDisplayStandard {
     }
 
     resizeChild(child: MediaViewChildType) {
-        let cache = this.getCache(child)
+        let cache = jFileCache.getMediaCache(child)
 
         child.isSplit = store.splitMedia == "split" ? true : (store.splitMedia == "auto" && cache.originW > cache.originH) ? true : false
         if (child.isSplit) {
@@ -140,7 +136,7 @@ export class ComicDisplayStandard {
     }
 
     updateChild(child: MediaViewChildType) {
-        let cache = this.getCache(child)
+        let cache = jFileCache.getMediaCache(child)
         if (store.splitMedia == "none") {
             child.isSplit = false
             child.isViewDisplay = child.splitNum == 0

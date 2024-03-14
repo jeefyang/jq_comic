@@ -70,8 +70,8 @@ onMounted(() => {
         }
         mainMediaCtrl.autoSave()
     })
-    watch([() => store.isRefresh], () => {
-        if (!store.isRefresh) {
+    watch([() => mediaStore.isRefresh], () => {
+        if (!mediaStore.isRefresh) {
             return
         }
         console.log('refresh')
@@ -171,7 +171,7 @@ const scrollUpDelayLoadFunc = async () => {
         }
 
         c.isViewDiv = true
-        let cache = target.getCache(c)
+        let cache = jFileCache.getMediaCache(c)
         c.isViewImg = cache.type == "img"
         c.isViewVideo = cache.type == "video"
         top += c.displayH * c.scale
@@ -203,7 +203,7 @@ const delayLoadDivFunc = async () => {
 const delayLoadImgFunc = async () => {
     let index = store.displayIndex * 2
     everyBetween(viewList.value, index, [target.scrollTag == -1 ? loadingImgCount[0] : 0, target.scrollTag == 1 ? loadingImgCount[1] : 0], (c, _ci) => {
-        let cache = target.getCache(c)
+        let cache = jFileCache.getMediaCache(c)
         c.isViewImg = cache.type == "img"
         c.isViewVideo = cache.type == "video"
     })
@@ -231,7 +231,7 @@ const setRefresh = () => {
     let list: MediaViewChildType[] = []
     mediaMiddleData.list.forEach(c => {
         let cc = cloneAssign(c)
-        let cache = target.getCache(cc)
+        let cache = jFileCache.getMediaCache(cc)
         cc.isViewImg = cache.type == "img"
         cc.isViewVideo = cache.type == "video"
         cc.isViewDiv = false
@@ -244,12 +244,12 @@ const setRefresh = () => {
     viewList.value = list
     // for (let i = 0; i < viewList.value.length; i++) {
     //     let c = viewList.value[i]
-    //     let cache = target.getCache(c)
+    //     let cache = jFileCache.getMediaCache(c)
     //     if (cache.isComplete) {
     //         imgOnLoad(c)
     //     }
     // }
-    store.isRefresh = false
+    mediaStore.isRefresh = false
 }
 
 const imgOnLoad = (item: MediaViewChildType, e?: Event) => {

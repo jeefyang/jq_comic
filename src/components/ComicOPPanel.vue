@@ -5,8 +5,9 @@ import { store } from "../store"
 import { NameSortType } from '../type';
 import { showToast } from 'vant';
 import { staticData } from '../const';
-import { mediaStore } from '../mediaStore';
+import { mediaMiddleData, mediaStore } from '../mediaStore';
 import { mainMediaCtrl } from '../tool/mainMediaCtrl';
+import { jFileCache } from '../tool/fileCache';
 const readModeMap: { key: typeof store.readMode, name: string }[] = [
     { key: "none", name: "原始" },
     { key: "fit", name: "适应屏幕" },
@@ -27,7 +28,8 @@ const directXMap: { text: string, value: -1 | 1 }[] = [
 
 const sortMap: { text: NameSortType, value: NameSortType }[] = [
     { text: "名称", value: "名称" },
-    { text: "数字", value: "数字" }
+    { text: "数字", value: "数字" },
+    { text: "日期", value: "日期" }
 ]
 
 onMounted(() => {
@@ -52,6 +54,10 @@ const setRefresh = () => {
 }
 
 const freshImg = async () => {
+    console.log(store.mediaSortType)
+    await mainMediaCtrl.openMedia(store.dirUrl, store.fileName, store.displayIndex)
+    // console.log(mediaMiddleData.list.map(c => jFileCache.getMediaCache(c).dataUrl))
+    mediaStore.isRefresh = true
     // await jFileCache.openFile(store.dirUrl, store.fileName, store.curNo)
     // return
 }

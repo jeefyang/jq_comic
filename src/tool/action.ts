@@ -127,10 +127,12 @@ class JAction {
             store.displayBottomBar = true
         }
         else if (area.type == "next" && otherFuns?.setNext) {
-            otherFuns.setNext()
+            store.isCtrlReverse && otherFuns?.setPrev && otherFuns.setPrev()
+            !store.isCtrlReverse && otherFuns?.setNext && otherFuns.setNext()
         }
         else if (area.type == "prev" && otherFuns?.setPrev) {
-            otherFuns.setPrev()
+            !store.isCtrlReverse && otherFuns?.setPrev && otherFuns.setPrev()
+            store.isCtrlReverse && otherFuns?.setNext && otherFuns.setNext()
         }
     }
 

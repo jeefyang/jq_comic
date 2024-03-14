@@ -30,7 +30,7 @@ export class MainMediaCtrl {
             })
             store.displayIndex = a.displayIndex
         }
-        store.isRefresh = true
+        mediaStore.isRefresh = true
         await new Promise((res) => {
             setTimeout(() => {
                 mediaStore.jumpPage = `${store.displayIndex},0`
