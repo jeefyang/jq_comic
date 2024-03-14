@@ -153,8 +153,8 @@ class JFileCache {
             else if (alist[i] && !blist[i]) {
                 return -1
             }
-            let an: string[] = alist[i].match(/\d+/g)
-            let bn: string[] = blist[i].match(/\d+/g)
+            let an: string[] = alist[i].match(/\d+/g) || []
+            let bn: string[] = blist[i].match(/\d+/g) || []
             let numlen = an.length > bn.length ? an.length : bn.length
             for (let j = 0; j < numlen; j++) {
                 if (an[j] == undefined && bn[j] != undefined) {
