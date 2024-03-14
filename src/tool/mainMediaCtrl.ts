@@ -19,7 +19,7 @@ export class MainMediaCtrl {
         store.curDirUrl = store.dirUrl
         let comicData = await this.openComicList(store.dirUrl, store.fileName)
         mediaStore.isZip = comicData.listdata.isZip
-        mediaStore.zipInFileName = ""
+        // mediaStore.zipInFileName = ""
         if (mediaStore.isZip) {
             store.displayIndex = index
         }

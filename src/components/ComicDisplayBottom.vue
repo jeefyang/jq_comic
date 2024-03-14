@@ -1,7 +1,32 @@
 <script setup lang="ts">
 
 import { store } from '../store'
-import { mediaStore } from '../mediaStore'
+import { mediaMiddleData, mediaStore } from '../mediaStore'
+import { onMounted, watch } from 'vue';
+import { jFileCache } from '../tool/fileCache';
+
+onMounted(() => {
+
+    watch([() => store.displayIndex, () => store.dirUrl, () => store.fileName, () => store.isDisplayFileName], () => {
+        if (mediaStore.isZip) {
+            let c = mediaMiddleData?.list?.find(c => c.displayIndex == store.displayIndex)
+            if (!c) {
+                mediaStore.zipInFileName = ""
+                return
+            }
+            let cc = jFileCache.getMediaCache(c)
+            console.log(cc)
+            if (!cc) {
+                mediaStore.zipInFileName = ""
+                return
+            }
+            mediaStore.zipInFileName = cc?.zipInFileName || ""
+            return
+        }
+        mediaStore.zipInFileName = ""
+
+    })
+})
 
 </script>
 <template>
@@ -11,8 +36,8 @@ import { mediaStore } from '../mediaStore'
             {{ store.displayIndex + 1 }}/{{ mediaStore.len }}</div>
         <!-- 文件信息 -->
         <div class="vintage2 none_Touch" :style="{ 'color': store.textMsgColor }" v-if="store.isDisplayFileName">{{
-            store.fileName + (mediaStore.zipInFileName ? (' /' + mediaStore.zipInFileName) : '')
-        }}</div>
+        store.fileName + (mediaStore.zipInFileName ? (' /' + mediaStore.zipInFileName) : '')
+    }}</div>
         <!-- 测试用的 -->
         <div class="vintage2 none_Touch" :style="{ 'color': store.textMsgColor }"
             v-if="store.isDisplayDebugMsg && store.isControlDebug">{{ mediaStore.debugMsg }}</div>

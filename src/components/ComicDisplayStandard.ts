@@ -24,7 +24,7 @@ export class ComicDisplayStandard {
             }
             // child.isView = true
             let cache = jFileCache.getMediaCache(child)
-            mediaStore.zipInFileName = cache.zipInFileName || ""
+            // mediaStore.zipInFileName = cache.zipInFileName || ""
             store.fileName = cache.fileName
         }
         store.displayIndex = displayIndex
