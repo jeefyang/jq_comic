@@ -13,11 +13,13 @@ import { cloneAssign, everyBetween } from '../tool/util';
 import { ComicDisplayWaterfall } from "./ComicDisplayWaterfall"
 import { areaTouchWaterFall } from '../const';
 import { mainMediaCtrl } from '../tool/mainMediaCtrl';
+import { ToastWrapperInstance, showToast } from 'vant';
 
 
 const divRef = ref(<HTMLDivElement>null)
 const viewList = ref(<MediaViewChildType[]>[])
 const target = new ComicDisplayWaterfall()
+
 
 onMounted(() => {
     mediaStore.areaTouch = [...areaTouchWaterFall]
@@ -35,7 +37,27 @@ onMounted(() => {
     })
     watch([() => mediaStore.jumpPage, () => mediaStore.forceJumpPage], () => {
         let arr = mediaStore.jumpPage.split(",")
-        target.jumpMedia(divRef.value, parseInt(arr[0]), parseInt(arr[1] || "0") ? 1 : 0, viewList.value, 500)
+        let displayIndex = parseInt(arr[0])
+        let split = parseInt(arr[1]) ? 1 : 0
+        for (let i = 0; i < viewList.value.length; i++) {
+            let c = viewList.value[i]
+            c.isLoaded = false
+            if (c.displayIndex == displayIndex) {
+                if (split == 0) {
+                    c.isViewDiv = true
+                    continue
+                }
+                if (c.isLoaded && c.isViewDisplay) {
+                    c.isViewDiv = true
+                }
+            }
+            else {
+                c.isViewDiv = false
+            }
+        }
+        divRef.value.scrollTo({ top: 0 })
+        target.scrollTag = 1
+        store.displayIndex = displayIndex
         mainMediaCtrl.autoSave()
     })
     watch([() => store.directX], () => {
@@ -54,6 +76,7 @@ onMounted(() => {
         }
         console.log('refresh')
         setRefresh()
+        mediaStore.jumpPage = `${store.displayIndex},0`
         mainMediaCtrl.autoSave()
     })
 
@@ -83,7 +106,7 @@ const looptime = 100
 let curLoopTag = 0
 
 /** 显示div数量 */
-let displayDivCount = [5, 6]
+let displayDivCount = [1, 6]
 /** 加载图片数量 */
 let loadingImgCount = [4, 5]
 
@@ -98,8 +121,13 @@ const loopFunc = async (loopTag: number) => {
         if (loopTag != curLoopTag || !divRef.value) {
             return res(undefined)
         }
-        delayLoadDivFunc()
-        delayLoadImgFunc()
+        if (target.scrollTag == 1) {
+            delayLoadDivFunc()
+            delayLoadImgFunc()
+        }
+        else if (target.scrollTag == -1) {
+            scrollUpDelayLoadFunc()
+        }
         delayScrollFunc()
         setTimeout(() => {
             loopFunc(loopTag)
@@ -108,15 +136,73 @@ const loopFunc = async (loopTag: number) => {
     })
 }
 
-const delayLoadDivFunc = async () => {
-    everyBetween(viewList.value, store.displayIndex * 2, displayDivCount, (c) => {
+
+const scrollUpDelayLoadFunc = async () => {
+    if (target.scrollTag != -1 || target.isScrollUp) {
+        return
+    }
+    let curIndex = store.displayIndex * 2
+    target.scrollTag = 1
+    let len = 1
+    let top = 0
+    let st: ToastWrapperInstance
+    for (let i = 1; i < viewList.value.length; i++) {
+        if (len == 0) {
+            break
+        }
+        let index = curIndex - i
+        let c = viewList.value[index]
+        if (!c) {
+            break
+        }
+        target.isScrollUp = true
+        await mainMediaCtrl.onMediaLoad(c)
+        target.resizeChild(c)
+        target.updateChild(c)
+        if (!c.isViewDisplay) {
+            continue
+        }
+        len--
+        if (c.isLoaded) {
+
+            continue
+        }
+        if (!st) {
+            st = showToast({ message: "往上加载中", forbidClick: false, position: "top" })
+        }
         c.isViewDiv = true
+        let cache = target.getCache(c)
+        c.isViewImg = cache.type == "img"
+        c.isViewVideo = cache.type == "video"
+        top += c.displayH * c.scale
+        continue
+    }
+
+    // await new Promise(res => {
+    //     setTimeout(() => {
+    //         divRef.value.scrollTop += top
+    //         res(undefined)
+    //     }, 100);
+    // })
+    if (st) {
+        st.close()
+    }
+    target.isScrollUp = false
+    return
+
+}
+
+const delayLoadDivFunc = async () => {
+    let index = store.displayIndex * 2
+    everyBetween(viewList.value, index, [target.scrollTag == -1 ? displayDivCount[0] : 0, target.scrollTag == 1 ? displayDivCount[1] : 0], (c) => {
+        if (c)
+            c.isViewDiv = true
     })
 }
 
 const delayLoadImgFunc = async () => {
-
-    everyBetween(viewList.value, store.displayIndex * 2, loadingImgCount, (c) => {
+    let index = store.displayIndex * 2
+    everyBetween(viewList.value, index, [target.scrollTag == -1 ? loadingImgCount[0] : 0, target.scrollTag == 1 ? loadingImgCount[1] : 0], (c, _ci) => {
         let cache = target.getCache(c)
         c.isViewImg = cache.type == "img"
         c.isViewVideo = cache.type == "video"
@@ -145,6 +231,10 @@ const setRefresh = () => {
     let list: MediaViewChildType[] = []
     mediaMiddleData.list.forEach(c => {
         let cc = cloneAssign(c)
+        let cache = target.getCache(cc)
+        cc.isViewImg = cache.type == "img"
+        cc.isViewVideo = cache.type == "video"
+        cc.isViewDiv = false
         cc.isViewDisplay = true
         list.push(cc)
         let ccc = cloneAssign(cc)
@@ -152,19 +242,20 @@ const setRefresh = () => {
         list.push(ccc)
     })
     viewList.value = list
-    for (let i = 0; i < viewList.value.length; i++) {
-        let c = viewList.value[i]
-        let cache = target.getCache(c)
-        if (cache.isComplete) {
-            imgOnLoad(c)
-        }
-    }
+    // for (let i = 0; i < viewList.value.length; i++) {
+    //     let c = viewList.value[i]
+    //     let cache = target.getCache(c)
+    //     if (cache.isComplete) {
+    //         imgOnLoad(c)
+    //     }
+    // }
     store.isRefresh = false
 }
 
 const imgOnLoad = (item: MediaViewChildType, e?: Event) => {
+    console.log("load")
     let cache = jFileCache.mediaCache[item.searchIndex]
-    let oldH = item.displayH * item.scale * mediaStore.domScale
+    // let oldH = item.displayH * item.scale * mediaStore.domScale
     if (!cache.isComplete) {
         cache.originW = (<HTMLImageElement>e.target).width
         cache.originH = (<HTMLImageElement>e.target).height
@@ -179,6 +270,9 @@ const imgOnLoad = (item: MediaViewChildType, e?: Event) => {
     item.isLoaded = true
     target.updateChild(item)
 }
+
+
+
 
 </script>
 <template>

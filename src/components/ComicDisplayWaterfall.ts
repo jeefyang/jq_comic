@@ -8,6 +8,9 @@ import { JTouch } from "../tool/touch"
 
 export class ComicDisplayWaterfall {
 
+    scrollTag: -1 | 0 | 1 = 0
+    isScrollUp = false
+
     constructor() {
 
     }
@@ -83,6 +86,26 @@ export class ComicDisplayWaterfall {
             console.log('dblclick')
             this.pointScale(x, y, div)
         })
+        touch.setSiwpe((start, end, _time) => {
+            let deltaX = end.x - start.x
+            let deltaY = end.y - start.y
+            if (Math.abs(deltaY) - Math.abs(deltaX)) {
+                if (deltaY > 0 && !this.isScrollUp) {
+                    this.scrollTag = -1
+                }
+            }
+        })
+        div.onwheel = (e) => {
+            if (e.deltaY < 0 && this.isScrollUp) {
+                return false
+            }
+            if (e.deltaY > 0) {
+                this.scrollTag = 1
+            }
+            else {
+                this.scrollTag = -1
+            }
+        }
     }
 
     async jumpMedia(div: HTMLElement, displayIndex: number, splitNum: 0 | 1, list: MediaViewChildType[], time: number) {
@@ -103,12 +126,12 @@ export class ComicDisplayWaterfall {
         return new Promise((res) => {
             setTimeout(() => {
 
-                let childDiv = <HTMLDivElement>(div.getElementsByClassName(`display_list ${displayIndex}_${splitNum}`)?.[0])
-                if (childDiv) {
-                    childDiv.scrollIntoView({ behavior: "smooth" })
-                    res(undefined)
-                    return
-                }
+                // let childDiv = <HTMLDivElement>(div.getElementsByClassName(`display_list ${displayIndex}_${splitNum}`)?.[0])
+                // if (childDiv) {
+                //     childDiv.scrollIntoView({ behavior: "smooth" })
+                //     res(undefined)
+                //     return
+                // }
 
                 let top = 0
 

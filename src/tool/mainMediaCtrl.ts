@@ -1,6 +1,6 @@
 
 import { mediaMiddleData, mediaStore } from "../mediaStore"
-import { MediaViewChildType } from "../media"
+import { MediaContentChildType, MediaViewChildType } from "../media"
 import { store } from "../store"
 import { jFileCache } from "./fileCache"
 import { LocalSaveDataType } from "../type"
@@ -155,6 +155,25 @@ export class MainMediaCtrl {
         return
     }
 
+    async onMediaLoad(c: MediaViewChildType): Promise<MediaContentChildType> {
+        let cache = jFileCache.mediaCache[c.searchIndex]
+        if (cache.isComplete) {
+            return cache
+        }
+        if (cache.type == "img") {
+            return new Promise((res) => {
+                let img = new Image()
+                img.onload = () => {
+                    cache.originW = img.width
+                    cache.originH = img.height
+                    cache.isComplete = true
+                    // cache.isComplete = true
+                    res(cache)
+                }
+                img.src = cache.dataUrl
+            })
+        }
+    }
 
 }
 
