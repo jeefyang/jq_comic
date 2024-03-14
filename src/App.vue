@@ -69,7 +69,6 @@ onMounted(async () => {
 
   setTimeout(() => {
     if (store.fileName) {
-      console.log("xx")
       mainMediaCtrl.openMedia(store.dirUrl, store.fileName, store.displayIndex)
     }
   }, 1000);

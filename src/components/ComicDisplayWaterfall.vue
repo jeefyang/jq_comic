@@ -85,7 +85,6 @@ onMounted(() => {
 
     setTimeout(() => {
         window.addEventListener("resize", () => {
-            console.log("resize")
             for (let i = 0; i < viewList.value.length; i++) {
                 let child = viewList.value[i]
                 child.isLoaded && target.resizeChild(child)
@@ -156,6 +155,9 @@ const scrollUpDelayLoadFunc = async () => {
             break
         }
         target.isScrollUp = true
+        if (!st) {
+            st = showToast({ message: "往上加载中", forbidClick: false, position: "top", duration: 0 })
+        }
         await mainMediaCtrl.onMediaLoad(c)
         target.resizeChild(c)
         target.updateChild(c)
@@ -167,9 +169,7 @@ const scrollUpDelayLoadFunc = async () => {
 
             continue
         }
-        if (!st) {
-            st = showToast({ message: "往上加载中", forbidClick: false, position: "top" })
-        }
+
         c.isViewDiv = true
         let cache = target.getCache(c)
         c.isViewImg = cache.type == "img"
@@ -253,7 +253,6 @@ const setRefresh = () => {
 }
 
 const imgOnLoad = (item: MediaViewChildType, e?: Event) => {
-    console.log("load")
     let cache = jFileCache.mediaCache[item.searchIndex]
     // let oldH = item.displayH * item.scale * mediaStore.domScale
     if (!cache.isComplete) {

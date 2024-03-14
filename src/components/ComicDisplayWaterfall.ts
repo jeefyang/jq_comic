@@ -41,7 +41,6 @@ export class ComicDisplayWaterfall {
             }
         }
         child.scale = mediaStore.divFloatW / child.displayW
-        // console.log(child.scale)
     }
 
     pointScale(x: number, y: number, div: HTMLElement) {
