@@ -8,14 +8,14 @@ import path from "path"
 
 import { zipFactory } from "./zipFactory";
 import { URL } from 'node:url';
-import { SqliteFactory } from "./sqliteFactory";
+// import { SqliteFactory } from "./sqliteFactory";
 import mime from "mime"
 import { configjson } from "./data"
 
 console.log("start!!!")
 const app = express()
 app.use(cors())
-let mydb: SqliteFactory
+// let mydb: SqliteFactory
 
 
 // readZip("./server_data/1.zip")
@@ -122,7 +122,7 @@ else {
 
 app.listen(configjson.listen)
 console.log("正在监听:", configjson.listen)
-mydb = new SqliteFactory("./base")
+// mydb = new SqliteFactory("./base")
 
 
 

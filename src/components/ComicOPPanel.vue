@@ -2,7 +2,6 @@
 import { onMounted } from 'vue';
 
 import { store } from "../store"
-import { jFileCache } from '../tool/fileCache';
 import { NameSortType } from '../type';
 import { showToast } from 'vant';
 import { staticData } from '../const';

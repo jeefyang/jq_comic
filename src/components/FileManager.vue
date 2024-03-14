@@ -24,7 +24,7 @@ let fileObjList: typeof fileList.value = []
 let fileCacheList: typeof fileList.value = []
 let fileBoxDiv: HTMLDivElement = null
 
-let isReveser = false
+let isReverse = false
 let sortType = ref(<NameSortType>"名称")
 let searchKey = ref(<string>"")
 let scrollCount = 0
@@ -73,7 +73,7 @@ let setSortFunc = async () => {
                 })
                 break
         }
-        if (isReveser) {
+        if (isReverse) {
             child.reverse()
         }
     })
@@ -282,6 +282,11 @@ const scrollLazyLoad = async (num: number) => {
     return
 }
 
+const setReverse=()=>{
+    isReverse = !isReverse;
+     setSortFunc()
+}
+
 </script>
 
 <template>
@@ -305,7 +310,7 @@ const scrollLazyLoad = async (num: number) => {
                 <van-Button @click="rebackFolderFuncByIndex(-1)">后退</van-Button>
                 <van-Button @click="setIconTypeFunc">图标</van-Button>
                 <van-Button @click="setSortTypeFunc()">排序:{{ sortType }}</van-Button>
-                <van-Button @click="isReveser = !isReveser; setSortFunc()">反序</van-Button>
+                <van-Button @click="setReverse">反序</van-Button>
                 <van-Button @click="rebackCur">当前</van-Button>
                 <van-Button @click="store.displayFileManager = false">关闭</van-Button>
             </div>

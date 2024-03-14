@@ -1,5 +1,3 @@
-import anime from "animejs"
-import { mediaStore } from "../mediaStore"
 
 class JDisplayAnime {
 
