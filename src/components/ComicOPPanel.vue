@@ -5,9 +5,8 @@ import { store } from "../store"
 import { NameSortType } from '../type';
 import { showToast } from 'vant';
 import { staticData } from '../const';
-import { mediaMiddleData, mediaStore } from '../mediaStore';
+import { mediaStore } from '../mediaStore';
 import { mainMediaCtrl } from '../tool/mainMediaCtrl';
-import { jFileCache } from '../tool/fileCache';
 const readModeMap: { key: typeof store.readMode, name: string }[] = [
     { key: "none", name: "原始" },
     { key: "fit", name: "适应屏幕" },

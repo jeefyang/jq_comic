@@ -34,7 +34,6 @@ export type JConfigType = {
     switchUrlList: { key: string, url: string }[],
     /** 监听接口 */
     listen: number
-
 }
 
 export type NameSortType = "名称" | "日期" | "大小" | "数字"
