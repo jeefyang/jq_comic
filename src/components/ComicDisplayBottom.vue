@@ -15,7 +15,6 @@ onMounted(() => {
                 return
             }
             let cc = jFileCache.getMediaCache(c)
-            console.log(cc)
             if (!cc) {
                 mediaStore.zipInFileName = ""
                 return

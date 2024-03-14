@@ -71,7 +71,7 @@ onMounted(() => {
             return
         }
         if (curChild.value.isSplit && curChild.value.splitNum == 1) {
-            mediaStore.jumpPage = `${c.displayIndex},1`
+            mediaStore.jumpPage = `${c.displayIndex},0`
             preloadMedia(-1, loadingImgCount[0], c.displayIndex)
             return
         }
