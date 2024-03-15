@@ -20,7 +20,7 @@ onMounted(() => {
 })
 
 let setCloseFunc = () => {
-    store.displayBottomBar = false
+    mediaStore.displayBottomBar = false
 }
 
 let setCurNoFunc = () => {

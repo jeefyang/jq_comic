@@ -118,13 +118,13 @@ class JAction {
             return
         }
         if (area.type == "fileManager") {
-            store.displayFileManager = true
+            mediaStore.displayFileManager = true
         }
         else if (area.type == "option") {
-            store.displayOPPanel = true
+            mediaStore.displayOPPanel = true
         }
         else if (area.type == "progressBar") {
-            store.displayBottomBar = true
+            mediaStore.displayBottomBar = true
         }
         else if (area.type == "next" && otherFuns?.setNext) {
             store.isCtrlReverse && otherFuns?.setPrev && otherFuns.setPrev()

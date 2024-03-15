@@ -25,9 +25,10 @@ const resizeFunc = () => {
   mediaStore.divFloatW = mediaStore.screenW - (mediaStore.divFloatLeft * 2)
   mediaStore.divFloatTop = mediaStore.screenH * mediaStore.divFloatHRatio
   mediaStore.divFloatH = mediaStore.screenH - (mediaStore.divFloatTop * 2)
-  store.displayFileCol = Math.floor(mediaStore.screenW / 150) + 2
-  store.displayFileIconSize = Math.floor(mediaStore.screenW / 25) + 20
-  store.displayFileTextCount = Math.floor(mediaStore.screenW / 100) + 5
+
+  mediaStore.displayFileCol = Math.floor(mediaStore.screenW / 150) + 2
+  mediaStore.displayFileIconSize = Math.floor(mediaStore.screenW / 25) + 20
+  mediaStore.displayFileTextCount = Math.floor(mediaStore.screenW / 100) + 5
 
 }
 
@@ -62,7 +63,7 @@ onMounted(async () => {
   // if (v) {
   // }
 
-  store.isServerCompleted = true
+  mediaStore.isServerCompleted = true
   window.addEventListener("resize", () => {
     resizeFunc()
   })
@@ -88,13 +89,13 @@ onMounted(async () => {
 <template>
   <div class="app" :style="{ 'background-color': store.background }">
     <van-config-provider theme="dark">
-      <div v-if="store.isServerCompleted">
+      <div v-if="mediaStore.isServerCompleted">
         <ComicDisplayWaterfall v-if="store.readMode == 'udWaterfall'"></ComicDisplayWaterfall>
         <ComicDisplayStandard v-if="store.readMode != 'udWaterfall'"></ComicDisplayStandard>
         <ComicDisplayArea v-if="mediaStore.displayArea"></ComicDisplayArea>
-        <FileManager v-if="store.displayFileManager"></FileManager>
-        <ComicOPPanel v-if="store.displayOPPanel"></ComicOPPanel>
-        <ComicBottomBar v-if="store.displayBottomBar"></ComicBottomBar>
+        <FileManager v-if="mediaStore.displayFileManager"></FileManager>
+        <ComicOPPanel v-if="mediaStore.displayOPPanel"></ComicOPPanel>
+        <ComicBottomBar v-if="mediaStore.displayBottomBar"></ComicBottomBar>
 
       </div>
     </van-config-provider>

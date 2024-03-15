@@ -73,9 +73,21 @@ const dispatchTest = () => {
     // console.log(imgCommon.displayDiv.scrollLeft, imgStore.divFloatW, imgStore.divFloatH)
 }
 
+/** 手动保存 */
+const manualSave = () => {
+    mainMediaCtrl.saveStoreByLocalStorage()
+    showToast({ message: "保存成功", forbidClick: false, duration: 500 })
+}
+
+/** 清空保存 */
+const clearSave = () => {
+    mainMediaCtrl.clearSave()
+    showToast({ message: "清空成功", forbidClick: false, duration: 500 })
+}
+
 </script>
 <template>
-    <van-action-sheet v-model:show="store.displayOPPanel" title="设置" :closeable="false">
+    <van-action-sheet v-model:show="mediaStore.displayOPPanel" title="设置" :closeable="false">
         <!-- 观看模式 -->
         <div class="sort">
             <div class="sort_title">观看:</div>
@@ -252,8 +264,8 @@ const dispatchTest = () => {
         <div class="sort">
             <van-button type="default" @click="setRefresh">刷新</van-button>
             <van-button type="default" :disabled="!store.isControlDebug" @click="dispatchTest">测试</van-button>
-            <van-button type="default" @click="mainMediaCtrl.saveStoreByLocalStorage()">手动保存</van-button>
-            <van-button type="default" @click="mainMediaCtrl.clearSave()">清除缓存</van-button>
+            <van-button type="default" @click="manualSave">手动保存</van-button>
+            <van-button type="default" @click="clearSave">清空保存</van-button>
         </div>
         <!-- 空行 -->
         <div class="br"></div>

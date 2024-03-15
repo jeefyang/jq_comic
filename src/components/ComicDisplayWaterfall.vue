@@ -294,7 +294,7 @@ const imgOnLoad = (item: MediaViewChildType, e?: Event) => {
                             :style="{ 'width': item.displayW + 'px', 'height': item.displayH + 'px', }">
                             <!-- 加载状态 -->
                             <div class="imgLoading" v-if="!item.isLoaded"
-                                :style="{ 'background-color': store.mediaLoadingDivColor }">
+                                :style="{ 'background-color': mediaStore.mediaLoadingDivColor }">
                                 <div class="imgLoading_center">
                                     <van-loading vertical type="spinner" size="50" text-size="50" text-color="#fff">{{
             item.displayIndex

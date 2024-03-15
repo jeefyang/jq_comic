@@ -16,7 +16,7 @@ export class MainMediaCtrl {
     async openMedia(dirUrl?: string, fileName?: string, index: number = 0) {
         store.dirUrl = dirUrl || store.dirUrl
         store.fileName = fileName || store.fileName
-        store.curDirUrl = store.dirUrl
+        mediaStore.curDirUrl = store.dirUrl
         let comicData = await this.openComicList(store.dirUrl, store.fileName)
         mediaStore.isZip = comicData.listdata.isZip
         // mediaStore.zipInFileName = ""

@@ -1,5 +1,6 @@
 import { reactive } from "vue"
 import { MediaStoreType, MediaViewChildType } from "./media"
+import { staticData } from "./const"
 
 
 export const mediaStore = reactive(<MediaStoreType>{
@@ -40,7 +41,18 @@ export const mediaStore = reactive(<MediaStoreType>{
     jumpPage: "0,0",
     forceJumpPage: 0,
     setResize: 0,
-    isRefresh: false
+    isRefresh: false,
+    displayBottomBar: false,
+    displayFileManager: false,
+    displayOPPanel: false,
+    curDirUrl: "",
+    displayFileCol: 1,
+    displayFileTextCount: 10,
+    displayFileIconSize: 20,
+    isServerCompleted: false,
+    isDisplayLoading: false,
+    mediaLoadingDivColor: staticData.defaultMediaLoadingColor
+
 })
 
 export type mediaMiddleDataType = {

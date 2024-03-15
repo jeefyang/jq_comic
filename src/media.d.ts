@@ -189,4 +189,24 @@ export type MediaStoreType = {
     setResize: number
     /** 是否刷新 */
     isRefresh: boolean
+    /** 是否打开文件管理 */
+    displayFileManager: boolean
+    /** 是否打开底部工具栏 */
+    displayBottomBar: boolean
+    /** 是否打开配置面板 */
+    displayOPPanel: boolean
+    /** 当前正在搜索的文件夹路径 */
+    curDirUrl: string
+    /** 显示文件列数 */
+    displayFileCol: number
+    /** 显示文件名的字数 */
+    displayFileTextCount: number
+    /** 显示文件图标尺寸 */
+    displayFileIconSize: number
+    /** 服务器是否连接成功 */
+    isServerCompleted: boolean
+    /** 是否显示加载 */
+    isDisplayLoading: boolean
+    /** 媒体加载时背景色 */
+    mediaLoadingDivColor: string
 }

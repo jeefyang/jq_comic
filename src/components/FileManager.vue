@@ -33,10 +33,13 @@ let scrollMax = 0
 
 
 
+
+
+
 onMounted(async () => {
     let loadding = showLoadingToast({ message: "加载中", overlay: true, forbidClick: true, duration: 0 })
     fileBoxDiv = fileBoxDivRef.value
-    await updateFolderFunc(store.curDirUrl)
+    await updateFolderFunc(mediaStore.curDirUrl)
     loadding.close()
     return
 })
@@ -101,14 +104,14 @@ let setSortTypeFunc = async () => {
 
 
 let updateFolderFunc = async (url: string) => {
-    store.curDirUrl = url
+    mediaStore.curDirUrl = url
     folderObj = await jFileCache.getFolder(url)
-    urlList.value = ['.', ...store.curDirUrl.split(path.sep)]
-    store.curDirUrl = url
+    urlList.value = ['.', ...mediaStore.curDirUrl.split(path.sep)]
+    mediaStore.curDirUrl = url
     folderObjList = []
     for (let i = 0; i < folderObj.folders.length; i++) {
         folderObjList.push({
-            name: folderObj.folders[i].name.slice(0, store.displayFileTextCount),
+            name: folderObj.folders[i].name.slice(0, mediaStore.displayFileTextCount),
             className: "iconfont icon-wenjianjia",
             title: folderObj.folders[i].name,
             type: "folder",
@@ -141,7 +144,7 @@ let updateFolderFunc = async (url: string) => {
             className = "icon-wenjian"
         }
         fileObjList.push({
-            name: file.name.slice(0, store.displayFileTextCount),
+            name: file.name.slice(0, mediaStore.displayFileTextCount),
             className: `iconfont ${className}`,
             title: file.name,
             type: "file",
@@ -161,21 +164,21 @@ const selectFileFunc = async (item: (typeof fileList.value)[number]) => {
     let loadding = showLoadingToast({ message: "加载中", overlay: true, forbidClick: true, duration: 0 })
     searchKey.value = ""
     if (item.type == "folder") {
-        let newUrl: string = path.join(store.curDirUrl, item.originName)
-        store.isDisplayLoading = true
+        let newUrl: string = path.join(mediaStore.curDirUrl, item.originName)
+        mediaStore.isDisplayLoading = true
         await updateFolderFunc(newUrl)
-        store.isDisplayLoading = false
+        mediaStore.isDisplayLoading = false
     }
     else if (item.type == "file") {
-        store.isDisplayLoading = true
-        let check = await mainMediaCtrl.openMedia(store.curDirUrl, item.originName, 0)
+        mediaStore.isDisplayLoading = true
+        let check = await mainMediaCtrl.openMedia(mediaStore.curDirUrl, item.originName, 0)
         if (!check) {
             loadding.close()
             showToast({ message: "没有可观看的文件", duration: 1000, forbidClick: true })
             return
         }
-        store.displayFileManager = false
-        store.isDisplayLoading = false
+        mediaStore.displayFileManager = false
+        mediaStore.isDisplayLoading = false
     }
     loadding.close()
     return
@@ -298,7 +301,7 @@ const setReverse = () => {
                 <van-Button @click="setSortTypeFunc()">排序:{{ sortType }}</van-Button>
                 <van-Button @click="setReverse">反序</van-Button>
                 <van-Button @click="rebackCur">当前</van-Button>
-                <van-Button @click="store.displayFileManager = false">关闭</van-Button>
+                <van-Button @click="mediaStore.displayFileManager = false">关闭</van-Button>
             </div>
 
             <!-- 文件显示大框 -->
@@ -306,7 +309,7 @@ const setReverse = () => {
                 <van-config-provider :theme-vars="themeVars">
                     <!-- 文件显示 -->
                     <!-- 图标显示 -->
-                    <van-grid :icon-size="store.displayFileIconSize + 'px'" :column-num="store.displayFileCol"
+                    <van-grid :icon-size="mediaStore.displayFileIconSize + 'px'" :column-num="mediaStore.displayFileCol"
                         :border="false" square gutter="5px" v-if="store.displayFileStyleType == 'icon'">
                         <van-grid-item :theme-vars="themeVars" v-for="(item) in fileList" :key="item.originName"
                             :icon="item.className" :text="item.name" :title="item.title" @click="selectFileFunc(item)">
