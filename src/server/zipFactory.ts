@@ -1,11 +1,13 @@
 // import * as streamZip from "node-stream-zip"
 import { JZipChild } from "./zipChild"
+import path from "path"
+import colors from "colors-console"
 
 export class JZipFactory {
 
     children: { obj: JZipChild, key: string, freeTime: number }[] = []
     /** 最大压缩包存活数量,减轻服务器的压力 */
-    maxCount: number = 10
+    maxCount: number = 3
 
     constructor() {
 
@@ -27,19 +29,27 @@ export class JZipFactory {
     }
 
     /** 按照最大存活数量筛选清空缓存 */
-    async maxClearCache() {
+    async maxClearCache(noclearChild?: JZipChild) {
         if (this.maxCount > this.children.length) {
+            console.log(`当前缓存压缩包:${JSON.stringify(this.children.map(c => {
+                return { url: c.obj.url, iswork: c.obj.isWork, freetime: new Date(c.obj.freeTime) }
+            }))}`)
             return
         }
         this.children.sort((a, b) => {
             return a.obj.isWork ? -1 : b.obj.isWork ? 1 : b.freeTime - a.freeTime
         })
         let child = this.children[0]
-        if (child.obj.isWork) {
+        if (noclearChild && noclearChild.url == child.key) {
             return
         }
+        if (child.obj.isWork) {
+            // console.log()
+            return this.maxClearCache(noclearChild)
+        }
+        console.log(colors("redBG", `缓存已满,删除缓存中压缩包 ${child.key}`))
         await child.obj.destory()
-        await this.maxClearCache()
+        await this.maxClearCache(noclearChild)
         return
     }
 
@@ -47,23 +57,29 @@ export class JZipFactory {
     /** 创建子对象 */
     async createChild(url: string) {
         let child = new JZipChild()
-        await child.init(url)
-        this.children.push({ obj: child, key: child.url, freeTime: child.freeTime })
+        await child.init(path.join(url))
+        this.children.push({ obj: child, key: path.join(child.url), freeTime: child.freeTime })
         child.destroyCB = () => {
-            let index = this.children.findIndex(c => c.obj == child)
-            if (index != -1) {
-                this.children.splice(index, 1)
-            }
+            let key = path.join(child.url)
+            this.children = this.children.filter(c => c.key != key)
+            console.log(colors("redBG", `缓存已经删除压缩包:${key}`))
+            // let index = this.children.findIndex(c => c.obj == child)
+            // if (index != -1) {
+            //     this.children.splice(index, 1)
+            // }
         }
+        console.log(`内存缓存压缩包文件:${url}`)
         child.setRollDestory(true)
-        this.maxClearCache()
+        this.maxClearCache(child)
         return child
     }
 
     /** 获取子对象 */
     async getChild(url: string) {
+
         let index = this.children.findIndex(c => c.key == url)
         if (index == -1) {
+            console.log(`加载压缩包:${url}`)
             return await this.createChild(url)
         }
         return this.children[index].obj

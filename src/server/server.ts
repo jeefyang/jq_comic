@@ -45,6 +45,7 @@ app.get("/getZipInFileByName", async (req, res) => {
     let fileName = urldata.searchParams.get("fileName")
     let completeUrl = path.join(base, fileUrl)
     try {
+        console.log(`加载压缩包文件 '${completeUrl}' 中的 '${fileName}'`)
         let data = await (await zipFactory.getChild(completeUrl)).getFileByName(fileName)
         res.send(data)
     }
@@ -68,6 +69,7 @@ app.get("/getFile", async (req, res) => {
     let fileUrl = urldata.searchParams.get("url")
     let completeUrl = path.join(base, fileUrl)
     try {
+        console.log(`加载文件 ${completeUrl}`)
         let data = await fs.readFileSync(completeUrl)
         res.send(data)
     }
@@ -88,7 +90,7 @@ app.get("*", async (req, res) => {
     else if (import.meta.env.MODE == "production") {
         url = `./build_vue${req.path}`
     }
-    console.log(`加载文件:${url}`)
+    console.log(`加载网页文件:${url}`)
     if (fs.existsSync(url) && fs.statSync(url).isFile()) {
         res.setHeader("Content-Type", mime.getType(url))
         res.send(fs.readFileSync(url))
@@ -102,7 +104,7 @@ app.get("*", async (req, res) => {
         url = `./build_vue${req.url}`
     }
 
-    console.log(`尝试加载文件:${url}`)
+    console.log(`尝试加载网页文件:${url}`)
     if (fs.existsSync(url) && fs.statSync(url).isFile()) {
         res.setHeader("Content-Type", mime.getType(url))
         res.send(fs.readFileSync(url))

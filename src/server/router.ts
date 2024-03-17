@@ -36,7 +36,7 @@ const mainRouter = router({
       return undefined
     let url = path.join(base, input.url)
     let zip = (await zipFactory.getChild(url))
-    console.log("压缩包文件数量:", zip.entryList.length)
+    console.log(`压缩包 ${url} 文件数量:${zip.entryList.length}`)
     return { list: zip.entryList }
   }),
   /** 通过名称获取压缩包里文件 */
