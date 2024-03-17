@@ -7,7 +7,7 @@ export class JZipFactory {
 
     children: { obj: JZipChild, key: string, freeTime: number }[] = []
     /** 最大压缩包存活数量,减轻服务器的压力 */
-    maxCount: number = 3
+    maxCount: number = 10
 
     constructor() {
 

@@ -29,7 +29,6 @@ const resizeFunc = () => {
   mediaStore.displayFileCol = Math.floor(mediaStore.screenW / 150) + 2
   mediaStore.displayFileIconSize = Math.floor(mediaStore.screenW / 25) + 20
   mediaStore.displayFileTextCount = Math.floor(mediaStore.screenW / 100) + 5
-
 }
 
 onMounted(async () => {
