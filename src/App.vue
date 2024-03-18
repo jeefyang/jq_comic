@@ -82,6 +82,9 @@ onMounted(async () => {
     if (store.fileName) {
       mainMediaCtrl.openMedia(store.dirUrl, store.fileName, store.displayIndex)
     }
+    if (store.noSleep) {
+      noSleep.enable()
+    }
   }, 2000);
 
 
