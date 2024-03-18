@@ -25,8 +25,12 @@ export type JFolderDisplayType = {
 
 export type JFileFormatType = "zip" | "gif" | "bmp" | "jpg" | "jpeg" | "png" | "apng" | "webp" | "avi" | "wmv" | "mp4" | "mkv" | "webm"
 
-export type LocalSaveDataType = {
+export type LocalSaveStoreType = {
     storeList: { key: string, data: typeof store }[]
+}
+
+export type LocalSaveGlanceType = {
+    key: string, dirurl: string, filename: string, iszip: boolean, displayIndex?: number
 }
 
 export type JConfigType = {

@@ -80,6 +80,14 @@ onMounted(() => {
         mainMediaCtrl.autoSave()
     })
 
+    watch([() => mediaStore.overHead], () => {
+        showToast({ message: "已经是首页了,不要再滚", forbidClick: false, duration: 500 })
+    })
+
+    watch([() => mediaStore.overEnd], () => {
+        showToast({ message: "已经是尾页了,不要再滚", forbidClick: false, duration: 500 })
+    })
+
     target.eventInit(divRef.value)
     startLoopFunc()
 
@@ -96,7 +104,7 @@ onMounted(() => {
             mediaStore.jumpPage = `${store.displayIndex},0`
             mediaStore.forceJumpPage++
         }
-        mainMediaCtrl.autoSave()
+        mainMediaCtrl.autoSave("store")
     }, 1000);
 })
 

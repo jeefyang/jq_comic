@@ -3,13 +3,16 @@ import { mediaMiddleData, mediaStore } from "../mediaStore"
 import { MediaContentChildType, MediaViewChildType } from "../media"
 import { store } from "../store"
 import { jFileCache } from "./fileCache"
-import { LocalSaveDataType } from "../type"
+import { LocalSaveStoreType, LocalSaveGlanceType } from "../type"
 import { cloneAssign } from "./util"
 
 
 export class MainMediaCtrl {
 
-    localStorageKey: string = "localSaveDataType"
+    storageStoreKey: string = "store"
+    storageGlanceKey: string = "glance"
+    /** 浏览记录 */
+    glanceList: LocalSaveGlanceType[] = []
     private _isControlDebug = false
 
     /** 重新打开图片 */
@@ -20,16 +23,25 @@ export class MainMediaCtrl {
         let comicData = await this.openComicList(store.dirUrl, store.fileName)
         mediaStore.isZip = comicData.listdata.isZip
         // mediaStore.zipInFileName = ""
+        let displayIndex = index
         if (mediaStore.isZip) {
-            store.displayIndex = index
+            displayIndex = index
         }
         else {
             let a = mediaMiddleData.list.find(c => {
                 let b = jFileCache.mediaCache[c.searchIndex]
                 return b.fileName == fileName
             })
-            store.displayIndex = a.displayIndex
+            displayIndex = a.displayIndex
         }
+        if (store.isAutoSaveGlance) {
+            let c = this.glanceList.find(c => c.dirurl == store.dirUrl && c.filename == store.fileName && c.key == store.urlkey)
+            console.log(c)
+            if (c) {
+                displayIndex = c.displayIndex
+            }
+        }
+        store.displayIndex = displayIndex
         mediaStore.isRefresh = true
         await new Promise((res) => {
             setTimeout(() => {
@@ -83,21 +95,43 @@ export class MainMediaCtrl {
         return true
     }
 
-    initStore() {
-        let c = this.loadStoreByLocalStorage()
-        if (!c) {
-            return
+    loadGlanceByLocalStorage() {
+        this.glanceList = this.getGlanceByLocalStorage()
+    }
+
+    getGlanceByLocalStorage() {
+        let txt = localStorage.getItem(this.storageGlanceKey)
+        if (!txt) {
+            return []
         }
+        let json: LocalSaveGlanceType[] = JSON.parse(txt)
+        return json
+    }
+
+    saveGlanceByLocalStorage() {
+        let c = this.glanceList.find(c => c.key == store.urlkey && c.dirurl == store.dirUrl && c.filename == store.fileName)
+        if (!c) {
+            c = { key: store.urlkey, dirurl: store.dirUrl, filename: store.fileName, iszip: mediaStore.isZip, displayIndex: 0 }
+            this.glanceList.push(c)
+        }
+        c.displayIndex = store.displayIndex
+        let txt = JSON.stringify(this.glanceList)
+        localStorage.setItem(this.storageGlanceKey, txt)
+    }
+
+    initStorage() {
+        this.loadStoreByLocalStorage()
+        this.loadGlanceByLocalStorage()
         store.isControlDebug = store.isControlDebug || this._isControlDebug
         this._isControlDebug = store.isControlDebug
     }
 
     getStoreByLocalStorage() {
-        let txt = localStorage.getItem(this.localStorageKey)
+        let txt = localStorage.getItem(this.storageStoreKey)
         if (!txt) {
             return
         }
-        let json: LocalSaveDataType = JSON.parse(txt)
+        let json: LocalSaveStoreType = JSON.parse(txt)
         let index = json?.storeList ? json.storeList.findIndex(c => c.key == store.urlkey) : -1
         if (index == -1) {
             return
@@ -105,45 +139,68 @@ export class MainMediaCtrl {
         return json.storeList[index].data
     }
 
-    saveStoreByLocalStorage() {
-        let json: LocalSaveDataType
-        let txt = localStorage.getItem(this.localStorageKey)
+    saveStoreByLocalStorage(o?: typeof store) {
+
+        if (!o) {
+            o = store
+        }
+        let json: LocalSaveStoreType
+        let txt = localStorage.getItem(this.storageStoreKey)
         if (!txt) {
             json = { storeList: [] }
         }
         else {
             json = JSON.parse(txt)
         }
-        let cloneStore = cloneAssign(store)
+        let cloneStore = cloneAssign(o)
 
-        let index = json?.storeList ? json.storeList.findIndex(c => c.key == store.urlkey) : -1
+        let index = json?.storeList ? json.storeList.findIndex(c => c.key == o.urlkey) : -1
         if (index == -1) {
 
-            json.storeList.push({ key: store.urlkey, data: cloneStore })
+            json.storeList.push({ key: o.urlkey, data: cloneStore })
         }
         else {
-            json.storeList[index] = { key: store.urlkey, data: cloneStore }
+            json.storeList[index] = { key: o.urlkey, data: cloneStore }
         }
         console.log(json)
         let newTxt = JSON.stringify(json)
-        localStorage.setItem(this.localStorageKey, newTxt)
+        localStorage.setItem(this.storageStoreKey, newTxt)
     }
 
     /** 自动保存 */
-    autoSave() {
-        if (!store.isAutoSave) {
-            return
+    autoSave(type?: "store" | "glance") {
+        if ((!type || type == "store") && store.isAutoSaveStore) {
+            this.saveStoreByLocalStorage()
         }
-        this.saveStoreByLocalStorage()
+        if ((!type || type == "glance") && store.isAutoSaveGlance) {
+            this.saveGlanceByLocalStorage()
+        }
+    }
+
+    clearSave() {
+        localStorage.clear()
+    }
+
+    clearSaveGlance() {
+        let list: LocalSaveGlanceType[] = []
+        for (let i = 0; i < this.glanceList.length; i++) {
+            let c = this.glanceList[i]
+            if (c.key == store.urlkey) {
+                continue
+            }
+            list.push(c)
+        }
+        this.glanceList = list
+        localStorage.setItem(this.storageGlanceKey, JSON.stringify(list))
     }
 
     /** 清空保存 */
-    clearSave() {
-        let txt = localStorage.getItem(this.localStorageKey)
+    clearSaveStore() {
+        let txt = localStorage.getItem(this.storageStoreKey)
         if (!txt) {
             return
         }
-        let json: LocalSaveDataType = JSON.parse(txt)
+        let json: LocalSaveStoreType = JSON.parse(txt)
         let index = json?.storeList ? json.storeList.findIndex(c => c.key == store.urlkey) : -1
         if (index == -1) {
             return
@@ -151,7 +208,7 @@ export class MainMediaCtrl {
         // console.log(index)
         json.storeList.splice(index, 1)
         let newTxt = JSON.stringify(json)
-        localStorage.setItem(this.localStorageKey, newTxt)
+        localStorage.setItem(this.storageStoreKey, newTxt)
         return
     }
 

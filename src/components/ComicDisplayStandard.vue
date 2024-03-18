@@ -9,6 +9,7 @@ import { ComicDisplayStandard } from "./ComicDisplayStandard"
 import { cloneAssign } from '../tool/util';
 import { areaTouchWaterFall } from '../const';
 import { mainMediaCtrl } from '../tool/mainMediaCtrl';
+import { showToast } from 'vant';
 
 
 const divRef = ref(<HTMLDivElement>null)
@@ -34,6 +35,14 @@ onMounted(() => {
         target.resizeChild(curChild.value)
         target.updateChild(curChild.value)
         mainMediaCtrl.autoSave()
+    })
+
+    watch([() => mediaStore.overHead], () => {
+        showToast({ message: "已经是首页了,不要再翻", forbidClick: false, duration: 500 })
+    })
+
+    watch([() => mediaStore.overEnd], () => {
+        showToast({ message: "已经是尾页了,不要再翻", forbidClick: false, duration: 500 })
     })
 
     watch([() => mediaStore.setNext], () => {
@@ -62,6 +71,8 @@ onMounted(() => {
     })
 
     watch([() => mediaStore.setPrev], () => {
+
+        console.log("perv")
         let index = viewList.findIndex(c => c.displayIndex == curChild.value.displayIndex)
         if (index == -1) {
             return
@@ -112,6 +123,7 @@ onMounted(() => {
 
         }
         store.displayIndex = curChild.value.displayIndex
+        mainMediaCtrl.autoSave()
     })
 
     watch([() => mediaStore.isRefresh], () => {
@@ -133,7 +145,7 @@ onMounted(() => {
         setRefresh()
         mediaStore.jumpPage = `${store.displayIndex},0`
         mediaStore.forceJumpPage++
-        mainMediaCtrl.autoSave()
+        mainMediaCtrl.autoSave("store")
     }, 1000);
 })
 

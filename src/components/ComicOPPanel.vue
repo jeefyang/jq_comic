@@ -7,6 +7,7 @@ import { showToast } from 'vant';
 import { staticData } from '../const';
 import { mediaStore } from '../mediaStore';
 import { mainMediaCtrl } from '../tool/mainMediaCtrl';
+import { cloneAssign } from '../tool/util';
 const readModeMap: { key: typeof store.readMode, name: string }[] = [
     { key: "none", name: "原始" },
     { key: "fit", name: "适应屏幕" },
@@ -34,15 +35,35 @@ const sortMap: { text: NameSortType, value: NameSortType }[] = [
 onMounted(() => {
 })
 
-const setAutoSave = (v: boolean) => {
+const setAutoSaveStore = (v: boolean) => {
     if (v) {
         mainMediaCtrl.autoSave()
         showToast({ message: "自动保存启动", forbidClick: false, duration: 500 })
     }
     else {
         showToast({ message: "取消自动保存", forbidClick: false, duration: 500 })
-        mainMediaCtrl.clearSave()
+        mainMediaCtrl.clearSaveStore()
     }
+}
+
+const setAutoSaveGlance = (v: boolean) => {
+    if (v) {
+        mainMediaCtrl.autoSave()
+        if (!store.isAutoSaveStore) {
+            let o = cloneAssign(store)
+            o.dirUrl = ""
+            o.fileName = ""
+            o.displayIndex = 0
+            mainMediaCtrl.saveStoreByLocalStorage(o)
+        }
+        showToast({ message: "自动保存启动", forbidClick: false, duration: 500 })
+    }
+    else {
+        showToast({ message: "取消自动保存", forbidClick: false, duration: 500 })
+        mainMediaCtrl.clearSaveStore()
+    }
+
+
 }
 
 const setRefresh = () => {
@@ -223,13 +244,13 @@ const clearSave = () => {
         <!-- 空行 -->
         <div class="br"></div>
 
-        <!-- 自动保存 -->
+        <!-- 自动保存配置 -->
         <div class="sort">
-            <div class="sort_title">自动保存:</div>
-            <van-switch v-model="store.isAutoSave" @change="setAutoSave">
+            <div class="sort_title">自动保存配置:</div>
+            <van-switch v-model="store.isAutoSaveStore" @change="setAutoSaveStore">
                 <template #node>
                     <div class="icon-wrapper">
-                        <van-icon :name="store.isAutoSave ? 'success' : 'cross'" />
+                        <van-icon :name="store.isAutoSaveStore ? 'success' : 'cross'" />
                     </div>
                 </template>
             </van-switch>
@@ -237,7 +258,21 @@ const clearSave = () => {
         <!-- 空行 -->
         <div class="br"></div>
 
-        <!-- 自动保存 -->
+        <!-- 自动保存历史 -->
+        <div class="sort">
+            <div class="sort_title">自动保存历史:</div>
+            <van-switch v-model="store.isAutoSaveGlance" @change="setAutoSaveGlance">
+                <template #node>
+                    <div class="icon-wrapper">
+                        <van-icon :name="store.isAutoSaveGlance ? 'success' : 'cross'" />
+                    </div>
+                </template>
+            </van-switch>
+        </div>
+        <!-- 空行 -->
+        <div class="br"></div>
+
+        <!-- 调试 -->
         <div class="sort" v-if="store.isControlDebug">
             <div class="sort_title">调试:</div>
             <van-switch v-model="store.isControlDebug">

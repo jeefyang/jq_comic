@@ -34,7 +34,9 @@ export const store = reactive({
     /** 是否反转操作 */
     isCtrlReverse: <boolean>false,
     /** 自动保存 */
-    isAutoSave: <boolean>false,
+    isAutoSaveStore: <boolean>false,
+    /** 自动保存浏览历史 */
+    isAutoSaveGlance: <boolean>false,
     /** 背景色 */
     background: <string>staticData.defaultBackground,
     /** 路径的key */

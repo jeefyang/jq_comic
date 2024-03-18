@@ -51,7 +51,9 @@ export const mediaStore = reactive(<MediaStoreType>{
     displayFileIconSize: 20,
     isServerCompleted: false,
     isDisplayLoading: false,
-    mediaLoadingDivColor: staticData.defaultMediaLoadingColor
+    mediaLoadingDivColor: staticData.defaultMediaLoadingColor,
+    overEnd: 0,
+    overHead: 0
 
 })
 

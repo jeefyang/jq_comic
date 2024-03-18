@@ -56,7 +56,7 @@ onMounted(async () => {
 
   await jFileCache.init(jserver)
 
-  mainMediaCtrl.initStore()
+  mainMediaCtrl.initStorage()
   // let fileUrl = `${store.dirUrl}/${store.fileName}`
   // let v = await jserver.postIsFile(fileUrl)
   // if (v) {
@@ -71,7 +71,9 @@ onMounted(async () => {
     if (store.fileName) {
       mainMediaCtrl.openMedia(store.dirUrl, store.fileName, store.displayIndex)
     }
-  }, 1000);
+  }, 2000);
+
+  
 
   //测试
 
