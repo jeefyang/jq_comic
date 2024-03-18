@@ -62,8 +62,17 @@ const setAutoSaveGlance = (v: boolean) => {
         showToast({ message: "取消自动保存", forbidClick: false, duration: 500 })
         mainMediaCtrl.clearSaveStore()
     }
+}
 
-
+const setNoSleep = (v: boolean) => {
+    console.log("亮屏", v)
+    if (!store.isAutoSaveStore) {
+        let o = cloneAssign(store)
+        o.dirUrl = ""
+        o.fileName = ""
+        o.displayIndex = 0
+        mainMediaCtrl.saveStoreByLocalStorage(o)
+    }
 }
 
 const setRefresh = () => {
@@ -265,6 +274,20 @@ const clearSave = () => {
                 <template #node>
                     <div class="icon-wrapper">
                         <van-icon :name="store.isAutoSaveGlance ? 'success' : 'cross'" />
+                    </div>
+                </template>
+            </van-switch>
+        </div>
+        <!-- 空行 -->
+        <div class="br"></div>
+
+        <!-- 保持亮屏 -->
+        <div class="sort">
+            <div class="sort_title">保持亮屏:</div>
+            <van-switch v-model="store.noSleep" @change="setNoSleep">
+                <template #node>
+                    <div class="icon-wrapper">
+                        <van-icon :name="store.noSleep ? 'success' : 'cross'" />
                     </div>
                 </template>
             </van-switch>

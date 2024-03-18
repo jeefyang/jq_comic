@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, watch } from 'vue';
 
 import { store } from './store';
 import { jserver } from './tool/serverLink'
@@ -13,6 +13,7 @@ import ComicDisplayWaterfall from './components/ComicDisplayWaterfall.vue'
 import ComicDisplayStandard from './components/ComicDisplayStandard.vue'
 import ComicDisplayArea from './components/ComicDisplayArea.vue'
 import { mainMediaCtrl } from './tool/mainMediaCtrl';
+import NoSleep from "nosleep.js"
 
 
 
@@ -33,6 +34,16 @@ const resizeFunc = () => {
 
 onMounted(async () => {
 
+  let noSleep = new NoSleep()
+
+  watch([() => store.noSleep], () => {
+    if (store.noSleep) {
+      noSleep.enable()
+    }
+    else {
+      noSleep.disable()
+    }
+  })
 
   // 禁止浏览器前进后退 另一部本在router的index.js中
   window.addEventListener('popstate', function () {
@@ -73,7 +84,7 @@ onMounted(async () => {
     }
   }, 2000);
 
-  
+
 
   //测试
 
