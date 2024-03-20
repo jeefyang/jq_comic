@@ -316,6 +316,11 @@ const clearSave = () => {
         <!-- 空行 -->
         <div class="br"></div>
 
+        <!-- 垫底 -->
+        <div class="br"></div>
+        <div class="br"></div>
+        <!-- <div class="br"></div>
+        <div class="br"></div> -->
 
     </van-action-sheet>
 </template>
@@ -329,6 +334,7 @@ const clearSave = () => {
     flex-direction: row;
     justify-content: flex-start;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .sort_title {
