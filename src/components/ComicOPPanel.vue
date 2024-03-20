@@ -66,13 +66,13 @@ const setAutoSaveGlance = (v: boolean) => {
 
 const setNoSleep = (v: boolean) => {
     console.log("亮屏", v)
-    if (!store.isAutoSaveStore) {
-        let o = cloneAssign(store)
-        o.dirUrl = ""
-        o.fileName = ""
-        o.displayIndex = 0
-        mainMediaCtrl.saveStoreByLocalStorage(o)
+    if (v) {
+        mediaStore.noSleep = Math.abs(mediaStore.noSleep) + 1
     }
+    else {
+        mediaStore.noSleep = -Math.abs(mediaStore.noSleep) - 1
+    }
+
 }
 
 const setRefresh = () => {
@@ -281,20 +281,6 @@ const clearSave = () => {
         <!-- 空行 -->
         <div class="br"></div>
 
-        <!-- 保持亮屏 -->
-        <div class="sort">
-            <div class="sort_title">保持亮屏:</div>
-            <van-switch v-model="store.noSleep" @change="setNoSleep">
-                <template #node>
-                    <div class="icon-wrapper">
-                        <van-icon :name="store.noSleep ? 'success' : 'cross'" />
-                    </div>
-                </template>
-            </van-switch>
-        </div>
-        <!-- 空行 -->
-        <div class="br"></div>
-
         <!-- 调试 -->
         <div class="sort" v-if="store.isControlDebug">
             <div class="sort_title">调试:</div>
@@ -324,6 +310,8 @@ const clearSave = () => {
             <van-button type="default" :disabled="!store.isControlDebug" @click="dispatchTest">测试</van-button>
             <van-button type="default" @click="manualSave">手动保存</van-button>
             <van-button type="default" @click="clearSave">清空保存</van-button>
+            <van-button type="default" @click="setNoSleep(true)">长亮屏</van-button>
+            <van-button type="default" @click="setNoSleep(false)">取消长亮屏</van-button>
         </div>
         <!-- 空行 -->
         <div class="br"></div>

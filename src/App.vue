@@ -36,11 +36,11 @@ onMounted(async () => {
 
   let noSleep = new NoSleep()
 
-  watch([() => store.noSleep], () => {
-    if (store.noSleep) {
+  watch([() => mediaStore.noSleep], () => {
+    if (mediaStore.noSleep > 0) {
       noSleep.enable()
     }
-    else {
+    else if (mediaStore.noSleep < 0) {
       noSleep.disable()
     }
   })
@@ -81,9 +81,6 @@ onMounted(async () => {
   setTimeout(() => {
     if (store.fileName) {
       mainMediaCtrl.openMedia(store.dirUrl, store.fileName, store.displayIndex)
-    }
-    if (store.noSleep) {
-      noSleep.enable()
     }
   }, 2000);
 

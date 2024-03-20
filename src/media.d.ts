@@ -209,4 +209,6 @@ export type MediaStoreType = {
     isDisplayLoading: boolean
     /** 媒体加载时背景色 */
     mediaLoadingDivColor: string
+    /** 不休眠亮屏 */
+    noSleep: number
 }

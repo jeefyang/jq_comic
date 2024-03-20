@@ -53,7 +53,8 @@ export const mediaStore = reactive(<MediaStoreType>{
     isDisplayLoading: false,
     mediaLoadingDivColor: staticData.defaultMediaLoadingColor,
     overEnd: 0,
-    overHead: 0
+    overHead: 0,
+    noSleep: 0
 
 })
 

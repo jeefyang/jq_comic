@@ -40,6 +40,5 @@ export const store = reactive({
     /** 背景色 */
     background: <string>staticData.defaultBackground,
     /** 路径的key */
-    urlkey: <string>"",
-    noSleep: <boolean>false
+    urlkey: <string>""
 })
