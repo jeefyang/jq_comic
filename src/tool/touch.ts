@@ -15,6 +15,8 @@ export class JTouch {
     swipeInterval: number = 300
     /** 双击触发间隔 */
     dblInterval: number = 300
+    /** 双击触发后保护时间 */
+    dblProtectTime: number = 100
     swipeT: NodeJS.Timeout
     /** 冲突延迟 */
     clashDelay: number = 10
@@ -36,6 +38,11 @@ export class JTouch {
     upP: { x: number, y: number }
     /** 移动坐标 */
     moveP: { x: number, y: number }
+    /** 是否正在触发双击,,避免特殊设备特殊情况 */
+    isdblClick: boolean = false
+    /** 是否正在触发滑动,避免特殊设备特殊情况 */
+    isSwipe: boolean = false
+    /** 事件触发对象 */
     touchO: {
         t: NodeJS.Timeout
         downTime: number
@@ -44,7 +51,7 @@ export class JTouch {
         downY: number
         upX: number
         upY: number
-        type: "click" | "swipe"
+        type: "click" | "swipe" | "dblclick"
     }
 
 
@@ -114,6 +121,7 @@ export class JTouch {
         this.upP = { x: x, y: y }
         // 双击
         if (this.touchO && this.touchO.type == "click" && !this.isTouchMove && this.upTime - this.touchO.downTime < this.dblInterval) {
+            this.isdblClick = true
             this.touchO.t && clearTimeout(this.touchO.t)
             this.dblclickFunc && this.dblclickFunc(x, y)
             this.touchO = undefined
@@ -121,11 +129,14 @@ export class JTouch {
             setTimeout(() => {
                 this.touchKey = undefined
             }, this.clashDelay);
+            setTimeout(() => {
+                this.isdblClick = false
+            }, this.dblProtectTime);
             return
         }
 
         /** 点击 */
-        if (!this.touchO && !this.isTouchMove) {
+        if (!this.touchO && !this.isTouchMove && !this.isdblClick) {
             this.touchO = {
                 type: "click",
                 downX: this.downP.x,
@@ -155,14 +166,17 @@ export class JTouch {
             Math.abs(this.upP.x - this.downP.x) + Math.abs(this.upP.y - this.downP.y) >= this.swipeTouchDelta &&
             this.upTime - this.downTime <= this.swipeInterval
         ) {
+            this.isSwipe = true
             this.swipeFunc && this.swipeFunc(this.downP, this.upP, this.upTime - this.downTime)
             this._clear()
             setTimeout(() => {
                 this.touchKey = undefined
+                this.isSwipe = false
             }, this.clashDelay);
             return
         }
         this._clear()
+
     }
 
     private _clear() {

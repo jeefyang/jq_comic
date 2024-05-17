@@ -14,6 +14,7 @@ import ComicDisplayStandard from './components/ComicDisplayStandard.vue'
 import ComicDisplayArea from './components/ComicDisplayArea.vue'
 import { mainMediaCtrl } from './tool/mainMediaCtrl';
 import NoSleep from "nosleep.js"
+import VConsole from 'vconsole';
 
 
 
@@ -51,7 +52,7 @@ onMounted(async () => {
   })
 
   if (import.meta.env.MODE == "development") {
-
+     new VConsole({ theme: 'dark' });
   }
   else {
 

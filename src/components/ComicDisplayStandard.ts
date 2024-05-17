@@ -69,11 +69,11 @@ export class ComicDisplayStandard {
             this.pointScale(x, y, div)
         })
         touch.setSiwpe((start, end) => {
-            if (!store.isSwipe) {
+            console.log('swipe')
+            if (!store.isSwipe || mediaStore.domScale != 1) {
                 return
             }
             let d = touch.decodeSwipe({ start, end })
-            console.log(d)
             if (d.absX < 10 || d.VOH != 1 || d.LOR == 0) {
                 return
             }
