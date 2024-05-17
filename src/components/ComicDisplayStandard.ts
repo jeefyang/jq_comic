@@ -51,7 +51,7 @@ export class ComicDisplayStandard {
 
     eventInit(div: HTMLElement) {
         let touch = new JTouch(div)
-        touch.swipeTouchDelta = 200
+        touch.swipeTouchDelta = 20
         touch.dblInterval = 500
         touch.setClick((x, y) => {
             console.log("click")
@@ -67,6 +67,26 @@ export class ComicDisplayStandard {
         touch.setDblclick((x, y) => {
             console.log('dblclick')
             this.pointScale(x, y, div)
+        })
+        touch.setSiwpe((start, end) => {
+            if (!store.isSwipe) {
+                return
+            }
+            let d = touch.decodeSwipe({ start, end })
+            console.log(d)
+            if (d.absX < 10 || d.VOH != 1 || d.LOR == 0) {
+                return
+            }
+            let LOR = d.LOR
+            if (store.isCtrlReverse) {
+                LOR *= -1
+            }
+            if (LOR == 1) {
+                mediaStore.setPrev++
+            }
+            else {
+                mediaStore.setNext++
+            }
         })
     }
 

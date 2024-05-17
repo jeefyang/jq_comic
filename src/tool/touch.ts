@@ -1,3 +1,5 @@
+export type JPos = { x: number, y: number }
+
 export class JTouch {
 
     /** 是否判断为移动了 */
@@ -169,8 +171,28 @@ export class JTouch {
         this.downP = undefined
     }
 
-    setSiwpe(func: (start: { x: number, y: number }, end: { x: number, y: number }, time: number) => void) {
+    setSiwpe(func: (start: JPos, end: JPos, time: number) => void) {
         this.swipeFunc = func
+    }
+
+    decodeSwipe(op:
+        {
+            start: JPos,
+            end: JPos
+        }
+    ) {
+        let deltaX = op.end.x - op.start.x
+        let deltaY = op.end.y - op.start.y
+        let absX = Math.abs(deltaX)
+        let absY = Math.abs(deltaY)
+        let VOH: -1 | 0 | 1 = absX == absY ? 0 : absX > absY ? 1 : -1
+        let LOR: -1 | 0 | 1 = deltaX == 0 ? 0 : deltaX > 0 ? 1 : -1
+        let UOB: -1 | 0 | 1 = deltaY == 0 ? 0 : deltaY > 0 ? -1 : 1
+        return {
+            deltaX, deltaY,
+            absX, absY,
+            VOH, LOR, UOB
+        }
     }
 
     setClick(func: (x: number, y: number) => void) {

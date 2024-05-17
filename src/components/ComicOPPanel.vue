@@ -253,6 +253,20 @@ const clearSave = () => {
         <!-- 空行 -->
         <div class="br"></div>
 
+        <!-- 允许滑动 -->
+        <div class="sort">
+            <div class="sort_title">允许滑动:</div>
+            <van-switch v-model="store.isSwipe">
+                <template #node>
+                    <div class="icon-wrapper">
+                        <van-icon :name="store.isSwipe ? 'success' : 'cross'" />
+                    </div>
+                </template>
+            </van-switch>
+        </div>
+        <!-- 空行 -->
+        <div class="br"></div>
+
         <!-- 自动保存配置 -->
         <div class="sort">
             <div class="sort_title">自动保存配置:</div>

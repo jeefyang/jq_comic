@@ -33,6 +33,8 @@ export const store = reactive({
     isDisplayDebugMsg: <boolean>false,
     /** 是否反转操作 */
     isCtrlReverse: <boolean>false,
+    /** 是否允许滑动 */
+    isSwipe:<boolean>false,
     /** 自动保存 */
     isAutoSaveStore: <boolean>false,
     /** 自动保存浏览历史 */
