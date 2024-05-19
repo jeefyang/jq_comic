@@ -1,7 +1,6 @@
 import { reactive } from "vue"
 import { NameSortType } from "./type"
 import { staticData } from "./const"
-import { boolean } from "zod"
 
 export const store = reactive({
     /** 当前文件路径,不能带文件夹 */
