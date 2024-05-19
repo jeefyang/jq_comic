@@ -2,7 +2,7 @@
     "name": "jq_comic_node",
     "script": "./build_node/server.js",
     "merge_logs": false,
-    "restart_delay": 7200000,
+    "cron_restart": "0 6 * * *",
     "log_date_format": "YYYY-MM-DD HH:mm:ss",
     "out_file": "./jq_comic_node.log",
     "watch_options": {
