@@ -1,6 +1,7 @@
 import { reactive } from "vue"
 import { NameSortType } from "./type"
 import { staticData } from "./const"
+import { boolean } from "zod"
 
 export const store = reactive({
     /** 当前文件路径,不能带文件夹 */
@@ -34,7 +35,7 @@ export const store = reactive({
     /** 是否反转操作 */
     isCtrlReverse: <boolean>false,
     /** 是否允许滑动 */
-    isSwipe:<boolean>false,
+    isSwipe: <boolean>false,
     /** 自动保存 */
     isAutoSaveStore: <boolean>false,
     /** 自动保存浏览历史 */
@@ -42,5 +43,9 @@ export const store = reactive({
     /** 背景色 */
     background: <string>staticData.defaultBackground,
     /** 路径的key */
-    urlkey: <string>""
+    urlkey: <string>"",
+    /** 文件管理器是否反序显示 */
+    fileListReverse: <boolean>false,
+    /** 文件管理器的排序 */
+    fileListSortType: <NameSortType>"名称"
 })

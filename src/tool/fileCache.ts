@@ -223,9 +223,9 @@ class JFileCache {
     }
 
     /** 获取文件夹信息 */
-    async getFolder(url: string) {
+    async getFolder(url: string, forceUpdate?: boolean) {
         // store.curDirUrl = url
-        if (this.dirCache[url]) {
+        if (!forceUpdate && this.dirCache[url]) {
             this._setFloderSort(this.dirCache[url])
             return this.dirCache[url]
         }

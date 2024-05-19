@@ -25,15 +25,9 @@ let fileObjList: typeof fileList.value = []
 let fileCacheList: typeof fileList.value = []
 let fileBoxDiv: HTMLDivElement = null
 
-let isReverse = false
-let sortType = ref(<NameSortType>"名称")
 let searchKey = ref(<string>"")
 let scrollCount = 0
 let scrollMax = 0
-
-
-
-
 
 
 onMounted(async () => {
@@ -48,7 +42,7 @@ onMounted(async () => {
 /** 设置排序大法 */
 let setSortFunc = async () => {
     [folderObjList, fileObjList].forEach(child => {
-        switch (sortType.value) {
+        switch (store.fileListSortType) {
             case "名称":
                 child.sort((a, b) => jFileCache.sortABByName(undefined, undefined, undefined, undefined, a, b))
                 break
@@ -62,7 +56,7 @@ let setSortFunc = async () => {
                 child.sort((a, b) => jFileCache.sortABByNum(undefined, undefined, undefined, undefined, a, b))
                 break
         }
-        if (isReverse) {
+        if (store.fileListReverse) {
             child.reverse()
         }
     })
@@ -92,20 +86,19 @@ let setSortFunc = async () => {
 /** 设置排序类型大法 */
 let setSortTypeFunc = async () => {
     let map: (NameSortType)[] = ["名称", "大小", "日期", "数字"]
-    let index = map.indexOf(sortType.value)
+    let index = map.indexOf(store.fileListSortType)
     index++
     if (index >= map.length) {
         index = 0
     }
-    sortType.value = map[index]
+    store.fileListSortType = map[index]
     await setSortFunc()
     return
 }
 
-
-let updateFolderFunc = async (url: string) => {
+let updateFolderFunc = async (url: string, forceUpdate?: boolean) => {
     mediaStore.curDirUrl = url
-    folderObj = await jFileCache.getFolder(url)
+    folderObj = await jFileCache.getFolder(url, forceUpdate)
     urlList.value = ['.', ...mediaStore.curDirUrl.split(path.sep)]
     mediaStore.curDirUrl = url
     folderObjList = []
@@ -184,11 +177,18 @@ const selectFileFunc = async (item: (typeof fileList.value)[number]) => {
     return
 }
 
-/** 通过序号回退文件夹大法 */
+/** 
+ * 通过序号回退文件夹大法
+ * @param index -1为后退一步,-2为刷新
+ */
 const rebackFolderFuncByIndex = async (index: number) => {
     let loadding = showLoadingToast({ message: "加载中", overlay: true, forbidClick: true, duration: 0 })
+    let forceUpdate = index == -2
     if (index == -1) {
         index = urlList.value.length - 2
+    }
+    else if (index == -2) {
+        index = urlList.value.length - 1
     }
     if (index < 0) {
         console.log('不能再退了')
@@ -197,7 +197,7 @@ const rebackFolderFuncByIndex = async (index: number) => {
 
     let arr = urlList.value.slice(1, index + 1) || [""]
     let newUrl = path.join(...arr)
-    await updateFolderFunc(newUrl)
+    await updateFolderFunc(newUrl, forceUpdate)
     loadding.close()
     return
 }
@@ -272,7 +272,7 @@ const scrollLazyLoad = async (num: number) => {
 }
 
 const setReverse = () => {
-    isReverse = !isReverse;
+    store.fileListReverse = !store.fileListReverse
     setSortFunc()
 }
 
@@ -291,15 +291,18 @@ const setReverse = () => {
                 <div class="file_path_div">
                     <input placeholder="搜索" class="file_search_input" @change="setSortFunc" v-model="searchKey" />
                     <button v-for="(item, index) in urlList" :title="item" @click="rebackFolderFuncByIndex(index)">{{
-            item }} </button>
+                        item }} </button>
                 </div>
             </div>
             <!-- 功能键 -->
             <div class="file_op_div">
+
                 <van-Button @click="rebackFolderFuncByIndex(-1)">后退</van-Button>
-                <van-Button @click="setIconTypeFunc">图标</van-Button>
-                <van-Button @click="setSortTypeFunc()">排序:{{ sortType }}</van-Button>
-                <van-Button @click="setReverse">反序</van-Button>
+                <van-Button @click="rebackFolderFuncByIndex(-2)">刷新</van-Button>
+                <van-Button @click="setIconTypeFunc">{{ store.displayFileStyleType == "detail" ? '详细' : '图标'
+                    }}</van-Button>
+                <van-Button @click="setSortTypeFunc">排序:{{ store.fileListSortType }}</van-Button>
+                <van-Button @click="setReverse">{{ store.fileListReverse ? '反序' : '正序' }}</van-Button>
                 <van-Button @click="rebackCur">当前</van-Button>
                 <van-Button @click="mediaStore.displayFileManager = false">关闭</van-Button>
             </div>
