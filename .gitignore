@@ -33,3 +33,5 @@ base
 
 test
 .history
+
+config.jsonc

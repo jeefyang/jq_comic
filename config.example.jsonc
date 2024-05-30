@@ -8,5 +8,7 @@
             "key": "h18",
             "url": "//192.168.123.3/藏经阁/jav/ex"
         }
-    ]
+    ],
+    "magickCmd": "magick",
+    "listen": 3006
 }

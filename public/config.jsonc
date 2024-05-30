@@ -14,5 +14,6 @@
             "url": "./test"
         }
     ],
-    "listen": 3006
+    "listen": 3006,
+    "magickCmd": "magick"
 }
