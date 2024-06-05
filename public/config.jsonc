@@ -14,6 +14,12 @@
             "url": "./test"
         }
     ],
+    /** 监听接口 */
     "listen": 3006,
-    "magickCmd": "magick"
+    /** mgick程序接口 */
+    "magickCmd": "magick",
+    /** 缩略图输出文件夹 */
+    "thumOutDir": "thumbnail",
+    /** 压缩包缓存数量 */
+    "zipCacheCount": 10
 }

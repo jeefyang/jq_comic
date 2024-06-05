@@ -2,15 +2,21 @@
 import { JZipChild } from "./zipChild"
 import path from "path"
 import colors from "colors-console"
+import { JThum } from "./thum"
+import { configjson } from "./data"
 
 export class JZipFactory {
 
     children: { obj: JZipChild, key: string, freeTime: number }[] = []
-    /** 最大压缩包存活数量,减轻服务器的压力 */
-    maxCount: number = 10
+    /** 缩略图功能 */
+    thum: JThum
 
-    constructor() {
-
+    constructor(
+        /** 最大压缩包存活数量,减轻服务器的压力 */
+        public zipCacheCount: number,
+        zipThumOutDir: string,
+        magickCmd: string) {
+        this.thum = new JThum(magickCmd, zipThumOutDir)
     }
 
     /** 清空缓存
@@ -30,7 +36,7 @@ export class JZipFactory {
 
     /** 按照最大存活数量筛选清空缓存 */
     async maxClearCache(noclearChild?: JZipChild) {
-        if (this.maxCount > this.children.length) {
+        if (this.zipCacheCount > this.children.length) {
             console.log(`当前缓存压缩包:${JSON.stringify(this.children.map(c => {
                 return { url: c.obj.url, iswork: c.obj.isWork, freetime: new Date(c.obj.freeTime) }
             }))}`)
@@ -98,4 +104,4 @@ export class JZipFactory {
 
 }
 
-export const zipFactory = new JZipFactory()
+export const zipFactory = new JZipFactory(configjson.zipCacheCount || 0, configjson.thumOutDir || "thumbnail", configjson.magickCmd || "magick")

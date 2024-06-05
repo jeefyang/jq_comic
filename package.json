@@ -27,6 +27,7 @@
     "express": "^4.18.2",
     "gl-matrix": "^3.4.3",
     "hammerjs": "^2.0.8",
+    "js-sha1": "^0.7.0",
     "mime": "^4.0.1",
     "node-stream-zip": "^1.15.0",
     "nosleep.js": "^0.12.0",

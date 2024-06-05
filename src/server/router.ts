@@ -119,6 +119,30 @@ const mainRouter = router({
       return undefined
     let msg = fs.statSync(path.join(base, input.url))
     return msg.isFile()
+  }),
+  /** 通过遍历文件夹批量创建缩略图列表 */
+  postCreateThumListByDir: publicProcedure.input(z.object({ key: z.string(), url: z.string() })).mutation(async ({ input }) => {
+    let base = configjson.switchUrlList.find(c => c.key == input.key)?.url
+    if (base == undefined)
+      return undefined
+    let msg = fs.statSync(path.join(base, input.url))
+    return msg.isFile()
+  }),
+  /** 创建文件夹的缩略图 */
+  postCreateDirThum: publicProcedure.input(z.object({ key: z.string(), url: z.string() })).mutation(async ({ input }) => {
+    let base = configjson.switchUrlList.find(c => c.key == input.key)?.url
+    if (base == undefined)
+      return undefined
+    let msg = fs.statSync(path.join(base, input.url))
+    return msg.isFile()
+  }),
+  /** 创建压缩图 */
+  postCreateZipThum: publicProcedure.input(z.object({ key: z.string(), url: z.string() })).mutation(async ({ input }) => {
+    let base = configjson.switchUrlList.find(c => c.key == input.key)?.url
+    if (base == undefined)
+      return undefined
+    let msg = fs.statSync(path.join(base, input.url))
+    return msg.isFile()
   })
 
 });

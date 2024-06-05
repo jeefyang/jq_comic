@@ -41,3 +41,15 @@ export function everyBetween<T>(arr: T[], target: number, between: number[], cb:
     }
 
 }
+
+export function get16To32(hex: string) {
+    let str = ""
+    let newStr = ""
+    for (let i = 0; i < hex.length; i++) {
+        str += parseInt(hex[i], 16).toString(2)
+    }
+    for (let i = 0; i < str.length; i += 5) {
+        newStr += parseInt(str.slice(i, i + 5), 2).toString(5)
+    }
+    return newStr
+}

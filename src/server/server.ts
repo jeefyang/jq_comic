@@ -13,6 +13,9 @@ import mime from "mime"
 import { configjson } from "./data"
 
 console.log("start!!!")
+
+
+
 const app = express()
 app.use(cors())
 // let mydb: SqliteFactory

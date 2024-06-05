@@ -40,6 +40,10 @@ export type JConfigType = {
     listen: number
     /** mgick程序接口 */
     magickCmd: string
+    /** 压缩包缓存数量 */
+    zipCacheCount: number
+    /** 缩略图输出文件夹 */
+    thumOutDir: string
 }
 
 export type NameSortType = "名称" | "日期" | "大小" | "数字"
