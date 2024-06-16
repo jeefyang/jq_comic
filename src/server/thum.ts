@@ -1,5 +1,5 @@
 
-import { execSync, exec } from "child_process"
+import { exec } from "child_process"
 import fs from "fs"
 import path from "path"
 import { sha1 } from "js-sha1"
@@ -33,8 +33,6 @@ export class JThum {
         let hex32 = get16To32(a)
         return path.join(this.outDir, `${key}_${hex32}.jpg`)
     }
-
-
 
     async quickSetThum(w: number, h: number, inputFile: string, key: string) {
         let outFile = this.getOutFilePath(inputFile, key)

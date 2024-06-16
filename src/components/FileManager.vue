@@ -8,13 +8,18 @@ import path from "path-browserify"
 import { mediaStore } from "../mediaStore"
 import { mainMediaCtrl } from "../tool/mainMediaCtrl";
 import { MiddleFileType } from "../media";
+import { JFlex } from "../components/JFlex"
 
 
 const themeVars: ConfigProviderThemeVars = {
     gridItemContentBackground: "rgba(0,0,0,0)",
-    gridItemTextColor: "#8cdcf0"
+    gridItemTextColor: "#fff"
     // background2: "rgba(0,0,0,0)"
 };
+
+const floatGap = ref(24)
+const floatOffset = ref({ x: floatGap.value, y: -1 })
+
 const fileBoxDivRef = ref(<HTMLDivElement>null)
 const urlList = ref(<string[]>["."])
 // urlList.value = [...urlList.value, ...store.curDirUrl.split('/')]
@@ -314,35 +319,32 @@ const setReverse = () => {
                     <!-- 图标显示 -->
                     <van-grid :icon-size="mediaStore.displayFileIconSize + 'px'" :column-num="mediaStore.displayFileCol"
                         :border="false" square gutter="5px" v-if="store.displayFileStyleType == 'icon'">
-                        <van-grid-item :theme-vars="themeVars" v-for="(item) in fileList" :key="item.originName"
-                            :icon="item.className" :text="item.name" :title="item.title" @click="selectFileFunc(item)">
+                        <van-grid-item v-for="(item) in fileList" :key="item.originName" :title="item.title"
+                            @click="selectFileFunc(item)">
+                            <van-icon :name="item.className" size="35px"></van-icon>
+                            <span :class="item.type">{{ item.name }}</span>
                         </van-grid-item>
                     </van-grid>
                     <!-- 详细显示 -->
                     <van-grid :column-num="1" :border="false" gutter="5px" v-if="store.displayFileStyleType == 'detail'"
                         :center="false">
-                        <van-grid-item :theme-vars="themeVars" v-for="(item) in fileList" :key="item.originName">
-                            <div class="file_display_icon_detail_div">
+                        <van-grid-item v-for="(item) in fileList" :key="item.originName">
+                            <j-flex direction="horizontal" is-last-grow>
                                 <van-icon :name="item.className" size="35px"></van-icon>
-                                <div class="file_display_icon_detail_text_div">
-                                    <div class="file_display_icon_detail_name_div">
-                                        <van-text-ellipsis :content="item.originName" expand-text=">" collapse-text="<"
-                                            rows="1" @click="selectFileFunc(item)" @click-action="stopBubbleFunc" />
-                                    </div>
-                                    <div class="file_display_icon_detail_op_div">
-                                        <div v-if="item.type == 'file'" class="file_display_icon_detail_op_size_div">
-                                            {{ getSizeStrFunc(item.size) }}</div>
-                                        <!-- 为了让ui对齐 -->
-                                        <div v-if="item.type == 'folder'" class="file_display_icon_detail_op_size_div">
+                                <j-flex direction="vertical" fill>
+                                    <van-text-ellipsis :class="item.type" :content="item.originName" expand-text=">"
+                                        collapse-text="<" rows="1" @click="selectFileFunc(item)"
+                                        @click-action="stopBubbleFunc" />
+                                    <j-flex direction="horizontal" split>
+                                        <div class="file_display_icon_detail_op_size_div">
+                                            {{ item.type == 'file' ? getSizeStrFunc(item.size) : '' }}</div>
+                                        <div class="file_display_icon_detail_op_date_div">{{
+                                            getDateStrFunc(item.time)
+                                        }}
                                         </div>
-                                        <div class="file_display_icon_detail_op_date_div">{{ getDateStrFunc(item.time)
-                                            }}
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                            </div>
+                                    </j-flex>
+                                </j-flex>
+                            </j-flex>
                         </van-grid-item>
                     </van-grid>
                 </van-config-provider>
@@ -355,6 +357,8 @@ const setReverse = () => {
             </div>
         </van-overlay> -->
     </div>
+    <van-floating-bubble icon="bars" axis="xy" magnetic="x" v-model:offset="floatOffset" :gap="floatGap" />
+
 </template>
 
 <style scoped>
@@ -430,7 +434,7 @@ const setReverse = () => {
     width: 100px;
 }
 
-.file_display_icon_detail_name_div {}
+/* .file_display_icon_detail_name_div {} */
 
 .file_display_icon_detail_text_div {
     flex-grow: 1;
@@ -454,5 +458,12 @@ const setReverse = () => {
     display: flex;
     justify-content: space-between;
 }
+
+.file {
+    color: #fff
+}
+
+.folder {
+    color: #e8b810
+}
 </style>
-../mediaStore../tool/mainMediaCtrl

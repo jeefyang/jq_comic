@@ -12,8 +12,6 @@ const t = initTRPC.create();
 const publicProcedure = t.procedure;
 const router = t.router;
 
-
-
 const mainRouter = router({
   greeting: publicProcedure
     .input(z.object({ name: z.string() }).nullish())
@@ -136,8 +134,24 @@ const mainRouter = router({
     let msg = fs.statSync(path.join(base, input.url))
     return msg.isFile()
   }),
-  /** 创建压缩图 */
+  /** 创建缩略图 */
   postCreateZipThum: publicProcedure.input(z.object({ key: z.string(), url: z.string() })).mutation(async ({ input }) => {
+    let base = configjson.switchUrlList.find(c => c.key == input.key)?.url
+    if (base == undefined)
+      return undefined
+    let msg = fs.statSync(path.join(base, input.url))
+    return msg.isFile()
+  }),
+  /** 获取缩略图的情况 */
+  postThumState: publicProcedure.input(z.object({ key: z.string(), url: z.string() })).mutation(async ({ input }) => {
+    let base = configjson.switchUrlList.find(c => c.key == input.key)?.url
+    if (base == undefined)
+      return undefined
+    let msg = fs.statSync(path.join(base, input.url))
+    return msg.isFile()
+  }),
+  /** 获取缩略图 */
+  postGetThum: publicProcedure.input(z.object({ key: z.string(), url: z.string() })).mutation(async ({ input }) => {
     let base = configjson.switchUrlList.find(c => c.key == input.key)?.url
     if (base == undefined)
       return undefined
