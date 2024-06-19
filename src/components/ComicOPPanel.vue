@@ -8,6 +8,7 @@ import { staticData } from '../const';
 import { mediaStore } from '../mediaStore';
 import { mainMediaCtrl } from '../tool/mainMediaCtrl';
 import { cloneAssign } from '../tool/util';
+import { JFlex } from "../components/JFlex"
 const readModeMap: { key: typeof store.readMode, name: string }[] = [
     { key: "none", name: "原始" },
     { key: "fit", name: "适应屏幕" },
@@ -118,286 +119,131 @@ const clearSave = () => {
 </script>
 <template>
     <van-action-sheet v-model:show="mediaStore.displayOPPanel" title="设置" :closeable="false">
-        <!-- 观看模式 -->
-        <div class="sort">
-            <div class="sort_title">观看:</div>
-            <van-radio-group v-model="store.readMode" direction="horizontal">
-                <van-radio v-for="(item, index) in readModeMap" :key="index" :name="item.key">{{ item.name
-                    }}</van-radio>
-            </van-radio-group>
-        </div>
-        <!-- 空行 -->
-        <div class="br"></div>
+        <j-flex direction="vertical">
+            <!-- 观看模式 -->
+            <j-flex align="center">
+                <div style='width:40px;'>观看:</div>
+                <van-radio-group v-model="store.readMode" direction="horizontal">
+                    <van-radio v-for="(item, index) in readModeMap" :key="index" :name="item.key">{{ item.name
+                        }}</van-radio>
+                </van-radio-group>
+            </j-flex>
 
-        <!-- 分割模式 -->
-        <div class="sort">
-            <div class="sort_title">分割:</div>
-            <van-radio-group v-model="store.splitMedia" direction="horizontal" @change="mediaStore.setResize++">
-                <van-radio v-for="(item, index) in splitImgMap" :key="index" :name="item.key">{{ item.name
-                    }}</van-radio>
-            </van-radio-group>
-        </div>
-        <!-- 空行 -->
-        <div class="br"></div>
+            <!-- 分割模式 -->
+            <j-flex align="center">
+                <div style='width:40px;'>分割:</div>
+                <van-radio-group v-model="store.splitMedia" direction="horizontal" @change="mediaStore.setResize++">
+                    <van-radio v-for="(item, index) in splitImgMap" :key="index" :name="item.key">{{ item.name
+                        }}</van-radio>
+                </van-radio-group>
+            </j-flex>
 
-        <!-- 排列 -->
-        <div class="sort">
-            <div class="sort_title">排列:</div>
-            <van-dropdown-menu>
-                <van-dropdown-item v-model="store.mediaSortType" :options="sortMap" @change="freshImg()" />
-            </van-dropdown-menu>
-        </div>
-        <!-- 空行 -->
-        <div class="br"></div>
+            <!-- 排列 -->
+            <j-flex align="center">
+                <div style='width:40px;'>排列:</div>
+                <van-dropdown-menu>
+                    <van-dropdown-item v-model="store.mediaSortType" :options="sortMap" @change="freshImg()" />
+                </van-dropdown-menu>
+            </j-flex>
 
-        <!-- 方向 -->
-        <div class="sort">
-            <div class="sort_title">方向:</div>
-            <van-dropdown-menu>
-                <van-dropdown-item v-model="store.directX" :options="directXMap" @change="mediaStore.setResize++" />
-            </van-dropdown-menu>
-        </div>
+            <!-- 方向 -->
+            <j-flex align="center">
+                <div style='width:40px;'>方向:</div>
+                <van-dropdown-menu>
+                    <van-dropdown-item v-model="store.directX" :options="directXMap" @change="mediaStore.setResize++" />
+                </van-dropdown-menu>
+            </j-flex>
 
-        <!-- 空行 -->
-        <div class="br"></div>
+            <!-- 显示间隔 -->
+            <j-flex align="center">
+                <div style='width:80px;'>显示间隔:</div>
+                <input type="number" v-model="mediaStore.margin">
+            </j-flex>
 
-        <!-- 方向 -->
-        <div class="sort">
-            <div class="sort_title">显示间隔:</div>
-            <input type="number" v-model="mediaStore.margin">
-        </div>
+            <!-- 颜色 -->
+            <j-flex align="center">
+                <div style='width:40px;'>颜色:</div>
+                <van-button color="#ffffff" plain @click="store.textMsgColor = '#ffffff'">白色</van-button>
+                <van-button color="#000000" @click="store.textMsgColor = '#000000'">黑色</van-button>
+                <van-button color="#ff0000" @click="store.textMsgColor = '#ff0000'">红色</van-button>
+                <input type="color" v-model="store.textMsgColor">
+            </j-flex>
 
-        <!-- 空行 -->
-        <div class="br"></div>
+            <!-- 显示数目 -->
+            <j-flex align="center">
+                <div style='width:80px;'>显示数目:</div>
+                <van-switch v-model="store.isDisplayMediaNum"></van-switch>
+            </j-flex>
 
-        <!-- 颜色 -->
-        <div class="sort">
-            <div class="sort_title">颜色:</div>
-            <van-button color="#ffffff" plain @click="store.textMsgColor = '#ffffff'">白色</van-button>
-            <van-button color="#000000" @click="store.textMsgColor = '#000000'">黑色</van-button>
-            <van-button color="#ff0000" @click="store.textMsgColor = '#ff0000'">红色</van-button>
-            <input type="color" v-model="store.textMsgColor">
-        </div>
-        <!-- 空行 -->
-        <div class="br"></div>
+            <!-- 显示名称 -->
+            <j-flex align="center">
+                <div style='width:80px;'>显示名称:</div>
+                <van-switch v-model="store.isDisplayFileName"></van-switch>
+            </j-flex>
 
-        <!-- 显示数目 -->
-        <div class="sort">
-            <div class="sort_title">显示数目:</div>
-            <van-switch v-model="store.isDisplayMediaNum">
-                <template #node>
-                    <div class="icon-wrapper">
-                        <van-icon :name="store.isDisplayMediaNum ? 'success' : 'cross'" />
-                    </div>
-                </template>
-            </van-switch>
-        </div>
-        <!-- 空行 -->
-        <div class="br"></div>
+            <!-- 显示操作图 -->
+            <j-flex align="center">
+                <div style='width:100px;'>显示操作图:</div>
+                <van-switch v-model="mediaStore.displayArea"></van-switch>
+            </j-flex>
 
-        <!-- 显示名称 -->
-        <div class="sort">
-            <div class="sort_title">显示名称:</div>
-            <van-switch v-model="store.isDisplayFileName">
-                <template #node>
-                    <div class="icon-wrapper">
-                        <van-icon :name="store.isDisplayFileName ? 'success' : 'cross'" />
-                    </div>
-                </template>
-            </van-switch>
-        </div>
+            <!-- 显示测试数据 -->
+            <j-flex align="center">
+                <div style='width:80px;'>显示测试:</div>
+                <van-switch v-model="store.isDisplayDebugMsg"></van-switch>
+            </j-flex>
 
-        <!-- 空行 -->
-        <div class="br"></div>
+            <!-- 反转操作 -->
+            <j-flex align="center">
+                <div style='width:80px;'>反转操作:</div>
+                <van-switch v-model="store.isCtrlReverse"></van-switch>
+            </j-flex>
 
-        <!-- 显示名称 -->
-        <div class="sort">
-            <div class="sort_title">显示操作图:</div>
-            <van-switch v-model="mediaStore.displayArea">
-                <template #node>
-                    <div class="icon-wrapper">
-                        <van-icon :name="store.isDisplayFileName ? 'success' : 'cross'" />
-                    </div>
-                </template>
-            </van-switch>
-        </div>
+            <!-- 允许滑动 -->
+            <j-flex align="center">
+                <div style='width:80px;'>允许滑动:</div>
+                <van-switch v-model="store.isSwipe"></van-switch>
+            </j-flex>
 
-        <!-- 空行 -->
-        <div class="br"></div>
+            <!-- 自动保存配置 -->
+            <j-flex align="center">
+                <div style='width:120px;'>自动保存配置:</div>
+                <van-switch v-model="store.isAutoSaveStore" @change="setAutoSaveStore"></van-switch>
+            </j-flex>
 
-        <!-- 显示测试数据 -->
-        <div class="sort" v-if="store.isControlDebug">
-            <div class="sort_title">显示测试:</div>
-            <van-switch v-model="store.isDisplayDebugMsg">
-                <template #node>
-                    <div class="icon-wrapper">
-                        <van-icon :name="store.isDisplayDebugMsg ? 'success' : 'cross'" />
-                    </div>
-                </template>
-            </van-switch>
-        </div>
-        <!-- 空行 -->
-        <div class="br" v-if="store.isControlDebug"></div>
+            <!-- 自动保存历史 -->
+            <j-flex align="center">
+                <div style='width:120px;'>自动保存历史:</div>
+                <van-switch v-model="store.isAutoSaveGlance" @change="setAutoSaveGlance"></van-switch>
+            </j-flex>
 
-        <!-- 反转操作 -->
-        <div class="sort">
-            <div class="sort_title">反转操作:</div>
-            <van-switch v-model="store.isCtrlReverse">
-                <template #node>
-                    <div class="icon-wrapper">
-                        <van-icon :name="store.isCtrlReverse ? 'success' : 'cross'" />
-                    </div>
-                </template>
-            </van-switch>
-        </div>
-        <!-- 空行 -->
-        <div class="br"></div>
+            <!-- 调试 -->
+            <j-flex align="center">
+                <div style='width:40px;'>调试:</div>
+                <van-switch v-model="store.isControlDebug"></van-switch>
+            </j-flex>
 
-        <!-- 允许滑动 -->
-        <div class="sort">
-            <div class="sort_title">允许滑动:</div>
-            <van-switch v-model="store.isSwipe">
-                <template #node>
-                    <div class="icon-wrapper">
-                        <van-icon :name="store.isSwipe ? 'success' : 'cross'" />
-                    </div>
-                </template>
-            </van-switch>
-        </div>
-        <!-- 空行 -->
-        <div class="br"></div>
+            <!-- 背景 -->
+            <j-flex align="center">
+                <div style='width:40px;'>背景:</div>
+                <van-button color="#ffffff" plain
+                    @click="store.background = staticData.defaultBackground">默认</van-button>
+                <input type="color" v-model="store.background">
+            </j-flex>
 
-        <!-- 自动保存配置 -->
-        <div class="sort">
-            <div class="sort_title">自动保存配置:</div>
-            <van-switch v-model="store.isAutoSaveStore" @change="setAutoSaveStore">
-                <template #node>
-                    <div class="icon-wrapper">
-                        <van-icon :name="store.isAutoSaveStore ? 'success' : 'cross'" />
-                    </div>
-                </template>
-            </van-switch>
-        </div>
-        <!-- 空行 -->
-        <div class="br"></div>
+            <!-- 常规按钮功能 -->
+            <j-flex wrap>
+                <van-button type="default" @click="setRefresh">刷新</van-button>
+                <van-button type="default" :disabled="!store.isControlDebug" @click="dispatchTest">测试</van-button>
+                <van-button type="default" @click="manualSave">手动保存</van-button>
+                <van-button type="default" @click="clearSave">清空保存</van-button>
+                <van-button type="default" @click="setNoSleep(true)">长亮屏</van-button>
+                <van-button type="default" @click="setNoSleep(false)">取消长亮屏</van-button>
+            </j-flex>
+            <div style="height: 100px;"></div>
 
-        <!-- 自动保存历史 -->
-        <div class="sort">
-            <div class="sort_title">自动保存历史:</div>
-            <van-switch v-model="store.isAutoSaveGlance" @change="setAutoSaveGlance">
-                <template #node>
-                    <div class="icon-wrapper">
-                        <van-icon :name="store.isAutoSaveGlance ? 'success' : 'cross'" />
-                    </div>
-                </template>
-            </van-switch>
-        </div>
-        <!-- 空行 -->
-        <div class="br"></div>
-
-        <!-- 调试 -->
-        <div class="sort" v-if="store.isControlDebug">
-            <div class="sort_title">调试:</div>
-            <van-switch v-model="store.isControlDebug">
-                <template #node>
-                    <div class="icon-wrapper">
-                        <van-icon :name="store.isControlDebug ? 'success' : 'cross'" />
-                    </div>
-                </template>
-            </van-switch>
-        </div>
-        <!-- 空行 -->
-        <div class="br" v-if="store.isControlDebug"></div>
-
-        <!-- 背景 -->
-        <div class="sort">
-            <div class="sort_title">背景:</div>
-            <van-button color="#ffffff" plain @click="store.background = staticData.defaultBackground">默认</van-button>
-            <input type="color" v-model="store.background">
-        </div>
-        <!-- 空行 -->
-        <div class="br" v-if="store.isControlDebug"></div>
-
-        <!-- 常规按钮功能 -->
-        <div class="sort">
-            <van-button type="default" @click="setRefresh">刷新</van-button>
-            <van-button type="default" :disabled="!store.isControlDebug" @click="dispatchTest">测试</van-button>
-            <van-button type="default" @click="manualSave">手动保存</van-button>
-            <van-button type="default" @click="clearSave">清空保存</van-button>
-            <van-button type="default" @click="setNoSleep(true)">长亮屏</van-button>
-            <van-button type="default" @click="setNoSleep(false)">取消长亮屏</van-button>
-        </div>
-        <!-- 空行 -->
-        <div class="br"></div>
-
-        <!-- 垫底 -->
-        <div class="br"></div>
-        <div class="br"></div>
-        <!-- <div class="br"></div>
-        <div class="br"></div> -->
+        </j-flex>
 
     </van-action-sheet>
 </template>
-<style scoped>
-.br {
-    height: 10px;
-}
-
-.sort {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.sort_title {
-    flex-shrink: 0;
-}
-
-.content {
-    padding: 16px 16px 160px;
-}
-
-.op_big_div {
-    position: absolute;
-    overflow: hidden;
-}
-
-.op_back_div {
-    position: absolute;
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
-    backdrop-filter: blur(10px);
-    background-color: rgba(109, 113, 104, 0.397);
-}
-
-.file_box_div {
-    position: absolute;
-    top: 5%;
-    left: 5%;
-    width: 90%;
-    height: 90%;
-    background-color: #6e1e1e6e;
-    display: flex;
-    flex-direction: column;
-}
-
-.icon-wrapper {
-    display: flex;
-    width: 100%;
-    justify-content: center;
-    font-size: 18px;
-}
-
-.icon-wrapper .van-icon-success {
-    line-height: 32px;
-    color: var(--van-blue);
-}
-
-.icon-wrapper .van-icon-cross {
-    line-height: 32px;
-    color: var(--van-gray-5);
-}
-</style>../mediaStore../tool/mainMediaCtrl
+<style scoped></style>

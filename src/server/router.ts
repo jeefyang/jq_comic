@@ -6,11 +6,14 @@ import path from "path"
 import { decodeFolder } from './decodeFolder';
 import fs from 'fs'
 import { configjson } from "./data"
+import { JThum } from './thum';
 
 const t = initTRPC.create();
 
 const publicProcedure = t.procedure;
 const router = t.router;
+
+const thumObj = new JThum(configjson.magickCmd || "magick", configjson.thumOutDir || "thumbnail")
 
 const mainRouter = router({
   greeting: publicProcedure
@@ -79,7 +82,7 @@ const mainRouter = router({
     if (base == undefined)
       return undefined
     let url = path.join(base, input.url)
-    let data = await fs.readFileSync(url)
+    let data = fs.readFileSync(url)
     return data
   }),
   /** 获取文件数据 */
@@ -88,7 +91,7 @@ const mainRouter = router({
     if (base == undefined)
       return undefined
     let url = path.join(base, input.url)
-    let data = await fs.readFileSync(url)
+    let data = fs.readFileSync(url)
     return data
   }),
 
@@ -98,7 +101,7 @@ const mainRouter = router({
     if (base == undefined)
       return undefined
     let url = path.join(base, input.url)
-    let data = await fs.readFileSync(url, "base64")
+    let data = fs.readFileSync(url, "base64")
     return data
   }),
   /** 获取文件夹数据 */
@@ -150,13 +153,19 @@ const mainRouter = router({
     let msg = fs.statSync(path.join(base, input.url))
     return msg.isFile()
   }),
-  /** 获取缩略图 */
-  postGetThum: publicProcedure.input(z.object({ key: z.string(), url: z.string() })).mutation(async ({ input }) => {
+  /** 获取缩略图的B64 */
+  postGetThumB64: publicProcedure.input(z.object({ w: z.number(), h: z.number(), key: z.string(), dirUrl: z.string(), fileName: z.string(), isZip: z.boolean() })).mutation(async ({ input }) => {
     let base = configjson.switchUrlList.find(c => c.key == input.key)?.url
     if (base == undefined)
-      return undefined
-    let msg = fs.statSync(path.join(base, input.url))
-    return msg.isFile()
+      return ""
+    let fileUrl = path.join(base, input.dirUrl, input.fileName)
+    let outFileUrl = await thumObj.quickSetThum(input.w, input.h, fileUrl, input.key, input.isZip)
+    if (!outFileUrl) {
+      return outFileUrl
+    }
+    let data = fs.readFileSync(outFileUrl, "base64")
+    return data
+
   })
 
 });

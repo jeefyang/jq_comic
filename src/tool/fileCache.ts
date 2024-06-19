@@ -1,8 +1,9 @@
-import { JFolderDisplayType, JFileFormatType, JFileDisplayType } from "../type";
+import { JFolderDisplayType, JFileFormatType } from "../type";
 import { JserverLink } from "../tool/serverLink"
 import { store } from "../store"
-import path from "path-browserify"
-import { MediaContentChildType, MediaViewChildType, MediaZipMsgType, MiddleFileType } from "../media"
+
+import { MediaContentChildType, MediaViewChildType, MediaZipMsgType, } from "../media"
+import { sortABByDate, sortABByName, sortABByNum, sortABBySize } from "./util";
 
 
 class JFileCache {
@@ -27,154 +28,10 @@ class JFileCache {
     }
 
 
-
     async init(server: JserverLink) {
         this.server = server
         return
     }
-
-
-    sortABByName(a: MediaZipMsgType["list"][number], b: MediaZipMsgType["list"][number], a1?: JFileDisplayType, b1?: JFileDisplayType, a2?: MiddleFileType, b2?: MiddleFileType): -1 | 0 | 1 {
-        let alist: string[] = []
-        let blist: string[] = []
-        if (a && b) {
-            alist = a.data.name.split(path.sep)
-            blist = b.data.name.split(path.sep)
-        }
-        else if (a1 && b1) {
-            alist = a1.name.split(path.sep)
-            blist = b1.name.split(path.sep)
-        }
-        else if (a2 && b2) {
-            alist = a2.name.split(path.sep)
-            blist = b2.name.split(path.sep)
-        }
-        let len = alist.length > blist.length ? alist.length : blist.length
-        for (let i = 0; i < len; i++) {
-            if (!alist[i] && blist[i]) {
-                return 1
-            }
-            else if (alist[i] && !blist[i]) {
-                return -1
-            }
-            else if (alist[i] > blist[i]) {
-                return 1
-            }
-            else if (alist[i] < blist[i]) {
-                return -1
-            }
-        }
-        return 1
-    }
-
-    sortABBySize(a: MediaZipMsgType["list"][number], b: MediaZipMsgType["list"][number], a1?: JFileDisplayType, b1?: JFileDisplayType, a2?: MiddleFileType, b2?: MiddleFileType): -1 | 0 | 1 {
-        // if (!a.data.size || !b.data.size) {
-        //         let alist = a.data.name.split(path.sep)
-        //         let blist = b.data.name.split(path.sep)
-        //         let len = alist.length > blist.length ? alist.length : blist.length
-        //         for (let i = 0; i < len; i++) {
-        //             if (!alist[i] && blist[i]) {
-        //                 return 1
-        //             }
-        //             else if (alist[i] && !blist[i]) {
-        //                 return -1
-        //             }
-        //             else if (alist[i] > blist[i]) {
-        //                 return 1
-        //             }
-        //             else if (alist[i] < blist[i]) {
-        //                 return -1
-        //             }
-        //         }
-        //         return 1
-        //     }
-        //     return a.data.size > b.data.size ? 1 : -1
-        if (a && b) {
-            if (a.data.size == b.data.size) {
-                return this.sortABByName(a, b)
-            }
-            return a.data.size > b.data.size ? 1 : -1
-        }
-        if (a1 && b1) {
-            if (a1.size == b1.size) {
-                return this.sortABByName(undefined, undefined, a1, b1)
-            }
-            return a1.size > b1.size ? 1 : -1
-        }
-        if (a2 && b2) {
-            if (a2.size == b2.size) {
-                return this.sortABByName(undefined, undefined, undefined, undefined, a2, b2)
-            }
-            return a2.size > b2.size ? 1 : -1
-        }
-    }
-
-    sortABByDate(a: MediaZipMsgType["list"][number], b: MediaZipMsgType["list"][number], a1?: JFileDisplayType, b1?: JFileDisplayType, a2?: MiddleFileType, b2?: MiddleFileType): -1 | 0 | 1 {
-        if (a && b) {
-            if (a.data.time == b.data.time) {
-                return this.sortABByName(a, b)
-            }
-            return a.data.time > b.data.time ? 1 : -1
-        }
-        if (a1 && b1) {
-            if (a1.mtime == b1.mtime) {
-                return this.sortABByName(undefined, undefined, a1, b1)
-            }
-            return a1.mtime > b1.mtime ? 1 : -1
-        }
-        if (a2 && b2) {
-            if (a2.time == b2.time) {
-                return this.sortABByName(undefined, undefined, undefined, undefined, a2, b2)
-            }
-            return a2.time > b2.time ? 1 : -1
-        }
-    }
-
-    sortABByNum(a: MediaZipMsgType["list"][number], b: MediaZipMsgType["list"][number], a1?: JFileDisplayType, b1?: JFileDisplayType, a2?: MiddleFileType, b2?: MiddleFileType): -1 | 0 | 1 {
-        let alist: string[] = []
-        let blist: string[] = []
-        if (a && b) {
-            alist = a.data.name.split(path.sep)
-            blist = b.data.name.split(path.sep)
-        }
-        else if (a1 && b1) {
-            alist = a1.name.split(path.sep)
-            blist = b1.name.split(path.sep)
-        }
-        else if (a2 && b2) {
-            alist = a2.name.split(path.sep)
-            blist = b2.name.split(path.sep)
-        }
-        let len = alist.length > blist.length ? alist.length : blist.length
-        for (let i = 0; i < len; i++) {
-            if (!alist[i] && blist[i]) {
-                return 1
-            }
-            else if (alist[i] && !blist[i]) {
-                return -1
-            }
-            let an: string[] = alist[i].match(/\d+/g) || []
-            let bn: string[] = blist[i].match(/\d+/g) || []
-            let numlen = an.length > bn.length ? an.length : bn.length
-            for (let j = 0; j < numlen; j++) {
-                if (an[j] == undefined && bn[j] != undefined) {
-                    return 1
-                }
-                else if (an[j] != undefined && bn[j] == undefined) {
-                    return -1
-                }
-                if (Number(an[j]) > Number(bn[j])) {
-                    return 1
-                }
-                else if (Number(an[j]) < Number(bn[j])) {
-                    return -1
-                }
-            }
-
-        }
-        return 1
-    }
-
 
     private _setZipInFileSort(data: MediaZipMsgType) {
         if (data.sortType == store.mediaSortType) {
@@ -183,16 +40,16 @@ class JFileCache {
         let cloneList = [...data.list]
         switch (store.mediaSortType) {
             case "名称":
-                data.sortList = cloneList.sort((a, b) => this.sortABByName(a, b))
+                data.sortList = cloneList.sort((a, b) => sortABByName(a, b))
                 break
             case "大小":
-                data.sortList = cloneList.sort((a, b) => this.sortABBySize(a, b))
+                data.sortList = cloneList.sort((a, b) => sortABBySize(a, b))
                 break
             case "日期":
-                data.sortList = cloneList.sort((a, b) => this.sortABByDate(a, b))
+                data.sortList = cloneList.sort((a, b) => sortABByDate(a, b))
                 break
             case "数字":
-                data.sortList = cloneList.sort((a, b) => this.sortABByNum(a, b))
+                data.sortList = cloneList.sort((a, b) => sortABByNum(a, b))
                 break
         }
         data.sortType = store.mediaSortType
@@ -207,16 +64,16 @@ class JFileCache {
         let cloneList = [...data.noZipFiles]
         switch (store.mediaSortType) {
             case "名称":
-                data.sortNoZipFile = cloneList.sort((a, b) => this.sortABByName(undefined, undefined, a, b))
+                data.sortNoZipFile = cloneList.sort((a, b) => sortABByName(undefined, undefined, a, b))
                 break
             case "大小":
-                data.sortNoZipFile = cloneList.sort((a, b) => this.sortABBySize(undefined, undefined, a, b))
+                data.sortNoZipFile = cloneList.sort((a, b) => sortABBySize(undefined, undefined, a, b))
                 break
             case "日期":
-                data.sortNoZipFile = cloneList.sort((a, b) => this.sortABByDate(undefined, undefined, a, b))
+                data.sortNoZipFile = cloneList.sort((a, b) => sortABByDate(undefined, undefined, a, b))
                 break
             case "数字":
-                data.sortNoZipFile = cloneList.sort((a, b) => this.sortABByNum(undefined, undefined, a, b))
+                data.sortNoZipFile = cloneList.sort((a, b) => sortABByNum(undefined, undefined, a, b))
                 break
         }
         data.sortType = store.mediaSortType
@@ -369,6 +226,32 @@ class JFileCache {
             list.push(this._setImgCache({ dataUrl: dataUrl, exName: fileEx, type: type }, dirUrl, child.name))
         }
         return { list, isZip }
+    }
+
+    /** 获取缩略图 */
+    async getFileThum(dirUrl: string, fileName: string, isFolder?: boolean) {
+        let arr = fileName.split('.')
+        let ex = arr[arr.length - 1].toLowerCase()
+        if (isFolder) {
+            let list = await this.getFileListData(dirUrl, fileName)
+            for (let i = 0; i < list.list.length; i++) {
+                let c = list.list[i]
+                if (this.imgEXList.includes(<any>c.exName.toLowerCase())) {
+                    let b64 = await this.server.getThumB64(dirUrl, fileName)
+                    if (!b64) {
+                        return ""
+                    }
+                    return "data:image/jpeg;base64," + b64
+                }
+            }
+            return ""
+        }
+        let b64 = await this.server.getThumB64(dirUrl, fileName, ex == "zip")
+        if (!b64) {
+            return ""
+        }
+        return "data:image/jpeg;base64," + b64
+
     }
 
     /** 获取文件数据 */

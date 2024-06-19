@@ -41,7 +41,9 @@ export type MiddleFileType = {
     name: string
     time: number
     size?: number
+    imgb64?: string
 }
+
 
 export type MediaZipMsgType = {
     /** 关键key */
@@ -53,15 +55,9 @@ export type MediaZipMsgType = {
     /** 子文件数量 */
     count: number,
     /** 原始文件排列 */
-    list: {
-        key: string
-        data: StreamZip.ZipEntry;
-    }[]
+    list: ZipDataType[]
     /** 后期排列 */
-    sortList?: {
-        key: string;
-        data: StreamZip.ZipEntry;
-    }[]
+    sortList?: ZipDataType[]
     /** 排列类型 */
     sortType?: string
 }

@@ -62,3 +62,9 @@ export type JAreaType = {
     color?: string
     type: JAreaKeyType
 }
+
+
+export type ZipDataType = {
+    key: string
+    data: StreamZip.ZipEntry;
+}

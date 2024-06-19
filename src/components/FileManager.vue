@@ -9,6 +9,7 @@ import { mediaStore } from "../mediaStore"
 import { mainMediaCtrl } from "../tool/mainMediaCtrl";
 import { MiddleFileType } from "../media";
 import { JFlex } from "../components/JFlex"
+import { sortABByDate, sortABByName, sortABByNum, sortABBySize } from "../tool/util";
 
 
 const themeVars: ConfigProviderThemeVars = {
@@ -19,6 +20,8 @@ const themeVars: ConfigProviderThemeVars = {
 
 const floatGap = ref(24)
 const floatOffset = ref({ x: floatGap.value, y: -1 })
+
+const showPopup = ref(false)
 
 const fileBoxDivRef = ref(<HTMLDivElement>null)
 const urlList = ref(<string[]>["."])
@@ -40,25 +43,61 @@ onMounted(async () => {
     fileBoxDiv = fileBoxDivRef.value
     await updateFolderFunc(mediaStore.curDirUrl)
     loadding.close()
+    if (store.zipThum) {
+        thumChecked.value.push('zip')
+    }
+    if (store.imgThum) {
+        thumChecked.value.push('img')
+    }
+    if (store.folderThum) {
+        thumChecked.value.push("folder")
+    }
+    updateImg()
     return
 })
 
+const zipEXList = ['zip']
+const imgEXList = ['jpg', 'png', 'webp', 'bmp']
+
+
+const updateImg = async () => {
+    let dirUrl = mediaStore.curDirUrl
+    for (let i = 0; i < fileList.value.length; i++) {
+        let file = fileList.value[i]
+        if (store.switchThum) {
+            file.imgb64 = ""
+            continue
+        }
+        if (file.type == "file" && store.zipThum && zipEXList.includes(file.exname)) {
+            file.imgb64 = await jFileCache.getFileThum(dirUrl, file.name)
+            continue
+        }
+        if (file.type == "file" && store.imgThum && imgEXList.includes(file.exname)) {
+            file.imgb64 = await jFileCache.getFileThum(dirUrl, file.name)
+            continue
+        }
+        if (store.folderThum && file.type == "folder") {
+            file.imgb64 = await jFileCache.getFileThum(dirUrl, file.name, true)
+            continue
+        }
+    }
+}
 
 /** 设置排序大法 */
-let setSortFunc = async () => {
+const setSortFunc = async () => {
     [folderObjList, fileObjList].forEach(child => {
         switch (store.fileListSortType) {
             case "名称":
-                child.sort((a, b) => jFileCache.sortABByName(undefined, undefined, undefined, undefined, a, b))
+                child.sort((a, b) => sortABByName(undefined, undefined, undefined, undefined, a, b))
                 break
             case "大小":
-                child.sort((a, b) => jFileCache.sortABBySize(undefined, undefined, undefined, undefined, a, b))
+                child.sort((a, b) => sortABBySize(undefined, undefined, undefined, undefined, a, b))
                 break
             case "日期":
-                child.sort((a, b) => jFileCache.sortABByDate(undefined, undefined, undefined, undefined, a, b))
+                child.sort((a, b) => sortABByDate(undefined, undefined, undefined, undefined, a, b))
                 break
             case "数字":
-                child.sort((a, b) => jFileCache.sortABByNum(undefined, undefined, undefined, undefined, a, b))
+                child.sort((a, b) => sortABByNum(undefined, undefined, undefined, undefined, a, b))
                 break
         }
         if (store.fileListReverse) {
@@ -212,8 +251,6 @@ const rebackCur = async () => {
     return
 }
 
-
-
 /** 强制停止冒泡 */
 const stopBubbleFunc = (e: MouseEvent) => {
     e.stopPropagation()
@@ -281,6 +318,16 @@ const setReverse = () => {
     setSortFunc()
 }
 
+
+const thumChecked = ref<string[]>([])
+
+const thumCheckedChangeFunc = () => {
+    store.zipThum = thumChecked.value.indexOf("zip") != -1
+    store.imgThum = thumChecked.value.indexOf("img") != -1
+    store.folderThum = thumChecked.value.indexOf("folder") != -1
+    updateImg()
+}
+
 </script>
 
 <template>
@@ -329,8 +376,11 @@ const setReverse = () => {
                     <van-grid :column-num="1" :border="false" gutter="5px" v-if="store.displayFileStyleType == 'detail'"
                         :center="false">
                         <van-grid-item v-for="(item) in fileList" :key="item.originName">
-                            <j-flex direction="horizontal" is-last-grow>
-                                <van-icon :name="item.className" size="35px"></van-icon>
+                            <j-flex direction="horizontal" is-last-grow align="center">
+                                <img v-if="item.imgb64" class="imgContent" width="35px" height="35px"
+                                    :src="item.imgb64" />
+                                <van-icon v-if="!item.imgb64" :name="item.className" size="35px"></van-icon>
+
                                 <j-flex direction="vertical" fill>
                                     <van-text-ellipsis :class="item.type" :content="item.originName" expand-text=">"
                                         collapse-text="<" rows="1" @click="selectFileFunc(item)"
@@ -340,7 +390,7 @@ const setReverse = () => {
                                             {{ item.type == 'file' ? getSizeStrFunc(item.size) : '' }}</div>
                                         <div class="file_display_icon_detail_op_date_div">{{
                                             getDateStrFunc(item.time)
-                                        }}
+                                            }}
                                         </div>
                                     </j-flex>
                                 </j-flex>
@@ -357,11 +407,48 @@ const setReverse = () => {
             </div>
         </van-overlay> -->
     </div>
-    <van-floating-bubble icon="bars" axis="xy" magnetic="x" v-model:offset="floatOffset" :gap="floatGap" />
+    <van-floating-bubble icon="bars" axis="xy" magnetic="x" v-model:offset="floatOffset" :gap="floatGap"
+        @click="showPopup = !showPopup" />
+    <van-popup v-model:show="showPopup" position="top" :style="{ height: '30%' }">
+        <JFlex direction="vertical">
+            <div>缩略图控制</div>
+            <JFlex>
+                <div>缩略图切换:</div>
+                <van-switch />
+            </JFlex>
+            <JFlex>
+                <div>是否自动:</div>
+                <van-switch />
+            </JFlex>
+            <JFlex>
+                <div>缩略图选择:</div>
+                <van-checkbox-group v-model="thumChecked" @change="thumCheckedChangeFunc">
+                    <van-checkbox name="zip">压缩包</van-checkbox>
+                    <van-checkbox name="img">图片</van-checkbox>
+                    <van-checkbox name="folder">文件夹</van-checkbox>
+                </van-checkbox-group>
+            </JFlex>
+            <JFlex>
+                <van-button type="default">手动刷新</van-button>
+                <van-button type="default">强制刷新</van-button>
+                <van-button type="default">清空当前</van-button>
+            </JFlex>
 
+        </JFlex>
+    </van-popup>
 </template>
 
 <style scoped>
+.imgDiv {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.imgContent {
+    object-fit: contain;
+}
+
 .file_big_div {
     position: absolute;
     overflow: hidden;

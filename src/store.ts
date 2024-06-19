@@ -46,5 +46,15 @@ export const store = reactive({
     /** 文件管理器是否反序显示 */
     fileListReverse: <boolean>false,
     /** 文件管理器的排序 */
-    fileListSortType: <NameSortType>"名称"
+    fileListSortType: <NameSortType>"名称",
+    /** 自动加载缩略图 */
+    autoThum: <boolean>false,
+    /** 压缩包缩略图 */
+    zipThum: <boolean>false,
+    /** 图片缩略图 */
+    imgThum: <boolean>false,
+    /** 文件夹缩略图 */
+    folderThum: <boolean>false,
+    /** 切换图片缩略图 */
+    switchThum: <boolean>false
 })

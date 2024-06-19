@@ -63,11 +63,16 @@ export class JserverLink {
         return data
     }
 
+    /** 通过名称获取缩略图 */
+    async getThumB64(url: string, fileName: string, isZip?: boolean) {
+        let data = await this._client.main.postGetThumB64.mutate({ w: 100, h: 100, key: store.urlkey, fileName: fileName, dirUrl: url, isZip: isZip })
+        return data
+    }
+
     /** 通过名称获取压缩包里文件Url */
     getZipInFileUrlByName(url: string, fileName: string) {
         return `/getZipInFileByName?key=${store.urlkey}&url=${encodeURIComponent(url)}&fileName=${encodeURIComponent(fileName)}`
     }
-
 
     /** 获取文件内容 */
     async postFile(url: string) {

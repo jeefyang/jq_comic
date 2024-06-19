@@ -11,7 +11,15 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
   -webkit-text-size-adjust: 100%;
+  /* Safari */
+  -moz-text-size-adjust: 100%;
+  /* Firefox */
+  -ms-text-size-adjust: 100%;
+  /* IE/Edge */
+  text-size-adjust: 100%;
+  /* 标准语法 */
 }
 
 a {
@@ -34,6 +42,14 @@ body {
   position: absolute;
   width: 100%;
   height: 100%;
+  -webkit-user-select: none;
+  /* Safari */
+  -moz-user-select: none;
+  /* Firefox */
+  -ms-user-select: none;
+  /* IE/Edge */
+  user-select: none;
+  /* 标准语法 */
 }
 
 h1 {

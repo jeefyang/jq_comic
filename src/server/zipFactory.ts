@@ -8,15 +8,12 @@ import { configjson } from "./data"
 export class JZipFactory {
 
     children: { obj: JZipChild, key: string, freeTime: number }[] = []
-    /** 缩略图功能 */
-    thum: JThum
+
 
     constructor(
         /** 最大压缩包存活数量,减轻服务器的压力 */
-        public zipCacheCount: number,
-        zipThumOutDir: string,
-        magickCmd: string) {
-        this.thum = new JThum(magickCmd, zipThumOutDir)
+        public zipCacheCount: number) {
+
     }
 
     /** 清空缓存
@@ -102,6 +99,7 @@ export class JZipFactory {
         return
     }
 
+
 }
 
-export const zipFactory = new JZipFactory(configjson.zipCacheCount || 0, configjson.thumOutDir || "thumbnail", configjson.magickCmd || "magick")
+export const zipFactory = new JZipFactory(configjson.zipCacheCount || 0)

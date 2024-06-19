@@ -5,9 +5,11 @@ import { CSSProperties, ExtractPropTypes, Fragment, PropType, VNode, defineCompo
 export type JFlexSize = number | string;
 export type JFlexAlign = "start" | "end" | "center" | "baseline";
 export type JFlexDirection = "vertical" | "horizontal";
+export type JFlexJustContent = "start" | "end" | "center"
 
 export const jflexProps = {
   align: String as PropType<JFlexAlign>,
+  justContent: String as PropType<JFlexJustContent>,
   /** 排序,vertical垂直,horizontal水平 */
   direction: {
     type: String as PropType<JFlexDirection>,
@@ -109,7 +111,12 @@ export const JFlex = defineComponent({
       if (props.wrap) {
         style.flexWrap = "wrap"
       }
-
+      if (props.align) {
+        style.alignItems = props.align
+      }
+      if (props.justContent) {
+        style.justifyContent = props.justContent
+      }
 
       return style
     }
