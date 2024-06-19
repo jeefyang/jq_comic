@@ -69,15 +69,15 @@ const updateImg = async () => {
             continue
         }
         if (file.type == "file" && store.zipThum && zipEXList.includes(file.exname)) {
-            file.imgb64 = await jFileCache.getFileThum(dirUrl, file.name)
+            file.imgb64 = await jFileCache.getFileThum(dirUrl, file.originName)
             continue
         }
         if (file.type == "file" && store.imgThum && imgEXList.includes(file.exname)) {
-            file.imgb64 = await jFileCache.getFileThum(dirUrl, file.name)
+            file.imgb64 = await jFileCache.getFileThum(dirUrl, file.originName)
             continue
         }
         if (store.folderThum && file.type == "folder") {
-            file.imgb64 = await jFileCache.getFileThum(dirUrl, file.name, true)
+            file.imgb64 = await jFileCache.getFileThum(dirUrl, file.originName, true)
             continue
         }
     }
@@ -368,7 +368,8 @@ const thumCheckedChangeFunc = () => {
                         :border="false" square gutter="5px" v-if="store.displayFileStyleType == 'icon'">
                         <van-grid-item v-for="(item) in fileList" :key="item.originName" :title="item.title"
                             @click="selectFileFunc(item)">
-                            <van-icon :name="item.className" size="35px"></van-icon>
+                            <img v-if="item.imgb64" class="imgContent" width="60px" height="60px" :src="item.imgb64" />
+                            <van-icon v-if="!item.imgb64" :name="item.className" size="35px"></van-icon>
                             <span :class="item.type">{{ item.name }}</span>
                         </van-grid-item>
                     </van-grid>
@@ -377,7 +378,7 @@ const thumCheckedChangeFunc = () => {
                         :center="false">
                         <van-grid-item v-for="(item) in fileList" :key="item.originName">
                             <j-flex direction="horizontal" is-last-grow align="center">
-                                <img v-if="item.imgb64" class="imgContent" width="35px" height="35px"
+                                <img v-if="item.imgb64" class="imgContent" width="60px" height="60px"
                                     :src="item.imgb64" />
                                 <van-icon v-if="!item.imgb64" :name="item.className" size="35px"></van-icon>
 

@@ -3,8 +3,6 @@ import { exec } from "child_process"
 import fs from "fs"
 import path from "path"
 import { getThumHexName, sortABByNum } from "../tool/util"
-import streamZip from "node-stream-zip"
-import { ZipDataType } from "../type"
 import { JZipChild } from "./zipChild"
 
 export class JThum {
