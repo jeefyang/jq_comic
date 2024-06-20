@@ -37,6 +37,8 @@ let searchKey = ref(<string>"")
 let scrollCount = 0
 let scrollMax = 0
 
+let updateThumState = true
+
 
 onMounted(async () => {
     let loadding = showLoadingToast({ message: "加载中", overlay: true, forbidClick: true, duration: 0 })
@@ -52,7 +54,7 @@ onMounted(async () => {
     if (store.folderThum) {
         thumChecked.value.push("folder")
     }
-    updateImg()
+    updateThum()
     return
 })
 
@@ -60,12 +62,18 @@ const zipEXList = ['zip']
 const imgEXList = ['jpg', 'png', 'webp', 'bmp']
 
 
-const updateImg = async () => {
+const updateThum = async () => {
     let dirUrl = mediaStore.curDirUrl
     for (let i = 0; i < fileList.value.length; i++) {
+        if (!updateThumState) {
+            return
+        }
         let file = fileList.value[i]
-        if (store.switchThum) {
+        if (!store.switchThum) {
             file.imgb64 = ""
+            continue
+        }
+        if (file.imgb64) {
             continue
         }
         if (file.type == "file" && store.zipThum && zipEXList.includes(file.exname)) {
@@ -77,6 +85,7 @@ const updateImg = async () => {
             continue
         }
         if (store.folderThum && file.type == "folder") {
+            console.log('folder')
             file.imgb64 = await jFileCache.getFileThum(dirUrl, file.originName, true)
             continue
         }
@@ -193,6 +202,9 @@ let updateFolderFunc = async (url: string, forceUpdate?: boolean) => {
         })
     }
     await setSortFunc()
+    if (store.autoThum) {
+        updateThum()
+    }
     return
 }
 
@@ -303,6 +315,9 @@ const scrollLazyLoad = async (num: number) => {
         return
     }
     fileList.value.push(...fileCacheList.slice(scrollCount, scrollCount + num))
+    if (store.autoThum) {
+        updateThum()
+    }
     scrollCount += num
     await new Promise((res, _rej) => {
         setTimeout(() => {
@@ -325,7 +340,30 @@ const thumCheckedChangeFunc = () => {
     store.zipThum = thumChecked.value.indexOf("zip") != -1
     store.imgThum = thumChecked.value.indexOf("img") != -1
     store.folderThum = thumChecked.value.indexOf("folder") != -1
-    updateImg()
+    updateThum()
+    onSaveFunc()
+}
+
+const handUpdateThum = () => {
+    updateThumState = true
+    updateThum()
+
+}
+
+const stopUpdateThumFunc = () => {
+    updateThumState = false
+}
+
+const clearThumFunc = async () => {
+    await jFileCache.clearThumDB(mediaStore.curDirUrl)
+    for (let i = 0; i < fileList.value.length; i++) {
+        let c = fileList.value[i]
+        c.imgb64 = ''
+    }
+}
+
+const onSaveFunc = () => {
+    mainMediaCtrl.saveStoreByLocalStorage()
 }
 
 </script>
@@ -363,13 +401,17 @@ const thumCheckedChangeFunc = () => {
             <div class="file_display_box_div" ref="fileBoxDivRef" @scroll="scrollLazyLoad(50)">
                 <van-config-provider :theme-vars="themeVars">
                     <!-- 文件显示 -->
+                    <div style="height:8px;"></div>
                     <!-- 图标显示 -->
                     <van-grid :icon-size="mediaStore.displayFileIconSize + 'px'" :column-num="mediaStore.displayFileCol"
                         :border="false" square gutter="5px" v-if="store.displayFileStyleType == 'icon'">
                         <van-grid-item v-for="(item) in fileList" :key="item.originName" :title="item.title"
                             @click="selectFileFunc(item)">
-                            <img v-if="item.imgb64" class="imgContent" width="60px" height="60px" :src="item.imgb64" />
-                            <van-icon v-if="!item.imgb64" :name="item.className" size="35px"></van-icon>
+                            <img v-if="store.switchThum && item.imgb64" class="imgContent"
+                                :width="mediaStore.displayFileIconSize + 'px'"
+                                :height="mediaStore.displayFileIconSize + 'px'" :src="item.imgb64" />
+                            <van-icon v-else :name="item.className"
+                                :size="mediaStore.displayFileIconSize + 'px'"></van-icon>
                             <span :class="item.type">{{ item.name }}</span>
                         </van-grid-item>
                     </van-grid>
@@ -378,9 +420,11 @@ const thumCheckedChangeFunc = () => {
                         :center="false">
                         <van-grid-item v-for="(item) in fileList" :key="item.originName">
                             <j-flex direction="horizontal" is-last-grow align="center">
-                                <img v-if="item.imgb64" class="imgContent" width="60px" height="60px"
-                                    :src="item.imgb64" />
-                                <van-icon v-if="!item.imgb64" :name="item.className" size="35px"></van-icon>
+                                <img v-if="store.switchThum && item.imgb64" class="imgContent"
+                                    :width="(mediaStore.displayFileIconSize * 1.5) + 'px'"
+                                    :height="(mediaStore.displayFileIconSize * 1.5) + 'px'" :src="item.imgb64" />
+                                <van-icon v-else :name="item.className"
+                                    :size="(mediaStore.displayFileIconSize * 1.5) + 'px'"></van-icon>
 
                                 <j-flex direction="vertical" fill>
                                     <van-text-ellipsis :class="item.type" :content="item.originName" expand-text=">"
@@ -410,16 +454,16 @@ const thumCheckedChangeFunc = () => {
     </div>
     <van-floating-bubble icon="bars" axis="xy" magnetic="x" v-model:offset="floatOffset" :gap="floatGap"
         @click="showPopup = !showPopup" />
-    <van-popup v-model:show="showPopup" position="top" :style="{ height: '30%' }">
+    <van-popup v-model:show="showPopup" position="top" :style="{ height: '45%' }">
         <JFlex direction="vertical">
             <div>缩略图控制</div>
             <JFlex>
                 <div>缩略图切换:</div>
-                <van-switch />
+                <van-switch v-model="store.switchThum" @change="onSaveFunc" />
             </JFlex>
             <JFlex>
                 <div>是否自动:</div>
-                <van-switch />
+                <van-switch v-model="store.autoThum" @change="onSaveFunc" />
             </JFlex>
             <JFlex>
                 <div>缩略图选择:</div>
@@ -430,9 +474,9 @@ const thumCheckedChangeFunc = () => {
                 </van-checkbox-group>
             </JFlex>
             <JFlex>
-                <van-button type="default">手动刷新</van-button>
-                <van-button type="default">强制刷新</van-button>
-                <van-button type="default">清空当前</van-button>
+                <van-button type="default" @click="handUpdateThum()">手动刷新</van-button>
+                <van-button type="default" @click="stopUpdateThumFunc()">停止刷新</van-button>
+                <van-button type="default" @click="clearThumFunc()">清空当前</van-button>
             </JFlex>
 
         </JFlex>

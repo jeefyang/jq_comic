@@ -32,6 +32,9 @@ dependencies:
   cors:
     specifier: ^2.8.5
     version: 2.8.5
+  dexie:
+    specifier: ^4.0.7
+    version: 4.0.7
   dplayer:
     specifier: ^1.27.1
     version: 1.27.1
@@ -1609,6 +1612,10 @@ packages:
   /detect-libc@2.0.2:
     resolution: {integrity: sha512-UX6sGumvvqSaXgdKGUsgZWqcUyIXZ/vZTrlRT/iobiKhGL0zL4d3osHj3uqllWJK+i+sixDS/3COVEOFbupFyw==}
     engines: {node: '>=8'}
+    dev: false
+
+  /dexie@4.0.7:
+    resolution: {integrity: sha512-M+Lo6rk4pekIfrc2T0o2tvVJwL6EAAM/B78DNfb8aaxFVoI1f8/rz5KTxuAnApkwqTSuxx7T5t0RKH7qprapGg==}
     dev: false
 
   /dom-walk@0.1.2:

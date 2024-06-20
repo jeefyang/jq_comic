@@ -155,10 +155,12 @@ const mainRouter = router({
   }),
   /** 获取缩略图的B64 */
   postGetThumB64: publicProcedure.input(z.object({ w: z.number(), h: z.number(), key: z.string(), dirUrl: z.string(), fileName: z.string(), isZip: z.boolean() })).mutation(async ({ input }) => {
+    console.log("xxx")
     let base = configjson.switchUrlList.find(c => c.key == input.key)?.url
     if (base == undefined)
       return ""
     let fileUrl = path.join(base, input.dirUrl, input.fileName)
+    console.log(fileUrl)
     let outFileUrl = await thumObj.quickSetThum(input.w, input.h, fileUrl, input.key, input.isZip)
     if (!outFileUrl) {
       return outFileUrl

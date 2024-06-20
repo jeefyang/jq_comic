@@ -19,6 +19,7 @@ export class JThum {
     async setThum(w: number, h: number, inputFile: string, outFile: string) {
         return new Promise<boolean>((res) => {
             let cmd = `${this.magickCmd} convert -resize ${w}x${h} "${inputFile}" "${outFile}"`
+            console.log(cmd)
             exec(cmd, (err, _stdout, _stderr) => {
                 if (!err) {
                     res(true)
@@ -35,6 +36,7 @@ export class JThum {
     }
 
     async quickSetThum(w: number, h: number, inputFile: string, key: string, isZip?: boolean) {
+        console.log(inputFile)
         let outFile = this.getOutFilePath(inputFile, key)
         if (fs.existsSync(outFile)) {
             return outFile

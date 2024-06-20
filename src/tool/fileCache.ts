@@ -4,8 +4,15 @@ import { store } from "../store"
 
 import { MediaContentChildType, MediaViewChildType, MediaZipMsgType, } from "../media"
 import { sortABByDate, sortABByName, sortABByNum, sortABBySize } from "./util";
+import Dexie, { type EntityTable } from 'dexie';
 
-
+interface ThumDBCache {
+    id: number;
+    name: string;
+    key: string;
+    dir: string;
+    b64: string
+}
 class JFileCache {
     /** 文件夹缓存 */
     dirCache: { [propName: string]: JFolderDisplayType } = {}
@@ -15,6 +22,13 @@ class JFileCache {
     zipMsgCache: MediaZipMsgType[] = []
     /** 服务 */
     server: JserverLink
+    cacheDB = new Dexie("cacheDB") as Dexie & {
+        thums: EntityTable<
+            ThumDBCache,
+            'id' // primary key "id" (for the typings only)
+        >;
+    };
+
 
     imgEXList: JFileFormatType[] = ["gif", "bmp", "jpg", "jpeg", "png", "apng", "webp"]
     videoEXList: JFileFormatType[] = ["avi", "mp4", "mkv", "webm"]
@@ -30,6 +44,10 @@ class JFileCache {
 
     async init(server: JserverLink) {
         this.server = server
+        let v = this.cacheDB.version(1).stores({
+            thums: '++id,name,key,dir,b64'
+        })
+        console.log(v)
         return
     }
 
@@ -169,7 +187,9 @@ class JFileCache {
         }
     }
 
-    /** 获取文件列表数据 */
+    /** 获取文件列表数据
+     * @param fileName 指压缩包文件名,如果是单纯想获取文件夹列表,直接用''表示
+     */
     async getFileListData(dirUrl: string, fileName: string) {
         let arr = fileName.split('.')
         let ex = arr[arr.length - 1].toLowerCase()
@@ -230,29 +250,72 @@ class JFileCache {
 
     /** 获取缩略图 */
     async getFileThum(dirUrl: string, fileName: string, isFolder?: boolean) {
+        let d = await this.cacheDB.thums.where('key').equals(store.urlkey).and(c => c.dir == dirUrl && c.name == fileName).toArray()
+        if (d.length > 0) {
+            return d[0].b64
+        }
         let arr = fileName.split('.')
         let ex = arr[arr.length - 1].toLowerCase()
         if (isFolder) {
-            let list = await this.getFileListData(dirUrl, fileName)
+            let url = `${dirUrl}/${fileName}`
+            let list = await this.getFileListData(url, "")
             for (let i = 0; i < list.list.length; i++) {
                 let c = list.list[i]
                 if (this.imgEXList.includes(<any>c.exName.toLowerCase())) {
-                    let b64 = await this.server.getThumB64(dirUrl, fileName)
+                    console.log(url, c.fileName)
+                    let b64 = await this.server.getThumB64(url, c.fileName)
                     if (!b64) {
                         return ""
                     }
-                    return "data:image/jpeg;base64," + b64
+                    else {
+                        b64 = "data:image/jpeg;base64," + b64
+                    }
+                    // 防止数据锁
+                    d = await this.cacheDB.thums.where('key').equals(store.urlkey).and(c => c.dir == dirUrl && c.name == fileName).toArray()
+                    if (d.length == 0) {
+                        await this.cacheDB.thums.add({
+                            key: store.urlkey,
+                            dir: dirUrl,
+                            name: fileName,
+                            b64: b64
+                        })
+                    }
+                    return b64
                 }
             }
+            console.log(url, '没在文件夹找到图片')
+            await this.cacheDB.thums.add({
+                key: store.urlkey,
+                dir: dirUrl,
+                name: fileName,
+                b64: ""
+            })
             return ""
         }
         let b64 = await this.server.getThumB64(dirUrl, fileName, ex == "zip")
         if (!b64) {
             return ""
         }
-        return "data:image/jpeg;base64," + b64
-
+        else {
+            b64 = "data:image/jpeg;base64," + b64
+        }
+        // 防止数据锁
+        d = await this.cacheDB.thums.where('key').equals(store.urlkey).and(c => c.dir == dirUrl && c.name == fileName).toArray()
+        if (d.length == 0) {
+            await this.cacheDB.thums.add({
+                key: store.urlkey,
+                dir: dirUrl,
+                name: fileName,
+                b64: b64
+            })
+        }
+        return b64
     }
+
+    async clearThumDB(dirUrl?: string) {
+        await this.cacheDB.thums.where('key').equals(store.urlkey).and(c => dirUrl == undefined || dirUrl == c.dir).delete()
+    }
+
 
     /** 获取文件数据 */
     async getFileData(dirUrl: string, fileName: string, index: number = 0) {
