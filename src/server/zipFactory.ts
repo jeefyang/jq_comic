@@ -2,7 +2,6 @@
 import { JZipChild } from "./zipChild"
 import path from "path"
 import colors from "colors-console"
-import { JThum } from "./thum"
 import { configjson } from "./data"
 
 export class JZipFactory {
