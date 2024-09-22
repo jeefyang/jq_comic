@@ -75,6 +75,18 @@ export class JserverLink {
         return `/getZipInFileByName?key=${store.urlkey}&url=${encodeURIComponent(url)}&fileName=${encodeURIComponent(fileName)}`
     }
 
+    /** 管理密钥链接 */
+    async postManagerUrl(type: "isExist" | "reback" | "folder", url: string) {
+        let data = await this._client.main.postManagerUrl.mutate({ type, url })
+        return data
+    }
+
+    /** 获取管理密钥 */
+    async postMangerKey(type: "add" | "upgrade" | "del" | "find", op?: { key?: string, url?: string }) {
+        let data = await this._client.main.postMangerKey.mutate({ type, key: op?.key, url: op?.url })
+        return data
+    }
+
     /** 获取文件内容 */
     async postFile(url: string) {
 

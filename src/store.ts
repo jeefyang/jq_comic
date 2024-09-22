@@ -23,6 +23,8 @@ export const store = reactive({
     directX: <-1 | 1>1,
     /** 是否调试操作 */
     isControlDebug: <boolean>false,
+    /** 是否为操作后台模式 */
+    isManager: <boolean>false,
     /** 是否显示媒体数目 */
     isDisplayMediaNum: <boolean>true,
     /** 文本信息颜色 */

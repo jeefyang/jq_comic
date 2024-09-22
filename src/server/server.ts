@@ -4,6 +4,7 @@ import { appRouter } from './router';
 import cors from "cors"
 import fs from "fs"
 import path from "path"
+import os from "os"
 
 
 import { zipFactory } from "./zipFactory";
@@ -31,6 +32,8 @@ app.get('/test', async (_req, res, next) => {
     res.status(200).set({ "Content-Type": "text/html" }).end("helloworld")
     next()
 })
+
+
 
 app.get("/getZipInFileByName", async (req, res) => {
     // req.url
@@ -118,6 +121,22 @@ app.get("*", async (req, res) => {
     return
 })
 
+/**
+ * 获取当前机器的ip地址
+ */
+function getIpAddress() {
+    let ifaces = os.networkInterfaces()
+    for (let dev in ifaces) {
+        let iface = ifaces[dev]
+        for (let i = 0; i < iface.length; i++) {
+            let { family, address, internal } = iface[i]
+            if (family === 'IPv4' && address !== '127.0.0.1' && !internal) {
+                return address
+            }
+        }
+    }
+}
+
 if (import.meta.env.MODE == "development") {
 
 }
@@ -127,6 +146,16 @@ else {
 
 app.listen(configjson.listen)
 console.log("正在监听:", configjson.listen)
+if (import.meta.env.MODE == "development") {
+    let ipAddress = getIpAddress()
+    console.log("主页:")
+    console.log(`http://${ipAddress}:${configjson.listen}/index.html`)
+    console.log("测试管理页面:")
+    console.log(`http://${ipAddress}:${configjson.listen}/index.html?isManager=1`)
+}
+else {
+
+}
 // mydb = new SqliteFactory("./base")
 
 

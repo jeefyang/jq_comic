@@ -55,7 +55,7 @@ export class JThum {
                 let buf = await o.getFileByName(c.data.name)
                 let cacheFileUrl = path.join(this.outDir, `temp.${ex}`)
                 fs.writeFileSync(cacheFileUrl, buf)
-                await this.setThum(w, h, cacheFileUrl, outFile)
+                await this.setThum(w, h, cacheFileUrl, outFile) 
                 fs.rmSync(cacheFileUrl)
                 await o.destory()
                 return outFile

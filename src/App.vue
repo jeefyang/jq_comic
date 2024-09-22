@@ -12,6 +12,7 @@ import ComicOPPanel from "./components/ComicOPPanel.vue"
 import ComicDisplayWaterfall from './components/ComicDisplayWaterfall.vue'
 import ComicDisplayStandard from './components/ComicDisplayStandard.vue'
 import ComicDisplayArea from './components/ComicDisplayArea.vue'
+import ComicManager from './components/ComicManager.vue';
 import { mainMediaCtrl } from './tool/mainMediaCtrl';
 import NoSleep from "nosleep.js"
 import VConsole from 'vconsole';
@@ -52,7 +53,7 @@ onMounted(async () => {
   })
 
   if (import.meta.env.MODE == "development") {
-     new VConsole({ theme: 'dark' });
+    new VConsole({ theme: 'dark' });
   }
   else {
 
@@ -61,6 +62,7 @@ onMounted(async () => {
   let url = new URL(document.location.href)
   store.urlkey = url.searchParams.get("key") || ""
   store.isControlDebug = url.searchParams.get("isControlDebug") == "1" ? true : false
+  store.isManager = url.searchParams.get("isManager") == "1" ? true : false
 
   resizeFunc()
 
@@ -102,15 +104,21 @@ onMounted(async () => {
 <template>
   <div class="app" :style="{ 'background-color': store.background }">
     <van-config-provider theme="dark">
-      <div v-if="mediaStore.isServerCompleted">
-        <ComicDisplayWaterfall v-if="store.readMode == 'udWaterfall'"></ComicDisplayWaterfall>
-        <ComicDisplayStandard v-if="store.readMode != 'udWaterfall'"></ComicDisplayStandard>
-        <ComicDisplayArea v-if="mediaStore.displayArea"></ComicDisplayArea>
-        <FileManager v-if="mediaStore.displayFileManager"></FileManager>
-        <ComicOPPanel v-if="mediaStore.displayOPPanel"></ComicOPPanel>
-        <ComicBottomBar v-if="mediaStore.displayBottomBar"></ComicBottomBar>
+      <template v-if="store.isManager">
+        <ComicManager></ComicManager>
+      </template>
+      <template v-else>
+        <div v-if="mediaStore.isServerCompleted">
+          <ComicDisplayWaterfall v-if="store.readMode == 'udWaterfall'"></ComicDisplayWaterfall>
+          <ComicDisplayStandard v-if="store.readMode != 'udWaterfall'"></ComicDisplayStandard>
+          <ComicDisplayArea v-if="mediaStore.displayArea"></ComicDisplayArea>
+          <FileManager v-if="mediaStore.displayFileManager"></FileManager>
+          <ComicOPPanel v-if="mediaStore.displayOPPanel"></ComicOPPanel>
+          <ComicBottomBar v-if="mediaStore.displayBottomBar"></ComicBottomBar>
 
-      </div>
+        </div>
+      </template>
+
     </van-config-provider>
   </div>
 

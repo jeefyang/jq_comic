@@ -5,7 +5,7 @@ import { zipFactory } from './zipFactory';
 import path from "path"
 import { decodeFolder } from './decodeFolder';
 import fs from 'fs'
-import { configjson } from "./data"
+import { configjson, saveConfigjson } from "./data"
 import { JThum } from './thum';
 
 const t = initTRPC.create();
@@ -155,7 +155,6 @@ const mainRouter = router({
   }),
   /** 获取缩略图的B64 */
   postGetThumB64: publicProcedure.input(z.object({ w: z.number(), h: z.number(), key: z.string(), dirUrl: z.string(), fileName: z.string(), isZip: z.boolean() })).mutation(async ({ input }) => {
-    console.log("xxx")
     let base = configjson.switchUrlList.find(c => c.key == input.key)?.url
     if (base == undefined)
       return ""
@@ -167,10 +166,90 @@ const mainRouter = router({
     }
     let data = fs.readFileSync(outFileUrl, "base64")
     return data
-
+  }),
+  postManagerUrl: publicProcedure.input(z.object({ type: z.enum(['reback', 'folder', "isExist"]), url: z.string() })).mutation(async ({ input }) => {
+    let res: { list: string[], url: string, isSuccess: boolean } = { list: [], url: "", isSuccess: false }
+    if (!fs.existsSync(input.url) || !fs.statSync(input.url).isDirectory()) {
+      return res
+    }
+    if (input.type == "isExist") {
+      res.isSuccess = true
+      res.url = input.url
+      return res
+    }
+    else if (input.type == "folder") {
+      let list = fs.readdirSync(input.url)
+      res.url = input.url
+      res.list = list
+      res.isSuccess = true
+      return res
+    }
+    else if (input.type == "reback") {
+      res.url = path.dirname(input.url)
+      res.isSuccess = true
+      return res
+    }
+    return res
+  }),
+  /** 修改管理key */
+  postMangerKey: publicProcedure.input(z.object({ type: z.enum(['add', 'del', 'upgrade', 'find']), key: z.string().optional(), url: z.string().optional() })).mutation(async ({ input }) => {
+    let res: { data: typeof configjson.switchUrlList, isSuccess: boolean, desc: string } = { data: [], isSuccess: false, desc: "" }
+    if (input.type == "find") {
+      if (input.key) {
+        let c = configjson.switchUrlList.find(o => o.key == input.key)
+        res.data = c ? [c] : []
+        res.isSuccess = !!c
+        return res
+      }
+      else {
+        res.data = configjson.switchUrlList
+        res.isSuccess = true
+        return res
+      }
+    }
+    else if (input.type == "add") {
+      if (!input.key) {
+        res.desc = "关键字为空"
+        return res
+      }
+      let c = configjson.switchUrlList.find(o => o.key == input.key)
+      if (c) {
+        res.data = [c]
+        res.isSuccess = false
+        res.desc = `关键字 '${c.key}' 已经存在`
+        return res
+      }
+      configjson.switchUrlList.push({ key: input.key, url: input.url })
+      saveConfigjson(configjson)
+      res.data = configjson.switchUrlList
+      res.isSuccess = true
+      return res
+    }
+    else if (input.type == 'upgrade') {
+      let c = configjson.switchUrlList.find(o => o.key == input.key)
+      if (c) {
+        c.url = input.url
+        saveConfigjson(configjson)
+        res.data = configjson.switchUrlList
+        res.isSuccess = true
+        return res
+      }
+      return res
+    }
+    else if (input.type == "del") {
+      let c = configjson.switchUrlList.findIndex(o => o.key == input.key)
+      if (c != -1) {
+        res.data = [configjson.switchUrlList[c]]
+        configjson.switchUrlList.splice(c, 1)
+        res.isSuccess = true
+        return res
+      }
+      return res
+    }
+    return res
   })
-
 });
+
 
 export const appRouter = router({
   main: mainRouter,
