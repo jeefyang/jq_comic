@@ -58,5 +58,7 @@ export const store = reactive({
     /** 文件夹缩略图 */
     folderThum: <boolean>false,
     /** 切换图片缩略图 */
-    switchThum: <boolean>true
+    switchThum: <boolean>true,
+    /** 缩略图比例 */
+    thumRatio: <number>1
 })

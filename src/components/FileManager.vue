@@ -363,6 +363,7 @@ const clearThumFunc = async () => {
 }
 
 const onSaveFunc = () => {
+    console.log(11)
     mainMediaCtrl.saveStoreByLocalStorage()
 }
 
@@ -403,15 +404,16 @@ const onSaveFunc = () => {
                     <!-- 文件显示 -->
                     <div style="height:8px;"></div>
                     <!-- 图标显示 -->
-                    <van-grid :icon-size="mediaStore.displayFileIconSize + 'px'" :column-num="mediaStore.displayFileCol"
-                        :border="false" square gutter="5px" v-if="store.displayFileStyleType == 'icon'">
+                    <van-grid :icon-size="(mediaStore.displayFileIconSize * store.thumRatio) + 'px'"
+                        :column-num="mediaStore.displayFileCol" :border="false" square gutter="5px"
+                        v-if="store.displayFileStyleType == 'icon'">
                         <van-grid-item v-for="(item) in fileList" :key="item.originName" :title="item.title"
                             @click="selectFileFunc(item)">
                             <img v-if="store.switchThum && item.imgb64" class="imgContent"
-                                :width="mediaStore.displayFileIconSize + 'px'"
-                                :height="mediaStore.displayFileIconSize + 'px'" :src="item.imgb64" />
+                                :width="(mediaStore.displayFileIconSize * store.thumRatio) + 'px'"
+                                :height="(mediaStore.displayFileIconSize * store.thumRatio) + 'px'" :src="item.imgb64" />
                             <van-icon v-else :name="item.className"
-                                :size="mediaStore.displayFileIconSize + 'px'"></van-icon>
+                                :size="(mediaStore.displayFileIconSize * store.thumRatio) + 'px'"></van-icon>
                             <span :class="item.type">{{ item.name }}</span>
                         </van-grid-item>
                     </van-grid>
@@ -421,10 +423,11 @@ const onSaveFunc = () => {
                         <van-grid-item v-for="(item) in fileList" :key="item.originName">
                             <j-flex direction="horizontal" is-last-grow align="center">
                                 <img v-if="store.switchThum && item.imgb64" class="imgContent"
-                                    :width="(mediaStore.displayFileIconSize * 1.5) + 'px'"
-                                    :height="(mediaStore.displayFileIconSize * 1.5) + 'px'" :src="item.imgb64" />
+                                    :width="(mediaStore.displayFileIconSize * 1.5 * store.thumRatio) + 'px'"
+                                    :height="(mediaStore.displayFileIconSize * 1.5 * store.thumRatio) + 'px'"
+                                    :src="item.imgb64" />
                                 <van-icon v-else :name="item.className"
-                                    :size="(mediaStore.displayFileIconSize * 1.5) + 'px'"></van-icon>
+                                    :size="(mediaStore.displayFileIconSize * 1.5 * store.thumRatio) + 'px'"></van-icon>
 
                                 <j-flex direction="vertical" fill>
                                     <van-text-ellipsis :class="item.type" :content="item.originName" expand-text=">"
@@ -472,6 +475,13 @@ const onSaveFunc = () => {
                     <van-checkbox name="img">图片</van-checkbox>
                     <van-checkbox name="folder">文件夹</van-checkbox>
                 </van-checkbox-group>
+            </JFlex>
+            <JFlex>
+                <div>图标/缩略图比例:</div>
+                <VanButton type="primary" @click="store.thumRatio = 0.5; onSaveFunc()">0.5</VanButton>
+                <VanButton type="primary" @click="store.thumRatio = 1; onSaveFunc()">1</VanButton>
+                <VanButton type="primary" @click="store.thumRatio = 2; onSaveFunc()">2</VanButton>
+                <input type="number" v-model="store.thumRatio" @change="onSaveFunc()" style="width:50px">
             </JFlex>
             <JFlex>
                 <van-button type="default" @click="handUpdateThum()">手动刷新</van-button>
