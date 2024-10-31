@@ -249,14 +249,14 @@ const imgOnLoad = (item: MediaViewChildType, e?: Event) => {
                                 :style="{ 'transform': 'scale(' + curChild.scale * mediaStore.domScale + ')' }">
                                 <!-- 标准状态 -->
                                 <div class="display_show"
-                                    :style="{ 'width': curChild.displayW + 'px', 'height': curChild.displayH + 'px', }">
+                                    :style="{ 'width': (curChild.isLoaded ? curChild.displayW : mediaStore.divFloatW) + 'px', 'height': (curChild.isLoaded ? curChild.displayH : mediaStore.divFloatH) + 'px', }">
                                     <!-- 加载状态 -->
                                     <div class="imgLoading" v-if="!curChild.isLoaded"
                                         :style="{ 'background-color': mediaStore.mediaLoadingDivColor }">
                                         <div class="imgLoading_center">
                                             <van-loading vertical type="spinner" size="50" text-size="50"
                                                 text-color="#fff">{{
-                                                curChild.displayIndex
+                                                    curChild.displayIndex
                                                 }}_{{ curChild.splitNum }}</van-loading>
                                         </div>
                                     </div>
