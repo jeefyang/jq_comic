@@ -120,3 +120,8 @@ button:focus-visible {
   color: transparent;
   letter-spacing: 0.04em;
 } */
+
+#id {
+  left: 0px;
+  position: absolute
+}
