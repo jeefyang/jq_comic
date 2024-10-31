@@ -12,6 +12,8 @@ export const mediaStore = reactive(<MediaStoreType>{
     domTransY: 0,
     divFloatWRatio: 0.01,
     divFloatHRatio: 0.01,
+    mediaMoveX: 0,
+    mediaMoveY: 0,
     divFloatTop: 0,
     divFloatLeft: 0,
     divFloatW: 0,

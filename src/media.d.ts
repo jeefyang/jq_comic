@@ -123,6 +123,10 @@ export type MediaStoreType = {
     divFloatTop: number
     /** div浮动位置左 */
     divFloatLeft: number
+    /** 媒体固定移动x */
+    mediaMoveX: number
+    /** 媒体固定移动y */
+    mediaMoveY: number
     /** div浮动宽度 */
     divFloatW: number
     /** div浮动高度 */

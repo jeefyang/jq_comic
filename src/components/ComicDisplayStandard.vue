@@ -134,6 +134,10 @@ onMounted(() => {
         mainMediaCtrl.autoSave()
     })
 
+    watch([() => mediaStore.domScale], () => {
+        target.resizeChild(curChild.value)
+    })
+
     target.eventInit(divRef.value)
 
     setTimeout(() => {
@@ -239,7 +243,7 @@ const imgOnLoad = (item: MediaViewChildType, e?: Event) => {
                         :style="{ 'width': mediaStore.divFloatW + 'px', 'height': mediaStore.divFloatH + 'px' }">
                         <!-- 移动位置,影响滚动轴 -->
                         <div class="display_trans"
-                            :style="{ 'top': (mediaStore.divFloatH > curChild.scale * mediaStore.domScale * curChild.displayH ? curChild.parentTransY : 0) + 'px', 'left': (mediaStore.divFloatW > curChild.scale * mediaStore.domScale * curChild.displayW ? curChild.parentTransX : 0) + 'px', 'width': (curChild.scale * curChild.displayW * mediaStore.domScale) + 'px', 'height': (curChild.scale * curChild.displayH * mediaStore.domScale) + 'px' }">
+                            :style="{ 'top': (mediaStore.divFloatH > curChild.scale * mediaStore.domScale * curChild.displayH ? mediaStore.mediaMoveY : 0) + 'px', 'left': (mediaStore.divFloatW > curChild.scale * mediaStore.domScale * curChild.displayW ? mediaStore.mediaMoveX : 0) + 'px', 'width': (curChild.scale * curChild.displayW * mediaStore.domScale) + 'px', 'height': (curChild.scale * curChild.displayH * mediaStore.domScale) + 'px' }">
                             <!-- 缩放视图 -->
                             <div class="display_container"
                                 :style="{ 'transform': 'scale(' + curChild.scale * mediaStore.domScale + ')' }">
@@ -252,8 +256,8 @@ const imgOnLoad = (item: MediaViewChildType, e?: Event) => {
                                         <div class="imgLoading_center">
                                             <van-loading vertical type="spinner" size="50" text-size="50"
                                                 text-color="#fff">{{
-            curChild.displayIndex
-        }}_{{ curChild.splitNum }}</van-loading>
+                                                curChild.displayIndex
+                                                }}_{{ curChild.splitNum }}</van-loading>
                                         </div>
                                     </div>
                                     <!-- 图像 -->
