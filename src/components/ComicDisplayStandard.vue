@@ -17,8 +17,6 @@ const divRef = ref(<HTMLDivElement>null)
 const target = new ComicDisplayStandard()
 const curChildRef = ref(<MediaViewChildType>null)
 let viewList: MediaViewChildType[] = []
-const oldScale = ref(1)
-
 
 
 /** 加载图片数量 */
@@ -107,15 +105,15 @@ onMounted(() => {
         if (!o) {
             return
         }
-        oldScale.value = curChildRef.value?.scale || 1
         curChildRef.value = cloneAssign(o)
+        curChildRef.value.scale = 1
         mediaStore.domScale = 1
         curChildRef.value.splitNum = parseInt(arr[1]) ? 1 : 0
         target.updateChild(curChildRef.value)
         let searchIndex = curChildRef.value.searchIndex
         let cache = jFileCache.getMediaCache(curChildRef.value)
 
-        preloadMediaCtrl.preload(cache.dataUrl, cache.type, () => {
+        preloadMediaCtrl.insertLoad(cache.dataUrl, cache.type, () => {
             if (searchIndex == curChildRef.value.searchIndex) {
                 curChildRef.value.isLoaded = false
                 curChildRef.value.isViewImg = true

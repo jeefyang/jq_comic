@@ -11,12 +11,21 @@ class PreloadMediaCtrl {
         imgObj?: HTMLImageElement
     } = undefined
 
+    /** 预加载 */
     preload(src: string, type: "img" | "video", cb?: () => void) {
         this.mediaList.push({ src, type, cb })
-        this.loopLoad()
+        this._loopLoad()
     }
 
-    async loopLoad(isLoopLoad = this.isLoopLoad) {
+    /** 提前插入加载 */
+    insertLoad(src: string, type: "img" | "video", cb?: () => void) {
+        this.pause()
+        this.mediaList.splice(0, 0, { src, type, cb })
+        this._loopLoad()
+    }
+
+    /** 循环触发加载 */
+    private async _loopLoad(isLoopLoad = this.isLoopLoad) {
         if (isLoopLoad) {
             return
         }
@@ -26,13 +35,13 @@ class PreloadMediaCtrl {
             this.isLoopLoad = false
             return
         }
-        await this.load(this.mediaList[0].src, this.mediaList[0].type, this.mediaList[0].cb)
+        await this._load(this.mediaList[0].src, this.mediaList[0].type, this.mediaList[0].cb)
         this.mediaList.splice(0, 1)
-        return this.loopLoad(false)
+        return this._loopLoad(false)
 
     }
 
-    async load(src: string, type: 'img' | "video", cb?: () => void) {
+    private async _load(src: string, type: 'img' | "video", cb?: () => void) {
         return new Promise((res, _rej) => {
             this.curObj = {
 
@@ -55,6 +64,7 @@ class PreloadMediaCtrl {
 
     }
 
+    /** 等待停止 */
     async awaitStop() {
         return new Promise((res, _rej) => {
             let loopFunc = () => {
@@ -74,12 +84,14 @@ class PreloadMediaCtrl {
         })
     }
 
+    /** 停止(会删掉所有堆栈) */
     stop() {
         this.pause()
         this.mediaList = []
         return
     }
 
+    /** 暂停,不删除当前堆栈 */
     pause() {
         if (this.curObj) {
             if (this.curObj.imgObj) {
