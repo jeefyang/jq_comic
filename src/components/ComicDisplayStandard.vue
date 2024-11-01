@@ -10,12 +10,16 @@ import { cloneAssign } from '../tool/util';
 import { areaTouchWaterFall } from '../const';
 import { mainMediaCtrl } from '../tool/mainMediaCtrl';
 import { showToast } from 'vant';
+import { preloadMediaCtrl } from '../tool/preloadMediaCtrl';
 
 
 const divRef = ref(<HTMLDivElement>null)
 const target = new ComicDisplayStandard()
-let curChild = ref(<MediaViewChildType>null)
+const curChildRef = ref(<MediaViewChildType>null)
 let viewList: MediaViewChildType[] = []
+const oldScale = ref(1)
+
+
 
 /** 加载图片数量 */
 let loadingImgCount = [4, 5]
@@ -25,15 +29,15 @@ onMounted(() => {
     mediaStore.areaTouch = [...areaTouchWaterFall]
     watch([() => store.splitMedia, () => store.readMode], () => {
         mediaStore.domScale = 1
-        target.resizeChild(curChild.value)
-        target.updateChild(curChild.value)
+        target.resizeChild(curChildRef.value)
+        target.updateChild(curChildRef.value)
         target.jumpMedia(divRef.value, store.displayIndex, 0, viewList, 500)
         mainMediaCtrl.autoSave()
     })
     watch([() => store.directX], () => {
         mediaStore.domScale = 1
-        target.resizeChild(curChild.value)
-        target.updateChild(curChild.value)
+        target.resizeChild(curChildRef.value)
+        target.updateChild(curChildRef.value)
         mainMediaCtrl.autoSave()
     })
 
@@ -46,7 +50,7 @@ onMounted(() => {
     })
 
     watch([() => mediaStore.setNext], () => {
-        let index = viewList.findIndex(c => c.displayIndex == curChild.value.displayIndex)
+        let index = viewList.findIndex(c => c.displayIndex == curChildRef.value.displayIndex)
         if (index == -1) {
             return
         }
@@ -54,7 +58,7 @@ onMounted(() => {
         if (!c) {
             return
         }
-        if (curChild.value.isSplit && curChild.value.splitNum == 0) {
+        if (curChildRef.value.isSplit && curChildRef.value.splitNum == 0) {
             mediaStore.jumpPage = `${c.displayIndex},1`
             preloadMedia(1, loadingImgCount[1], c.displayIndex)
             return
@@ -73,7 +77,7 @@ onMounted(() => {
     watch([() => mediaStore.setPrev], () => {
 
         console.log("perv")
-        let index = viewList.findIndex(c => c.displayIndex == curChild.value.displayIndex)
+        let index = viewList.findIndex(c => c.displayIndex == curChildRef.value.displayIndex)
         if (index == -1) {
             return
         }
@@ -81,7 +85,7 @@ onMounted(() => {
         if (!c) {
             return
         }
-        if (curChild.value.isSplit && curChild.value.splitNum == 1) {
+        if (curChildRef.value.isSplit && curChildRef.value.splitNum == 1) {
             mediaStore.jumpPage = `${c.displayIndex},0`
             preloadMedia(-1, loadingImgCount[0], c.displayIndex)
             return
@@ -96,34 +100,39 @@ onMounted(() => {
         mainMediaCtrl.autoSave()
     })
 
-    watch([() => mediaStore.jumpPage, () => mediaStore.forceJumpPage], () => {
+    const jumpFunc = () => {
         let arr = mediaStore.jumpPage.split(",")
+
         let o = viewList.find(c => c.displayIndex == parseInt(arr[0]))
         if (!o) {
             return
         }
-        curChild.value = cloneAssign(o)
-        curChild.value.splitNum = parseInt(arr[1]) ? 1 : 0
-        target.updateChild(curChild.value)
-        let searchIndex = curChild.value.searchIndex
-        let cache = jFileCache.getMediaCache(curChild.value)
-        if (cache.type == "img") {
-            let img = new Image()
-            img.onload = () => {
+        oldScale.value = curChildRef.value?.scale || 1
+        curChildRef.value = cloneAssign(o)
+        mediaStore.domScale = 1
+        curChildRef.value.splitNum = parseInt(arr[1]) ? 1 : 0
+        target.updateChild(curChildRef.value)
+        let searchIndex = curChildRef.value.searchIndex
+        let cache = jFileCache.getMediaCache(curChildRef.value)
 
-                if (curChild.value.searchIndex != searchIndex) {
-                    return
-                }
-                curChild.value.isLoaded = false
-                curChild.value.isViewImg = true
+        preloadMediaCtrl.preload(cache.dataUrl, cache.type, () => {
+            if (searchIndex == curChildRef.value.searchIndex) {
+                curChildRef.value.isLoaded = false
+                curChildRef.value.isViewImg = true
             }
-            img.src = cache.dataUrl
-        }
-        else if (cache.type == "video") {
 
-        }
-        store.displayIndex = curChild.value.displayIndex
+        })
+        store.displayIndex = curChildRef.value.displayIndex
         mainMediaCtrl.autoSave()
+
+    }
+
+    watch([() => mediaStore.jumpPage], () => {
+        jumpFunc()
+    })
+
+    watch([() => mediaStore.forceJumpPage], () => {
+        jumpFunc()
     })
 
     watch([() => mediaStore.isRefresh], () => {
@@ -135,14 +144,13 @@ onMounted(() => {
     })
 
     watch([() => mediaStore.domScale], () => {
-        target.resizeChild(curChild.value)
+        target.resizeChild(curChildRef.value)
     })
 
     target.eventInit(divRef.value)
 
     setTimeout(() => {
         window.addEventListener("resize", () => {
-            console.log("resize")
             mediaStore.jumpPage = `${store.displayIndex},0`
             mediaStore.forceJumpPage++
         })
@@ -151,6 +159,7 @@ onMounted(() => {
         mediaStore.forceJumpPage++
         mainMediaCtrl.autoSave("store")
     }, 1000);
+
 })
 
 const setRefresh = () => {
@@ -174,16 +183,18 @@ const setRefresh = () => {
     preloadMedia(1, loadingImgCount[1], store.displayIndex)
 }
 
+
 const preloadMedia = (add: -1 | 1, count: number, index: number = -1) => {
-    if (!viewList || !curChild) {
+    if (!viewList || !curChildRef) {
         return
     }
     if (index == -1) {
-        index = viewList.findIndex(c => c.displayIndex == curChild.value.displayIndex)
+        index = viewList.findIndex(c => c.displayIndex == curChildRef.value.displayIndex)
     }
     if (index == -1) {
         return
     }
+    console.log("count", count)
     for (let i = 1; i <= count; i++) {
 
         let ii = index + (i * add)
@@ -192,15 +203,13 @@ const preloadMedia = (add: -1 | 1, count: number, index: number = -1) => {
         }
 
         let c = viewList[ii]
+        if (!c) {
+            continue
+        }
         let cache = jFileCache.getMediaCache(c)
-        if (cache.type == "img") {
-            let img = new Image()
-            img.src = cache.dataUrl
-        }
-        else if (cache.type == "video") {
 
-        }
-
+        preloadMediaCtrl.preload(cache.dataUrl, cache.type)
+        console.log('preload', cache.dataUrl)
     }
 }
 
@@ -230,7 +239,7 @@ const imgOnLoad = (item: MediaViewChildType, e?: Event) => {
     <!-- 定位 -->
     <div class="comic_div" ref="divRef"
         :style="{ 'top': mediaStore.divFloatTop + 'px', 'left': mediaStore.divFloatLeft + 'px', 'width': mediaStore.divFloatW + 'px', 'height': mediaStore.divFloatH + 'px' }">
-        <template v-if="curChild">
+        <template v-if="curChildRef">
             <!-- 显示用的框(撑满固定不动,禁用滚动轴) -->
             <div class="display_trans_box">
                 <!-- 整体偏移,用于切换图片 -->
@@ -243,36 +252,36 @@ const imgOnLoad = (item: MediaViewChildType, e?: Event) => {
                         :style="{ 'width': mediaStore.divFloatW + 'px', 'height': mediaStore.divFloatH + 'px' }">
                         <!-- 移动位置,影响滚动轴 -->
                         <div class="display_trans"
-                            :style="{ 'top': (mediaStore.divFloatH > curChild.scale * mediaStore.domScale * curChild.displayH ? mediaStore.mediaMoveY : 0) + 'px', 'left': (mediaStore.divFloatW > curChild.scale * mediaStore.domScale * curChild.displayW ? mediaStore.mediaMoveX : 0) + 'px', 'width': (curChild.scale * curChild.displayW * mediaStore.domScale) + 'px', 'height': (curChild.scale * curChild.displayH * mediaStore.domScale) + 'px' }">
+                            :style="{ 'top': (!curChildRef.isLoaded ? 0 : mediaStore.divFloatH > curChildRef.scale * mediaStore.domScale * curChildRef.displayH ? mediaStore.mediaMoveY : 0) + 'px', 'left': (!curChildRef.isLoaded ? 0 : mediaStore.divFloatW > curChildRef.scale * mediaStore.domScale * curChildRef.displayW ? mediaStore.mediaMoveX : 0) + 'px', 'width': (!curChildRef.isLoaded ? mediaStore.divFloatW : (curChildRef.scale * curChildRef.displayW * mediaStore.domScale)) + 'px', 'height': (!curChildRef.isLoaded ? mediaStore.divFloatH : (curChildRef.scale * curChildRef.displayH * mediaStore.domScale)) + 'px' }">
                             <!-- 缩放视图 -->
                             <div class="display_container"
-                                :style="{ 'transform': 'scale(' + curChild.scale * mediaStore.domScale + ')' }">
+                                :style="{ 'transform': 'scale(' + curChildRef.scale * mediaStore.domScale + ')' }">
                                 <!-- 标准状态 -->
-                                <div class="display_show"
-                                    :style="{ 'width': (curChild.isLoaded ? curChild.displayW : mediaStore.divFloatW) + 'px', 'height': (curChild.isLoaded ? curChild.displayH : mediaStore.divFloatH) + 'px', }">
+                                <div :class="'display_show ' + (curChildRef.isLoaded ? 'loaded' : 'loading')"
+                                    :style="{ 'width': (curChildRef.isLoaded ? curChildRef.displayW : mediaStore.divFloatW) + 'px', 'height': (curChildRef.isLoaded ? curChildRef.displayH : mediaStore.divFloatH) + 'px', }">
                                     <!-- 加载状态 -->
-                                    <div class="imgLoading" v-if="!curChild.isLoaded"
+                                    <div class="imgLoading" v-if="!curChildRef.isLoaded"
                                         :style="{ 'background-color': mediaStore.mediaLoadingDivColor }">
                                         <div class="imgLoading_center">
                                             <van-loading vertical type="spinner" size="50" text-size="50"
                                                 text-color="#fff">{{
-                                                    curChild.displayIndex
-                                                }}_{{ curChild.splitNum }}</van-loading>
+                                                    curChildRef.displayIndex
+                                                }}_{{ curChildRef.splitNum }}</van-loading>
                                         </div>
                                     </div>
                                     <!-- 图像 -->
                                     <div class="imgLoaded">
                                         <!-- 图片 -->
-                                        <img v-if="curChild.isViewImg" class="comic_img" ref="imgRef"
-                                            :src="jFileCache.mediaCache[curChild.searchIndex].dataUrl"
-                                            @load="(e) => { imgOnLoad(curChild, e) }"
-                                            :style="{ 'transform': 'translate(' + (curChild.transX) + 'px,' + (curChild.transY) + 'px)' }"
+                                        <img v-if="curChildRef.isViewImg" class="comic_img" ref="imgRef"
+                                            :src="jFileCache.mediaCache[curChildRef.searchIndex].dataUrl"
+                                            @load="(e) => { imgOnLoad(curChildRef, e) }"
+                                            :style="{ 'transform': 'translate(' + (curChildRef.transX) + 'px,' + (curChildRef.transY) + 'px)' }"
                                             draggable="false" ondragstart="return false;">
                                         <!-- 视频 -->
-                                        <video v-if="curChild.isViewVideo" class="comic_img"
-                                            :src="jFileCache.mediaCache[curChild.searchIndex].dataUrl" autoplay loop
+                                        <video v-if="curChildRef.isViewVideo" class="comic_img"
+                                            :src="jFileCache.mediaCache[curChildRef.searchIndex].dataUrl" autoplay loop
                                             prevload
-                                            :style="{ 'transform': 'translate(' + (curChild.transX) + 'px,' + (curChild.transY) + 'px)' }">
+                                            :style="{ 'transform': 'translate(' + (curChildRef.transX) + 'px,' + (curChildRef.transY) + 'px)' }">
                                         </video>
                                     </div>
 

@@ -2,6 +2,7 @@
 import { onMounted, ref, watch } from "vue";
 import { store } from "../store"
 import { mediaStore } from "../mediaStore";
+import { preloadMediaCtrl } from "../tool/preloadMediaCtrl";
 
 
 let curNo = ref(<number>store.displayIndex + 1)
@@ -24,6 +25,7 @@ let setCloseFunc = () => {
 }
 
 let setCurNoFunc = () => {
+    preloadMediaCtrl.stop()
     mediaStore.jumpPage = `${curNo.value - 1},0`
 }
 

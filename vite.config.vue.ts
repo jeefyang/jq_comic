@@ -11,9 +11,10 @@ export default defineConfig(({ mode }) => {
     return {
 
         // 原始
-        plugins: [vue(),vueTsx()],
+        plugins: [vue(), vueTsx()],
         build: {
-            minify: mode == "development" ? false : true
+            minify: mode == "development" ? false : true,
+            sourcemap: mode == "development" ? true : false
         }
     }
 })

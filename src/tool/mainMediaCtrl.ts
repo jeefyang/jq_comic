@@ -162,7 +162,6 @@ export class MainMediaCtrl {
         else {
             json.storeList[index] = { key: o.urlkey, data: cloneStore }
         }
-        console.log(json)
         let newTxt = JSON.stringify(json)
         localStorage.setItem(this.storageStoreKey, newTxt)
     }

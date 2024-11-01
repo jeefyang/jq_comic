@@ -32,6 +32,7 @@ const resizeFunc = () => {
   mediaStore.displayFileCol = Math.floor(mediaStore.screenW / 150) + 2
   mediaStore.displayFileIconSize = Math.floor(mediaStore.screenW / 25) + 20
   mediaStore.displayFileTextCount = Math.floor(mediaStore.screenW / 100) + 5
+
 }
 
 onMounted(async () => {
@@ -91,7 +92,7 @@ onMounted(async () => {
 
   //测试
 
-
+  console.log(123,process.env.VUE_APP_SECRET)
 
 
   // watch(()=>[store.readMode],()=>{

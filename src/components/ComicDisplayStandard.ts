@@ -99,7 +99,7 @@ export class ComicDisplayStandard {
         if (!transDiv) {
             return
         }
-        
+
         let oldSDomScale = mediaStore.domScale
         let clientX = x - mediaStore.divFloatLeft
         let clientY = y - mediaStore.divFloatTop
@@ -108,7 +108,6 @@ export class ComicDisplayStandard {
         clientY -= parseFloat(transDiv.style.top) * mediaStore.domScale
         let left = (selectDiv.scrollLeft + clientX) / oldSDomScale * mediaStore.domScale - (clientX)
         let top = (selectDiv.scrollTop + clientY) / oldSDomScale * mediaStore.domScale - (clientY)
-        console.log(transDiv.style.left,selectDiv.scrollLeft,left,mediaStore.domScale)
         setTimeout(() => {
             selectDiv.scrollTo({ left: left, top: top, behavior: 'auto' })
         }, 50);
@@ -135,6 +134,7 @@ export class ComicDisplayStandard {
             child.transX = 0
         }
         child.displayH = cache.originH
+        
         if (store.readMode == "none") {
             child.scale = 1
             mediaStore.mediaMoveX = 0

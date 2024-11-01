@@ -10,6 +10,7 @@ import { mainMediaCtrl } from "../tool/mainMediaCtrl";
 import { MiddleFileType } from "../media";
 import { JFlex } from "../components/JFlex"
 import { sortABByDate, sortABByName, sortABByNum, sortABBySize } from "../tool/util";
+import { preloadMediaCtrl } from "../tool/preloadMediaCtrl";
 
 
 const themeVars: ConfigProviderThemeVars = {
@@ -211,6 +212,7 @@ let updateFolderFunc = async (url: string, forceUpdate?: boolean) => {
 /** 选中文件大法(包括) */
 const selectFileFunc = async (item: (typeof fileList.value)[number]) => {
     let loadding = showLoadingToast({ message: "加载中", overlay: true, forbidClick: true, duration: 0 })
+    preloadMediaCtrl.stop()
     searchKey.value = ""
     if (item.type == "folder") {
         let newUrl: string = path.join(mediaStore.curDirUrl, item.originName)
@@ -411,7 +413,8 @@ const onSaveFunc = () => {
                             @click="selectFileFunc(item)">
                             <img v-if="store.switchThum && item.imgb64" class="imgContent"
                                 :width="(mediaStore.displayFileIconSize * store.thumRatio) + 'px'"
-                                :height="(mediaStore.displayFileIconSize * store.thumRatio) + 'px'" :src="item.imgb64" />
+                                :height="(mediaStore.displayFileIconSize * store.thumRatio) + 'px'"
+                                :src="item.imgb64" />
                             <van-icon v-else :name="item.className"
                                 :size="(mediaStore.displayFileIconSize * store.thumRatio) + 'px'"></van-icon>
                             <span :class="item.type">{{ item.name }}</span>
