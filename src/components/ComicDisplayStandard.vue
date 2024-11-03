@@ -18,35 +18,91 @@ const target = new ComicDisplayStandard()
 const curChildRef = ref(<MediaViewChildType>null)
 let viewList: MediaViewChildType[] = []
 
+const curChildTransX = ref(0)
+const curChildTransY = ref(0)
+const curChildTransW = ref(0)
+const curChildTransH = ref(0)
+const curChildDisplayW = ref(mediaStore.divFloatW)
+const curChildDisplayH = ref(mediaStore.divFloatH)
+
 
 /** 加载图片数量 */
 let loadingImgCount = [4, 5]
 
+const jumpFunc = () => {
+    let arr = mediaStore.jumpPage.split(",")
+
+    let o = viewList.find(c => c.displayIndex == parseInt(arr[0]))
+    if (!o) {
+        return
+    }
+    curChildRef.value = cloneAssign(o)
+    curChildRef.value.scale = 1
+    mediaStore.domScale = 1
+    updateMediaTransFunc()
+    curChildRef.value.splitNum = parseInt(arr[1]) ? 1 : 0
+    target.updateChild(curChildRef.value)
+    let searchIndex = curChildRef.value.searchIndex
+    let cache = jFileCache.getMediaCache(curChildRef.value)
+
+    preloadMediaCtrl.insertLoad(cache.dataUrl, cache.type, () => {
+        if (searchIndex == curChildRef.value.searchIndex) {
+            curChildRef.value.isLoaded = false
+            curChildRef.value.isViewImg = true
+        }
+
+    })
+    store.displayIndex = curChildRef.value.displayIndex
+    mainMediaCtrl.autoSave()
+}
+
+const updateMediaTransFunc = (item?: MediaViewChildType) => {
+    if (!item) {
+        curChildTransX.value = 0
+        curChildTransY.value = 0
+        curChildTransW.value = mediaStore.divFloatW
+        curChildTransH.value = mediaStore.divFloatH
+        curChildDisplayW.value = mediaStore.divFloatW
+        curChildDisplayH.value = mediaStore.divFloatH
+    }
+    else {
+        curChildTransX.value = mediaStore.divFloatW > item.scale * mediaStore.domScale * item.displayW ? mediaStore.mediaMoveX : 0
+        curChildTransY.value = mediaStore.divFloatH > item.scale * mediaStore.domScale * item.displayH ? mediaStore.mediaMoveY : 0
+        curChildTransW.value = item.scale * item.displayW * mediaStore.domScale
+        curChildTransH.value = item.scale * item.displayH * mediaStore.domScale
+        curChildDisplayW.value = item.displayW
+        curChildDisplayH.value = item.displayH
+    }
+}
+
 onMounted(() => {
 
+
+
     mediaStore.areaTouch = [...areaTouchWaterFall]
+
+    // 改变切割状态
     watch([() => store.splitMedia, () => store.readMode], () => {
-        mediaStore.domScale = 1
-        target.resizeChild(curChildRef.value)
-        target.updateChild(curChildRef.value)
-        target.jumpMedia(divRef.value, store.displayIndex, 0, viewList, 500)
-        mainMediaCtrl.autoSave()
-    })
-    watch([() => store.directX], () => {
-        mediaStore.domScale = 1
-        target.resizeChild(curChildRef.value)
-        target.updateChild(curChildRef.value)
-        mainMediaCtrl.autoSave()
+        jumpFunc()
+
     })
 
+    // 改变阅读方向
+    watch([() => store.directX], () => {
+        jumpFunc()
+    })
+
+    // 首页
     watch([() => mediaStore.overHead], () => {
         showToast({ message: "已经是首页了,不要再翻", forbidClick: false, duration: 500 })
     })
 
+    // 尾页
     watch([() => mediaStore.overEnd], () => {
         showToast({ message: "已经是尾页了,不要再翻", forbidClick: false, duration: 500 })
     })
 
+    // 下一页
     watch([() => mediaStore.setNext], () => {
         let index = viewList.findIndex(c => c.displayIndex == curChildRef.value.displayIndex)
         if (index == -1) {
@@ -72,6 +128,7 @@ onMounted(() => {
 
     })
 
+    // 上一页
     watch([() => mediaStore.setPrev], () => {
 
         console.log("perv")
@@ -98,41 +155,17 @@ onMounted(() => {
         mainMediaCtrl.autoSave()
     })
 
-    const jumpFunc = () => {
-        let arr = mediaStore.jumpPage.split(",")
-
-        let o = viewList.find(c => c.displayIndex == parseInt(arr[0]))
-        if (!o) {
-            return
-        }
-        curChildRef.value = cloneAssign(o)
-        curChildRef.value.scale = 1
-        mediaStore.domScale = 1
-        curChildRef.value.splitNum = parseInt(arr[1]) ? 1 : 0
-        target.updateChild(curChildRef.value)
-        let searchIndex = curChildRef.value.searchIndex
-        let cache = jFileCache.getMediaCache(curChildRef.value)
-
-        preloadMediaCtrl.insertLoad(cache.dataUrl, cache.type, () => {
-            if (searchIndex == curChildRef.value.searchIndex) {
-                curChildRef.value.isLoaded = false
-                curChildRef.value.isViewImg = true
-            }
-
-        })
-        store.displayIndex = curChildRef.value.displayIndex
-        mainMediaCtrl.autoSave()
-
-    }
-
+    // 跳转页面
     watch([() => mediaStore.jumpPage], () => {
         jumpFunc()
     })
 
+    // 强制跳转页面
     watch([() => mediaStore.forceJumpPage], () => {
         jumpFunc()
     })
 
+    /** 刷新页面 */
     watch([() => mediaStore.isRefresh], () => {
         if (!mediaStore.isRefresh) {
             return
@@ -141,8 +174,10 @@ onMounted(() => {
         mainMediaCtrl.autoSave()
     })
 
+    // 放大缩小
     watch([() => mediaStore.domScale], () => {
         target.resizeChild(curChildRef.value)
+        updateMediaTransFunc(curChildRef.value)
     })
 
     target.eventInit(divRef.value)
@@ -192,7 +227,6 @@ const preloadMedia = (add: -1 | 1, count: number, index: number = -1) => {
     if (index == -1) {
         return
     }
-    console.log("count", count)
     for (let i = 1; i <= count; i++) {
 
         let ii = index + (i * add)
@@ -207,7 +241,6 @@ const preloadMedia = (add: -1 | 1, count: number, index: number = -1) => {
         let cache = jFileCache.getMediaCache(c)
 
         preloadMediaCtrl.preload(cache.dataUrl, cache.type)
-        console.log('preload', cache.dataUrl)
     }
 }
 
@@ -229,6 +262,10 @@ const imgOnLoad = (item: MediaViewChildType, e?: Event) => {
     if (item.displayIndex == store.displayIndex && mediaStore.curSplit == item.splitNum && !item.isViewDisplay && item.splitNum == 1) {
         mediaStore.jumpPage = `${item.displayIndex},0`
     }
+    else {
+        updateMediaTransFunc(item)
+    }
+
 }
 
 
@@ -250,13 +287,13 @@ const imgOnLoad = (item: MediaViewChildType, e?: Event) => {
                         :style="{ 'width': mediaStore.divFloatW + 'px', 'height': mediaStore.divFloatH + 'px' }">
                         <!-- 移动位置,影响滚动轴 -->
                         <div class="display_trans"
-                            :style="{ 'top': (!curChildRef.isLoaded ? 0 : mediaStore.divFloatH > curChildRef.scale * mediaStore.domScale * curChildRef.displayH ? mediaStore.mediaMoveY : 0) + 'px', 'left': (!curChildRef.isLoaded ? 0 : mediaStore.divFloatW > curChildRef.scale * mediaStore.domScale * curChildRef.displayW ? mediaStore.mediaMoveX : 0) + 'px', 'width': (!curChildRef.isLoaded ? mediaStore.divFloatW : (curChildRef.scale * curChildRef.displayW * mediaStore.domScale)) + 'px', 'height': (!curChildRef.isLoaded ? mediaStore.divFloatH : (curChildRef.scale * curChildRef.displayH * mediaStore.domScale)) + 'px' }">
+                            :style="{ 'top': curChildTransY + 'px', 'left': curChildTransX + 'px', 'width': curChildTransW + 'px', 'height': curChildTransH + 'px' }">
                             <!-- 缩放视图 -->
                             <div class="display_container"
                                 :style="{ 'transform': 'scale(' + curChildRef.scale * mediaStore.domScale + ')' }">
                                 <!-- 标准状态 -->
                                 <div :class="'display_show ' + (curChildRef.isLoaded ? 'loaded' : 'loading')"
-                                    :style="{ 'width': (curChildRef.isLoaded ? curChildRef.displayW : mediaStore.divFloatW) + 'px', 'height': (curChildRef.isLoaded ? curChildRef.displayH : mediaStore.divFloatH) + 'px', }">
+                                    :style="{ 'width': curChildDisplayW + 'px', 'height': curChildDisplayH + 'px', }">
                                     <!-- 加载状态 -->
                                     <div class="imgLoading" v-if="!curChildRef.isLoaded"
                                         :style="{ 'background-color': mediaStore.mediaLoadingDivColor }">
