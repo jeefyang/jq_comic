@@ -92,7 +92,7 @@ onMounted(async () => {
 
   //测试
 
-  console.log(123,process.env.VUE_APP_SECRET)
+  console.log(123, process.env.VUE_APP_SECRET)
 
 
   // watch(()=>[store.readMode],()=>{
@@ -113,7 +113,10 @@ onMounted(async () => {
           <ComicDisplayWaterfall v-if="store.readMode == 'udWaterfall'"></ComicDisplayWaterfall>
           <ComicDisplayStandard v-if="store.readMode != 'udWaterfall'"></ComicDisplayStandard>
           <ComicDisplayArea v-if="mediaStore.displayArea"></ComicDisplayArea>
-          <FileManager v-if="mediaStore.displayFileManager"></FileManager>
+          <keep-alive>
+            <FileManager v-if="mediaStore.displayFileManager"></FileManager>
+          </keep-alive>
+          
           <ComicOPPanel v-if="mediaStore.displayOPPanel"></ComicOPPanel>
           <ComicBottomBar v-if="mediaStore.displayBottomBar"></ComicBottomBar>
 

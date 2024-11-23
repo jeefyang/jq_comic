@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { store } from "../store"
 import { jFileCache } from "../tool/fileCache";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, onActivated } from "vue";
 import { showLoadingToast, showToast, type ConfigProviderThemeVars } from 'vant';
 import { JFileFormatType, JFolderDisplayType, NameSortType } from "../type";
 import path from "path-browserify"
@@ -37,11 +37,14 @@ let fileBoxDiv: HTMLDivElement = null
 let searchKey = ref(<string>"")
 let scrollCount = 0
 let scrollMax = 0
+// 当前下拉
+const curScrollTop = ref(0)
 
 let updateThumState = true
 
 
 onMounted(async () => {
+    console.log("loadFile")
     let loadding = showLoadingToast({ message: "加载中", overlay: true, forbidClick: true, duration: 0 })
     fileBoxDiv = fileBoxDivRef.value
     await updateFolderFunc(mediaStore.curDirUrl)
@@ -59,8 +62,18 @@ onMounted(async () => {
     return
 })
 
+onActivated(() => {
+    setTimeout(() => {
+        console.log(curScrollTop)
+        if (fileBoxDivRef.value) {
+            fileBoxDivRef.value.scrollTo({ top: curScrollTop.value, behavior: "smooth" })
+        }
+    }, 200);
+})
+
 const zipEXList = ['zip']
 const imgEXList = ['jpg', 'png', 'webp', 'bmp']
+
 
 
 const updateThum = async () => {
@@ -307,7 +320,9 @@ const setIconTypeFunc = () => {
 }
 
 /** 滚动懒加载 */
-const scrollLazyLoad = async (num: number) => {
+const scrollLazyLoad = async (playload: UIEvent) => {
+    curScrollTop.value = (<HTMLElement>playload?.target)?.scrollTop || 0
+    let num = 50
     let delta = 200
     if (scrollCount >= scrollMax) {
         return
@@ -323,7 +338,7 @@ const scrollLazyLoad = async (num: number) => {
     scrollCount += num
     await new Promise((res, _rej) => {
         setTimeout(() => {
-            scrollLazyLoad(num)
+            scrollLazyLoad(playload)
             res(undefined)
         }, 100);
     })
@@ -401,7 +416,7 @@ const onSaveFunc = () => {
             </div>
 
             <!-- 文件显示大框 -->
-            <div class="file_display_box_div" ref="fileBoxDivRef" @scroll="scrollLazyLoad(50)">
+            <div class="file_display_box_div" ref="fileBoxDivRef" @scroll="scrollLazyLoad">
                 <van-config-provider :theme-vars="themeVars">
                     <!-- 文件显示 -->
                     <div style="height:8px;"></div>
@@ -441,7 +456,7 @@ const onSaveFunc = () => {
                                             {{ item.type == 'file' ? getSizeStrFunc(item.size) : '' }}</div>
                                         <div class="file_display_icon_detail_op_date_div">{{
                                             getDateStrFunc(item.time)
-                                            }}
+                                        }}
                                         </div>
                                     </j-flex>
                                 </j-flex>
