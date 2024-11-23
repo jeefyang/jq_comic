@@ -24,5 +24,9 @@ export default defineConfig(({ mode }) => {
             }),
 
         ],
+        build: {
+            minify: mode == "development" ? false : true,
+            sourcemap: mode == "development" ? true : false
+        }
     }
 })

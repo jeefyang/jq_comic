@@ -40,6 +40,7 @@ let scrollMax = 0
 // 当前下拉
 const curScrollTop = ref(0)
 
+/** 更新缩略图标记 */
 let updateThumState = true
 
 
@@ -74,10 +75,18 @@ onActivated(() => {
 const zipEXList = ['zip']
 const imgEXList = ['jpg', 'png', 'webp', 'bmp']
 
+/** 是否继续更新缩略图 */
+let isContinueUpdateThum = false
+/** 是否正在更新缩略图 */
+let isUpdatingThum = false
 
-
-const updateThum = async () => {
+const loopUpdateThum = async () => {
+    if (isUpdatingThum) {
+        return
+    }
+    isUpdatingThum = false
     let dirUrl = mediaStore.curDirUrl
+
     for (let i = 0; i < fileList.value.length; i++) {
         if (!updateThumState) {
             return
@@ -104,6 +113,17 @@ const updateThum = async () => {
             continue
         }
     }
+    isUpdatingThum = false
+    if (isContinueUpdateThum) {
+        isContinueUpdateThum = false
+        return loopUpdateThum()
+    }
+}
+
+const updateThum = async () => {
+
+    isContinueUpdateThum = true
+    loopUpdateThum()
 }
 
 /** 设置排序大法 */
@@ -456,7 +476,7 @@ const onSaveFunc = () => {
                                             {{ item.type == 'file' ? getSizeStrFunc(item.size) : '' }}</div>
                                         <div class="file_display_icon_detail_op_date_div">{{
                                             getDateStrFunc(item.time)
-                                            }}
+                                        }}
                                         </div>
                                     </j-flex>
                                 </j-flex>
