@@ -146,7 +146,7 @@ const setSortFunc = async () => {
             res(undefined)
         }, 100);
     })
-    await scrollLazyLoad(50)
+    await scrollLazyLoad(undefined)
     return
 }
 
@@ -456,7 +456,7 @@ const onSaveFunc = () => {
                                             {{ item.type == 'file' ? getSizeStrFunc(item.size) : '' }}</div>
                                         <div class="file_display_icon_detail_op_date_div">{{
                                             getDateStrFunc(item.time)
-                                        }}
+                                            }}
                                         </div>
                                     </j-flex>
                                 </j-flex>
