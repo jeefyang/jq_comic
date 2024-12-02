@@ -84,7 +84,6 @@ const setRefresh = () => {
 }
 
 const freshImg = async () => {
-    console.log(store.mediaSortType)
     await mainMediaCtrl.openMedia(store.dirUrl, store.fileName, store.displayIndex)
     // console.log(mediaMiddleData.list.map(c => jFileCache.getMediaCache(c).dataUrl))
     mediaStore.isRefresh = true
