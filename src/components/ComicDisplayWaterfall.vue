@@ -47,28 +47,28 @@ const jumpFunc = async () => {
     if (mediaMiddleData.list.length == 0) {
         return
     }
-    let c=mediaMiddleData.list[arr[0]]
-    let cache=jFileCache.mediaCache[c.searchIndex]
-    let size=await loadImgCache(cache.dataUrl)
-    cache.originH=size.height
-    cache.originW=size.width
-    let list=[c]
-    if(store.splitMedia=="split" || (store.splitMedia=="auto" && cache.originW>cache.originH)){
-        list.push(cloneAssign(list[0]))
+    let c = mediaMiddleData.list[Number(arr[0])]
+    c.isViewImg = true
+    let cache = jFileCache.mediaCache[c.searchIndex]
+    let size = await loadImgCache(cache.dataUrl)
+    cache.originH = size.height
+    cache.originW = size.width
+    let list = [cloneAssign(c)]
+
+    if (store.splitMedia == "split" || (store.splitMedia == "auto" && cache.originW > cache.originH)) {
+        list.push(cloneAssign(c))
     }
-    list.forEach(cc=>{
+    list.forEach(cc => {
         target.resizeChild(cc)
     })
-    viewList.value=list
-   
-
-
+    viewList.value = list
 
     for (let i = 0; i < viewList.value.length; i++) {
         let c = viewList.value[i]
         target.resizeChild(c)
     }
 
+    console.log(viewList.value)
 
 
 }
@@ -119,9 +119,7 @@ onMounted(() => {
         })
         mediaStore.jumpPage = `${store.displayIndex},0`
         mediaStore.forceJumpPage++
-        console.log(1111, mediaMiddleData.list.length)
         mainMediaCtrl.autoSave("store")
-        console.log(4444, mediaMiddleData.list)
     }, 1000);
 })
 
@@ -242,14 +240,6 @@ const loopFunc = async (loopTag: number) => {
     height: 100%;
 }
 
-.imgLoaded {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-}
 
 .display_trans_box {
 
@@ -257,6 +247,11 @@ const loopFunc = async (loopTag: number) => {
     display: flex;
     flex-direction: column;
     /* position: absolute; */
+}
+
+.scroll-view {
+    display: flex;
+    flex-direction: column;
 }
 
 .display_container {
