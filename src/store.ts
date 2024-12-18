@@ -1,6 +1,7 @@
 import { reactive } from "vue"
-import { NameSortType } from "./type"
+import { NameSortType, StoreReadMode } from "./type"
 import { staticData } from "./const"
+
 
 export const store = reactive({
     /** 当前文件路径,不能带文件夹 */
@@ -14,7 +15,7 @@ export const store = reactive({
     /** 图片观看排列顺序 */
     mediaSortType: <NameSortType>"数字",
     /** 阅读模式 */
-    readMode: <"width" | "none" | "height" | "fit" | "udWaterfall">"fit",
+    readMode: <StoreReadMode>"fit",
     /** 显示文件的样式(图标,详细) */
     displayFileStyleType: <"icon" | "detail">"detail",
     /** 是否二分媒体 */

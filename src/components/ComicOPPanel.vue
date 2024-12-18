@@ -2,19 +2,20 @@
 import { onMounted } from 'vue';
 
 import { store } from "../store"
-import { NameSortType } from '../type';
+import { NameSortType, StoreReadMode } from '../type';
 import { showToast } from 'vant';
 import { staticData } from '../const';
 import { mediaStore } from '../mediaStore';
 import { mainMediaCtrl } from '../tool/mainMediaCtrl';
 import { cloneAssign } from '../tool/util';
 import { JFlex } from "../components/JFlex"
-const readModeMap: { key: typeof store.readMode, name: string }[] = [
+const readModeMap: { key: StoreReadMode, name: string }[] = [
     { key: "none", name: "原始" },
     { key: "fit", name: "适应屏幕" },
     { key: "width", name: "适应宽度" },
     { key: "height", name: "适应高度" },
-    { key: "udWaterfall", name: "上下瀑布" }
+    { key: "udWaterfall-width", name: "上下瀑布(铺满)" },
+    { key: "udWaterfall-fit", name: "上下瀑布(适应)" },
 ]
 
 const splitImgMap: { key: typeof store.splitMedia, name: string }[] = [

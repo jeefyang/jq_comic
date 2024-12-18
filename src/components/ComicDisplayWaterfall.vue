@@ -9,11 +9,11 @@ import { store } from '../store';
 // import { jaction } from "../tool/action"
 // import { JTouch } from '../tool/touch';
 import { MediaViewChildType } from '../media';
-import { cloneAssign, everyBetween } from '../tool/util';
+import { cloneAssign } from '../tool/util';
 import { ComicDisplayWaterfall } from "./ComicDisplayWaterfall"
 import { areaTouchWaterFall } from '../const';
 import { mainMediaCtrl } from '../tool/mainMediaCtrl';
-import { ToastWrapperInstance, showToast } from 'vant';
+import { showToast } from 'vant';
 
 
 const divRef = ref(<HTMLDivElement>null)
@@ -47,29 +47,11 @@ const jumpFunc = async () => {
     if (mediaMiddleData.list.length == 0) {
         return
     }
-    let c = mediaMiddleData.list[Number(arr[0])]
-    c.isViewImg = true
-    let cache = jFileCache.mediaCache[c.searchIndex]
-    let size = await loadImgCache(cache.dataUrl)
-    cache.originH = size.height
-    cache.originW = size.width
-    let list = [cloneAssign(c)]
+   await addView(1,Number(arr[0]))
 
-    if (store.splitMedia == "split" || (store.splitMedia == "auto" && cache.originW > cache.originH)) {
-        list.push(cloneAssign(c))
-    }
-    list.forEach(cc => {
-        target.resizeChild(cc)
-    })
-    viewList.value = list
-
-    for (let i = 0; i < viewList.value.length; i++) {
-        let c = viewList.value[i]
-        target.resizeChild(c)
-    }
-
-    console.log(viewList.value)
-
+   await addView(1)
+   await addView(1)
+   await addView(1)
 
 }
 
@@ -110,7 +92,7 @@ onMounted(() => {
     })
 
     target.eventInit(divRef.value)
-    startLoopFunc()
+
 
     setTimeout(() => {
         window.addEventListener("resize", () => {
@@ -131,13 +113,58 @@ const setRefresh = () => {
     // preloadMedia(1, loadingImgCount[1], store.displayIndex)
 }
 
+const loadedImg = async (index: number) => {
+    let c = mediaMiddleData.list[index]
+    c.isViewImg = true
+    let cache = jFileCache.mediaCache[c.searchIndex]
+    let size = await loadImgCache(cache.dataUrl)
+    cache.originH = size.height
+    cache.originW = size.width
+    let list = [cloneAssign(c)]
 
+    if (store.splitMedia == "split" || (store.splitMedia == "auto" && cache.originW > cache.originH)) {
+        list.push(cloneAssign(c))
+    }
+    list.forEach(cc => {
+        target.resizeChild(cc)
+    })
+    return list
+}
+
+
+const addView = async (add: -1 | 1, jump: number = -1) => {
+    if (jump != -1) {
+        let list = await loadedImg(jump)
+        viewList.value = [...list]
+        for (let i = 0; i < viewList.value.length; i++) {
+            let c = viewList.value[i]
+            target.resizeChild(c)
+        }
+        startLoopFunc()
+        return true
+    }
+    let c = add == -1 ? viewList.value[0] : viewList.value[viewList.value.length - 1]
+    if (!c) {
+        return false
+    }
+    let index = c.displayIndex + add
+    if (index == -1) {
+        return false
+    }
+    let list = await loadedImg(index)
+    if (add == -1) {
+        viewList.value = [...list, ...viewList.value]
+    }
+    else {
+        viewList.value = [...viewList.value, ...list]
+    }
+
+}
+
+/** 循环遍历,用于切换漫画用的 */
 let curLoopTag = 0
 
-/** 显示div数量 */
-let displayDivCount = [1, 6]
-/** 加载图片数量 */
-let loadingImgCount = [4, 5]
+
 
 const startLoopFunc = () => {
     curLoopTag++
@@ -150,10 +177,13 @@ const loopFunc = async (loopTag: number) => {
         if (loopTag != curLoopTag || !divRef.value) {
             return res(undefined)
         }
+        // 往下
         if (target.scrollTag == 1) {
-
+            console.log()
         }
+        // 往上
         else if (target.scrollTag == -1) {
+            console.log("-1")
 
         }
 
@@ -164,17 +194,15 @@ const loopFunc = async (loopTag: number) => {
     })
 }
 
-
-
-
-
-
+const onScroll = (e) => {
+    console.log('scroll', e)
+}
 
 </script>
-<template>
-    <div class="comic_div" ref="divRef"
-        :style="{ 'top': mediaStore.divFloatTop + 'px', 'left': mediaStore.divFloatLeft + 'px', 'width': mediaStore.divFloatW + 'px', 'height': mediaStore.divFloatH + 'px' }">
 
+<template>
+    <div class="comic_div" ref="divRef" @scroll="onScroll"
+        :style="{ 'top': mediaStore.divFloatTop + 'px', 'left': mediaStore.divFloatLeft + 'px', 'width': mediaStore.divFloatW + 'px', 'height': mediaStore.divFloatH + 'px' }">
 
         <div class="scroll-view">
             <!-- 头部 -->
@@ -185,11 +213,12 @@ const loopFunc = async (loopTag: number) => {
                 <div>正在加载页面</div>
             </div>
             <template v-for="(item) in viewList" :key="item.searchIndex+item.splitNum">
-                <div class="imgLoaded">
+                <div class="imgLoaded"
+                    :style="{ textAlign: item.isSplit ? item.splitNum == 1 ? 'right' : 'left' : 'center', 'width': item.displayW + 'px', height: item.displayH + 'px',marginBottom: mediaStore.margin + 'px' }">
                     <!-- 图片 -->
                     <img v-if="item.isViewImg" class="img" ref="imgRef"
                         :src="jFileCache.mediaCache[item.searchIndex].dataUrl"
-                        :style="{ 'width': item.displayW + 'px', height: item.displayH }" draggable="false"
+                        :style="{ 'width': item.displayW + 'px', height: item.displayH + 'px' }" draggable="false"
                         ondragstart="return false;">
                     <!-- 视频 -->
                     <video v-if="item.isViewVideo" :src="jFileCache.mediaCache[item.searchIndex].dataUrl" autoplay loop
@@ -252,6 +281,7 @@ const loopFunc = async (loopTag: number) => {
 .scroll-view {
     display: flex;
     flex-direction: column;
+    align-items: center;
 }
 
 .display_container {
@@ -265,6 +295,7 @@ const loopFunc = async (loopTag: number) => {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    width: 100%;
 
     div {
         font-size: 3vw;
@@ -273,11 +304,12 @@ const loopFunc = async (loopTag: number) => {
 }
 
 .half-bottom {
-    background: yellow;
+    background: rgb(42, 36, 194);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    width: 100%;
 
     div {
         font-size: 3vw;

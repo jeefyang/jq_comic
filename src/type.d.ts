@@ -68,3 +68,5 @@ export type ZipDataType = {
     key: string
     data: StreamZip.ZipEntry;
 }
+
+export type StoreReadMode="width" | "none" | "height" | "fit" | "udWaterfall-fit"|"udWaterfall-width"

@@ -104,6 +104,7 @@ class JFileCache {
             this._setFloderSort(this.dirCache[url])
             return this.dirCache[url]
         }
+        console.log("11",url)
         let obj = await this.server.postFolder(url)
         obj.noZipFiles = []
         for (let i = 0; i < obj.files.length; i++) {

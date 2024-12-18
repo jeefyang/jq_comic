@@ -75,6 +75,11 @@ export type MediaViewChildType = {
     displayW?: number
     /** 媒体显示的高度 */
     displayH?: number
+    /** div完全显示的宽度(用于瀑布) */
+    viewW?: number
+    /** div完全显示的高度(用于瀑布) */
+    viewH?: number
+
     /** 是否已经开始播放视频 */
     isPlayedVideo?: boolean
     /** 包裹元素的位移x */

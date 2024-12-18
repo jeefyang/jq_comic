@@ -16,10 +16,13 @@ import ComicManager from './components/ComicManager.vue';
 import { mainMediaCtrl } from './tool/mainMediaCtrl';
 import NoSleep from "nosleep.js"
 import VConsole from 'vconsole';
+import { StoreReadMode } from './type';
 
 
 
 // const imgSrc = ref("")
+
+const waterfallTypeList: StoreReadMode[] = ['udWaterfall-fit', 'udWaterfall-width']
 
 const resizeFunc = () => {
   mediaStore.screenW = document.body.clientWidth
@@ -36,6 +39,13 @@ const resizeFunc = () => {
 }
 
 onMounted(async () => {
+  let url = new URL(document.location.href)
+  store.urlkey = url.searchParams.get("key") || ""
+  store.isControlDebug = url.searchParams.get("isControlDebug") == "1" ? true : false
+  store.isManager = url.searchParams.get("isManager") == "1" ? true : false
+  if (!store.urlkey && !store.isManager) {
+    return
+  }
 
   let noSleep = new NoSleep()
 
@@ -60,10 +70,7 @@ onMounted(async () => {
 
   }
 
-  let url = new URL(document.location.href)
-  store.urlkey = url.searchParams.get("key") || ""
-  store.isControlDebug = url.searchParams.get("isControlDebug") == "1" ? true : false
-  store.isManager = url.searchParams.get("isManager") == "1" ? true : false
+
 
   resizeFunc()
 
@@ -92,7 +99,7 @@ onMounted(async () => {
 
   //测试
 
-  console.log(123, process.env.VUE_APP_SECRET)
+  // console.log(123, process.env.VUE_APP_SECRET)
 
 
   // watch(()=>[store.readMode],()=>{
@@ -104,19 +111,20 @@ onMounted(async () => {
 
 <template>
   <div class="app" :style="{ 'background-color': store.background }">
-    <van-config-provider theme="dark">
+    <div v-if="!store.urlkey && !store.isManager">404</div>
+    <van-config-provider theme="dark" v-else>
       <template v-if="store.isManager">
         <ComicManager></ComicManager>
       </template>
       <template v-else>
         <div v-if="mediaStore.isServerCompleted">
-          <ComicDisplayWaterfall v-if="store.readMode == 'udWaterfall'"></ComicDisplayWaterfall>
-          <ComicDisplayStandard v-if="store.readMode != 'udWaterfall'"></ComicDisplayStandard>
+          <ComicDisplayWaterfall v-if="waterfallTypeList.includes(store.readMode)"></ComicDisplayWaterfall>
+          <ComicDisplayStandard v-else></ComicDisplayStandard>
           <ComicDisplayArea v-if="mediaStore.displayArea"></ComicDisplayArea>
           <keep-alive>
             <FileManager v-if="mediaStore.displayFileManager"></FileManager>
           </keep-alive>
-          
+
           <ComicOPPanel v-if="mediaStore.displayOPPanel"></ComicOPPanel>
           <ComicBottomBar v-if="mediaStore.displayBottomBar"></ComicBottomBar>
 
