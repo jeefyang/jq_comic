@@ -2,7 +2,7 @@
 import { store } from "../store"
 import { jFileCache } from "../tool/fileCache";
 import { onMounted, ref, onActivated } from "vue";
-import { showLoadingToast, showToast, type ConfigProviderThemeVars } from 'vant';
+import { showLoadingToast, showToast, type ConfigProviderThemeVars } from "vant";
 import { JFileFormatType, JFolderDisplayType, NameSortType } from "../type";
 import path from "path-browserify"
 import { mediaStore } from "../mediaStore"
@@ -407,82 +407,74 @@ const onSaveFunc = () => {
 </script>
 
 <template>
-    <div class="file_big_div"
-        :style="{ 'top': '0px', 'left': '0px', 'width': mediaStore.screenW + 'px', 'height': mediaStore.screenH + 'px' }"
-        draggable="false" ondragstart="return false;">
-        <div class='file_back_div'></div>
+    <div class="file" draggable="false" ondragstart="return false;">
+        <!-- 背景版 -->
+        <div class='file_shadow'></div>
         <!-- 浮动层 -->
 
-        <div class="file_box_div">
-            <!-- 路径展示 -->
-            <div>
-                <div class="file_path_div">
-                    <input placeholder="搜索" class="file_search_input" @change="setSortFunc" v-model="searchKey" />
-                    <button v-for="(item, index) in urlList" :title="item" @click="rebackFolderFuncByIndex(index)">{{
-                        item }} </button>
+        <div class="file_card">
+            <van-search @change="setSortFunc" v-model="searchKey" placeholder="搜索关键字" shape="round" />
+            <div class="btn">
+                <!-- 路径 -->
+                <div class="btn-list path" style="margin-top: 5px;">
+                    <button v-for="(item, index) in urlList" :title="item" @click="rebackFolderFuncByIndex(index)">
+                        {{ item }} </button>
+                </div>
+                <!-- 功能键 -->
+                <div class="btn-list control">
+                    <van-Button @click="mediaStore.displayFileManager = false">关闭</van-Button>
+                    <van-Button @click="rebackFolderFuncByIndex(-1)">后退</van-Button>
+                    <van-Button @click="rebackFolderFuncByIndex(-2)">刷新</van-Button>
+                    <van-Button @click="setSortTypeFunc">排序:{{ store.fileListSortType }}</van-Button>
+                    <van-Button @click="setReverse">{{ store.fileListReverse ? '反序' : '正序' }}</van-Button>
+                    <van-Button @click="rebackCur">当前</van-Button>
+                    <van-Button @click="setIconTypeFunc">{{ store.displayFileStyleType == "detail" ? '详细' : '图标'
+                        }}</van-Button>
                 </div>
             </div>
-            <!-- 功能键 -->
-            <div class="file_op_div">
 
-                <van-Button @click="rebackFolderFuncByIndex(-1)">后退</van-Button>
-                <van-Button @click="rebackFolderFuncByIndex(-2)">刷新</van-Button>
-                <van-Button @click="setIconTypeFunc">{{ store.displayFileStyleType == "detail" ? '详细' : '图标'
-                    }}</van-Button>
-                <van-Button @click="setSortTypeFunc">排序:{{ store.fileListSortType }}</van-Button>
-                <van-Button @click="setReverse">{{ store.fileListReverse ? '反序' : '正序' }}</van-Button>
-                <van-Button @click="rebackCur">当前</van-Button>
-                <van-Button @click="mediaStore.displayFileManager = false">关闭</van-Button>
-            </div>
 
             <!-- 文件显示大框 -->
-            <div class="file_display_box_div" ref="fileBoxDivRef" @scroll="scrollLazyLoad">
+            <div class="display_box" ref="fileBoxDivRef" @scroll="scrollLazyLoad">
                 <van-config-provider :theme-vars="themeVars">
-                    <!-- 文件显示 -->
-                    <div style="height:8px;"></div>
                     <!-- 图标显示 -->
-                    <van-grid :icon-size="(mediaStore.displayFileIconSize * store.thumRatio) + 'px'"
-                        :column-num="mediaStore.displayFileCol" :border="false" square gutter="5px"
-                        v-if="store.displayFileStyleType == 'icon'">
-                        <van-grid-item v-for="(item) in fileList" :key="item.originName" :title="item.title"
+                    <template v-if="store.displayFileStyleType == 'icon'">
+                        <div class="icon-item"
+                            :style="{ gridTemplateColumns: `repeat(${mediaStore.displayFileCol},calc(calc(100vw - 40px) / ${mediaStore.displayFileCol})` }">
+                            <div v-for="(item) in fileList" :key="item.originName" @click="selectFileFunc(item)"
+                                class="box">
+                                <div>
+                                    <img v-if="store.switchThum && item.imgb64" class="imgContent"
+                                        :width="(mediaStore.displayFileIconSize * store.thumRatio) + 'px'"
+                                        :height="(mediaStore.displayFileIconSize * store.thumRatio) + 'px'"
+                                        :src="item.imgb64" />
+                                    <van-icon v-else :name="item.className"
+                                        :size="(mediaStore.displayFileIconSize * store.thumRatio) + 'px'"></van-icon>
+                                </div>
+                                <div class="title" :class="'title-'+item.type">{{ item.title }}</div>
+                            </div>
+                        </div>
+                    </template>
+                    <!-- 详细显示 -->
+                    <template v-if="store.displayFileStyleType == 'detail'">
+                        <div class="detail-item" v-for="(item) in fileList" :key="item.originName"
                             @click="selectFileFunc(item)">
                             <img v-if="store.switchThum && item.imgb64" class="imgContent"
-                                :width="(mediaStore.displayFileIconSize * store.thumRatio) + 'px'"
-                                :height="(mediaStore.displayFileIconSize * store.thumRatio) + 'px'"
+                                :width="(mediaStore.displayFileIconSize * 1.5 * store.thumRatio) + 'px'"
+                                :height="(mediaStore.displayFileIconSize * 1.5 * store.thumRatio) + 'px'"
                                 :src="item.imgb64" />
                             <van-icon v-else :name="item.className"
-                                :size="(mediaStore.displayFileIconSize * store.thumRatio) + 'px'"></van-icon>
-                            <span :class="item.type">{{ item.name }}</span>
-                        </van-grid-item>
-                    </van-grid>
-                    <!-- 详细显示 -->
-                    <van-grid :column-num="1" :border="false" gutter="5px" v-if="store.displayFileStyleType == 'detail'"
-                        :center="false">
-                        <van-grid-item v-for="(item) in fileList" :key="item.originName">
-                            <j-flex direction="horizontal" is-last-grow align="center">
-                                <img v-if="store.switchThum && item.imgb64" class="imgContent"
-                                    :width="(mediaStore.displayFileIconSize * 1.5 * store.thumRatio) + 'px'"
-                                    :height="(mediaStore.displayFileIconSize * 1.5 * store.thumRatio) + 'px'"
-                                    :src="item.imgb64" />
-                                <van-icon v-else :name="item.className"
-                                    :size="(mediaStore.displayFileIconSize * 1.5 * store.thumRatio) + 'px'"></van-icon>
+                                :size="(mediaStore.displayFileIconSize * 1.5 * store.thumRatio) + 'px'"></van-icon>
+                            <div class="msg">
+                                <div>{{ item.originName }}</div>
+                                <div class="size-date">
+                                    <div>{{ item.type == 'file' ? getSizeStrFunc(item.size) : '' }}</div>
+                                    <div>{{ getDateStrFunc(item.time) }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
 
-                                <j-flex direction="vertical" fill>
-                                    <van-text-ellipsis :class="item.type" :content="item.originName" expand-text=">"
-                                        collapse-text="<" rows="1" @click="selectFileFunc(item)"
-                                        @click-action="stopBubbleFunc" />
-                                    <j-flex direction="horizontal" split>
-                                        <div class="file_display_icon_detail_op_size_div">
-                                            {{ item.type == 'file' ? getSizeStrFunc(item.size) : '' }}</div>
-                                        <div class="file_display_icon_detail_op_date_div">{{
-                                            getDateStrFunc(item.time)
-                                        }}
-                                        </div>
-                                    </j-flex>
-                                </j-flex>
-                            </j-flex>
-                        </van-grid-item>
-                    </van-grid>
                 </van-config-provider>
             </div>
         </div>
@@ -531,7 +523,7 @@ const onSaveFunc = () => {
     </van-popup>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .imgDiv {
     display: flex;
     justify-content: center;
@@ -542,108 +534,94 @@ const onSaveFunc = () => {
     object-fit: contain;
 }
 
-.file_big_div {
-    position: absolute;
-    overflow: hidden;
-}
-
-.file_back_div {
-    position: absolute;
-    overflow: hidden;
-    width: 100%;
-    height: 100%;
-    backdrop-filter: blur(10px);
-    background-color: rgba(109, 113, 104, 0.397);
-}
-
-
-
-
-.wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    backdrop-filter: blur(10px);
-}
-
-.file_box_div {
-    position: absolute;
-    top: 5%;
-    left: 5%;
-    width: 90%;
-    height: 90%;
-    background-color: #6e1e1e6e;
-    display: flex;
-    flex-direction: column;
-}
-
-.pathList {
-    display: flex;
-    /* width: 100%; */
-}
-
-
-
-.file_path_div {
-    display: flex;
-    overflow-x: auto;
-    overflow-y: hidden;
-    white-space: nowrap;
-}
-
-.file_op_div {
-    display: flex;
-}
-
-.file_path_div::-webkit-scrollbar {
-    display: none;
-}
-
-.file_display_box_div {
-    overflow: auto;
-    width: 100%;
-    flex-grow: 1;
-}
-
-.file_display_icon_detail_div {
-    display: flex;
-}
-
-.file_search_input {
-    width: 100px;
-}
-
-/* .file_display_icon_detail_name_div {} */
-
-.file_display_icon_detail_text_div {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.file_display_icon_detail_op_size_div {
-    text-align: start;
-    transform: scale(0.8);
-    color: #bbbbbb;
-}
-
-.file_display_icon_detail_op_date_div {
-    text-align: end;
-    transform: scale(0.8);
-    color: #bbbbbb;
-}
-
-.file_display_icon_detail_op_div {
-    display: flex;
-    justify-content: space-between;
-}
-
 .file {
-    color: #fff
-}
+    position: absolute;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9;
 
-.folder {
-    color: #e8b810
+    &_shadow {
+        position: absolute;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        backdrop-filter: blur(10px);
+        background-color: rgba(109, 113, 104, 0.397);
+        z-index: -1;
+    }
+
+    &_card {
+        margin: 20px;
+        background-color: #6e1e1e6e;
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 40px);
+        border-radius: 10px;
+        position: relative;
+
+        .btn {
+            height: 100px;
+            // display: flex;
+            // flex-direction: column;
+            // justify-content: space-around;
+
+            &-list {
+                margin-bottom: 5px;
+                display: flex;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+            }
+        }
+
+
+        .display_box {
+            overflow: auto;
+            width: 100%;
+            flex-grow: 1;
+
+            .icon-item {
+                margin-top: 10px;
+                display: grid;
+                row-gap: 10px;
+
+                .box {
+
+                    padding: 5px;
+
+                    .title {
+                        word-wrap: break-word
+                    }
+
+                    .title-file {
+                        color: #fff
+                    }
+
+                    .title-folder {
+                        color: #e8b810
+                    }
+                }
+            }
+
+            .detail-item {
+                display: flex;
+                align-items: center;
+                border-bottom: 1px solid #999;
+                padding: 10px;
+
+                .msg {
+                    flex-grow: 1;
+                    margin-left: 10px;
+
+                    .size-date {
+                        display: flex;
+                        justify-content: space-between;
+                        color: #999;
+                    }
+                }
+            }
+        }
+    }
+
 }
 </style>

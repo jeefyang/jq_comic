@@ -47,11 +47,11 @@ const jumpFunc = async () => {
     if (mediaMiddleData.list.length == 0) {
         return
     }
-   await addView(1,Number(arr[0]))
+    await addView(1, Number(arr[0]))
 
-   await addView(1)
-   await addView(1)
-   await addView(1)
+    await addView(1)
+    await addView(1)
+    await addView(1)
 
 }
 
@@ -115,6 +115,7 @@ const setRefresh = () => {
 
 const loadedImg = async (index: number) => {
     let c = mediaMiddleData.list[index]
+    console.log(index, c, mediaMiddleData.list)
     c.isViewImg = true
     let cache = jFileCache.mediaCache[c.searchIndex]
     let size = await loadImgCache(cache.dataUrl)
@@ -149,6 +150,9 @@ const addView = async (add: -1 | 1, jump: number = -1) => {
     }
     let index = c.displayIndex + add
     if (index == -1) {
+        return false
+    }
+    if (index > mediaMiddleData.list.length - 1) {
         return false
     }
     let list = await loadedImg(index)
@@ -214,7 +218,7 @@ const onScroll = (e) => {
             </div>
             <template v-for="(item) in viewList" :key="item.searchIndex+item.splitNum">
                 <div class="imgLoaded"
-                    :style="{ textAlign: item.isSplit ? item.splitNum == 1 ? 'right' : 'left' : 'center', 'width': item.displayW + 'px', height: item.displayH + 'px',marginBottom: mediaStore.margin + 'px' }">
+                    :style="{ textAlign: item.isSplit ? item.splitNum == 1 ? 'right' : 'left' : 'center', 'width': item.displayW + 'px', height: item.displayH + 'px', marginBottom: mediaStore.margin + 'px' }">
                     <!-- 图片 -->
                     <img v-if="item.isViewImg" class="img" ref="imgRef"
                         :src="jFileCache.mediaCache[item.searchIndex].dataUrl"

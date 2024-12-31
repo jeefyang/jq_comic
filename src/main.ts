@@ -1,7 +1,7 @@
 import { createSSRApp } from 'vue'
 import './style.css'
 import App from './App.vue'
-import { Col, Row, Button, Grid, GridItem, ConfigProvider, Icon, TextEllipsis, Field, Slider, Loading, RadioGroup, Radio, ActionSheet, Switch, DropdownMenu, DropdownItem, FloatingBubble, Image, Space, Popup, Checkbox, CheckboxGroup, Image as VanImage } from 'vant';
+import { Col, Row, Button, Grid, GridItem, ConfigProvider, Icon, TextEllipsis, Field, Slider, Loading, RadioGroup, Radio, ActionSheet, Switch, DropdownMenu, DropdownItem, FloatingBubble, Image, Space, Popup, Checkbox, CheckboxGroup, Image as VanImage, Search } from 'vant';
 import './assets/iconfont/iconfont.css'
 import "vant/lib/index.css"
 import '@vant/touch-emulator';
@@ -34,6 +34,7 @@ export const createApp = () => {
     app.use(Checkbox)
     app.use(CheckboxGroup)
     app.use(VanImage)
+    app.use(Search)
     // app.use(Toast)
     return { app }
 }
