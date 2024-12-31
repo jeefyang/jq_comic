@@ -298,11 +298,6 @@ const rebackCur = async () => {
     return
 }
 
-/** 强制停止冒泡 */
-const stopBubbleFunc = (e: MouseEvent) => {
-    e.stopPropagation()
-}
-
 /** 获取文件大小大法 */
 const getSizeStrFunc = (size: number) => {
     return (size / 1024 / 1024).toFixed(2) + 'MB'
